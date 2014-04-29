@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import os
 import settings
 
 from alert import Alert, Heartbeat, ApiClient
@@ -26,6 +27,7 @@ def main():
     while True:
         try:
             message = queue.get(block=True, timeout=20)
+            print message.payload
             api.send_alert(Alert(**message.payload))
             message.ack()
         except Empty:
@@ -33,7 +35,7 @@ def main():
         except (KeyboardInterrupt, SystemExit):
             break
 
-        api.send_heartbeat(Heartbeat(origin='alert-sqs', tags=[__version__]))
+        api.send_heartbeat(Heartbeat(origin='alert-sqs/%s' % os.uname()[1], tags=[__version__]))
 
     queue.close()
 
