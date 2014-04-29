@@ -2,13 +2,12 @@
 
 import settings
 
-from alert import Alert, Heartbeat, ApiClient
+from alert import Alert
 from kombu import BrokerConnection
-from Queue import Empty
 
 __version__ = '3.0.0'
 
-from kombu.utils.debug import setup_logging
+# from kombu.utils.debug import setup_logging
 # setup_logging(loglevel='DEBUG', loggers=[''])
 
 
@@ -21,22 +20,9 @@ def main():
     connection = BrokerConnection(broker_url, transport_options=transport_options)
     queue = connection.SimpleQueue(sqs_queue)
 
-    api = ApiClient()
-
-    while True:
-        try:
-            message = queue.get(block=True, timeout=20)
-            api.send_alert(Alert(**message.payload))
-            message.ack()
-        except Empty:
-            pass
-        except (KeyboardInterrupt, SystemExit):
-            break
-
-        api.send_heartbeat(Heartbeat(origin='alert-sqs', tags=[__version__]))
-
+    alert = Alert('foo', 'bar', severity='major', service='test', environment='production')
+    queue.put(alert.get_body())
     queue.close()
-
 
 if __name__ == '__main__':
     main()
