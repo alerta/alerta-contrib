@@ -19,7 +19,7 @@ from alerta.common.transform import Transformers
 from alerta.common.dedup import DeDup
 from alerta.common.graphite import Carbon
 
-__version__ = '3.0.3'
+__version__ = '3.2.0'
 
 LOG = logging.getLogger(__name__)
 CONF = config.CONF
@@ -277,3 +277,14 @@ class PingerDaemon(Daemon):
         for i in range(CONF.server_threads):
             self.queue.put(None)
         w.join()
+
+
+def main():
+
+    config.parse_args(version=__version__)
+    logging.setup('alerta')
+    pinger = PingerDaemon('alert-pinger')
+    pinger.start()
+
+if __name__ == '__main__':
+    main()
