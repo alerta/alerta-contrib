@@ -5,9 +5,9 @@ import json
 import threading
 import Queue
 import re
-from BaseHTTPServer import BaseHTTPRequestHandler as BHRH
-
 import yaml
+
+from BaseHTTPServer import BaseHTTPRequestHandler as BHRH
 
 HTTP_RESPONSES = dict([(k, v[0]) for k, v in BHRH.responses.items()])
 
@@ -388,3 +388,14 @@ class UrlmonDaemon(Daemon):
         for i in range(CONF.server_threads):
             self.queue.put(None)
         w.join()
+
+
+def main():
+
+    config.parse_args(version=__version__)
+    logging.setup('alerta')
+    urlmon = UrlmonDaemon('alert-urlmon')
+    urlmon.start()
+
+if __name__ == '__main__':
+    main()
