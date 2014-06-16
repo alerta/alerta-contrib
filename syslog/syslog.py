@@ -7,7 +7,6 @@ import re
 from alerta.common import config
 from alerta.common import log as logging
 from alerta.common.daemon import Daemon
-from alerta.syslog.priority import priority_to_code, decode_priority
 from alerta.common.alert import Alert
 from alerta.common.heartbeat import Heartbeat
 from alerta.common.transform import Transformers
@@ -15,9 +14,11 @@ from alerta.common.dedup import DeDup
 from alerta.common.api import ApiClient
 from alerta.common.graphite import StatsD
 
-__version__ = '3.0.3'
+from priority import priority_to_code, decode_priority
 
-LOG = logging.getLogger(__name__)
+__version__ = '3.2.0'
+
+LOG = logging.getLogger('alerta.syslog')
 CONF = config.CONF
 
 
@@ -230,3 +231,14 @@ class SyslogDaemon(Daemon):
             syslogAlerts.append(syslogAlert)
 
         return syslogAlerts
+
+
+def main():
+
+    config.parse_args(version=__version__)
+    logging.setup('alerta')
+    syslog = SyslogDaemon('alert-syslog')
+    syslog.start()
+
+if __name__ == '__main__':
+    main()

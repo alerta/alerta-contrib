@@ -24,7 +24,7 @@ from alerta.common.graphite import Carbon
 
 __version__ = '3.0.4'
 
-LOG = logging.getLogger(__name__)
+LOG = logging.getLogger('alerta.urlmon')
 CONF = config.CONF
 
 _HTTP_ALERTS = [

@@ -21,7 +21,7 @@ from alerta.common.graphite import Carbon
 
 __version__ = '3.2.0'
 
-LOG = logging.getLogger(__name__)
+LOG = logging.getLogger('alerta.pinger')
 CONF = config.CONF
 
 
