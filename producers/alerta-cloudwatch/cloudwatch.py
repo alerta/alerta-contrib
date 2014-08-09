@@ -3,73 +3,54 @@ import sys
 import json
 import time
 import datetime
+import logging
 
 import boto.sqs
 from boto.sqs.message import RawMessage
 from boto import exception
 
-from alerta.common import config
-from alerta.common import log as logging
-from alerta.common.daemon import Daemon
-from alerta.common.alert import Alert
-from alerta.common.heartbeat import Heartbeat
-from alerta.common import severity_code
-from alerta.common.transform import Transformers
-from alerta.common.dedup import DeDup
-from alerta.common.api import ApiClient
-from alerta.common.graphite import StatsD
-
-__version__ = '3.0.3'
+from alerta.api import ApiClient
+from alerta.alert import Alert
+from alerta.heartbeat import Heartbeat
 
 LOG = logging.getLogger(__name__)
-CONF = config.CONF
+
+logging.basicConfig(filename='example.log', level=logging.DEBUG)
+
+__version__ = '3.2.0'
 
 
-class CloudWatchDaemon(Daemon):
+class CloudWatch(object):
 
-    cloudwatch_opts = {
-        'cloudwatch_sqs_region': 'eu-west-1',
-        'cloudwatch_sqs_queue': 'cloudwatch-to-alerta',
-        'cloudwatch_access_key': '022QF06E7MXBSAMPLE',
-        'cloudwatch_secret_key': ''
-    }
+    def __init__(self):
 
-    def __init__(self, prog, **kwargs):
+        self.aws_region = 'eu-west-1'
+        self.aws_sqs_queue = ''
+        self.aws_access_key = ''
+        self.aws_secret_key = ''
 
-        config.register_opts(CloudWatchDaemon.cloudwatch_opts)
-
-        Daemon.__init__(self, prog, kwargs)
+        self.api = ApiClient()  # does this pick up endpoint and key from config files?
 
     def run(self):
 
-        self.running = True
-
-        self.statsd = StatsD()  # graphite metrics
-
-        # Connect to message queue
-        self.api = ApiClient()
-
-        self.dedup = DeDup(by_value=True)
-
-        LOG.info('Connecting to SQS queue %s', CONF.cloudwatch_sqs_queue)
         try:
             connection = boto.sqs.connect_to_region(
-                CONF.cloudwatch_sqs_region,
-                aws_access_key_id=CONF.cloudwatch_access_key,
-                aws_secret_access_key=CONF.cloudwatch_secret_key
+                self.aws_region,
+                aws_access_key_id=self.aws_access_key,
+                aws_secret_access_key=self.aws_secret_key
             )
         except boto.exception.SQSError, e:
             LOG.error('SQS API call failed: %s', e)
             sys.exit(1)
 
         try:
-            sqs = connection.create_queue(CONF.cloudwatch_sqs_queue)
+            sqs = connection.create_queue(self.aws_sqs_queue)
             sqs.set_message_class(RawMessage)
         except boto.exception.SQSError, e:
             LOG.error('SQS queue error: %s', e)
             sys.exit(1)
 
-        while not self.shuttingdown:
+        while True:
             try:
                 LOG.info('Waiting for CloudWatch alarms...')
                 try:
@@ -82,11 +63,10 @@ class CloudWatchDaemon(Daemon):
                 if message:
                     body = message.get_body()
                     cloudwatchAlert = self.parse_notification(body)
-                    if self.dedup.is_send(cloudwatchAlert):
-                        try:
-                            self.api.send(cloudwatchAlert)
-                        except Exception, e:
-                            LOG.warning('Failed to send alert: %s', e)
+                    try:
+                        self.api.send(cloudwatchAlert)
+                    except Exception, e:
+                        LOG.warning('Failed to send alert: %s', e)
                     sqs.delete_message(message)
 
                 LOG.debug('Send heartbeat...')
@@ -97,10 +77,7 @@ class CloudWatchDaemon(Daemon):
                     LOG.warning('Failed to send heartbeat: %s', e)
 
             except (KeyboardInterrupt, SystemExit):
-                self.shuttingdown = True
-
-        LOG.info('Shutdown request received...')
-        self.running = False
+                sys.exit(0)
 
     def parse_notification(self, message):
 
@@ -155,23 +132,22 @@ class CloudWatchDaemon(Daemon):
             raw_data=raw_data,
         )
 
-        suppress = Transformers.normalise_alert(cloudwatchAlert)
-        if suppress:
-            LOG.info('Suppressing %s alert', event)
-            LOG.debug('%s', cloudwatchAlert)
-            return
-
         return cloudwatchAlert
 
     @staticmethod
     def cw_state_to_severity(state):
 
         if state == 'ALARM':
-            return severity_code.MAJOR
+            return 'major'
         elif state == 'INSUFFICIENT_DATA':
-            return severity_code.WARNING
+            return 'warning'
         elif state == 'OK':
-            return severity_code.NORMAL
+            return 'normal'
         else:
-            return severity_code.UNKNOWN
+            return 'unknown'
 
+
+def shell():
+
+    cw = CloudWatch()
+    return cw.run()
