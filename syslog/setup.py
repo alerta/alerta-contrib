@@ -16,7 +16,7 @@ setup(
     author="Nick Satterly",
     author_email="nick.satterly@theguardian.com",
     url="http://github.com/alerta/alerta-contrib",
-    py_modules=['syslog', 'priority'],
+    packages=[''],
     install_requires=[
         'alerta-server',
     ],
