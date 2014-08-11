@@ -3,7 +3,8 @@
 from kombu import BrokerConnection, Exchange, Queue
 from kombu.mixins import ConsumerMixin
 
-BROKER_URL = 'amqp://guest:guest@localhost:5672//'
+AMPQ_URL = 'amqp://guest:guest@localhost:5672//'
+AMPQ_QUEUE = 'example'
 
 
 class Worker(ConsumerMixin):
@@ -11,8 +12,8 @@ class Worker(ConsumerMixin):
     def __init__(self, connection):
 
         self.connection = connection
-        self.exchange = Exchange('alerts', type='direct', durable=True)
-        self.queue = Queue('alerts', exchange=self.exchange, routing_key='alerts')
+        self.exchange = Exchange(AMPQ_QUEUE, type='direct', durable=True)
+        self.queue = Queue(AMPQ_QUEUE, exchange=self.exchange, routing_key=AMPQ_QUEUE)
 
     def get_consumers(self, Consumer, channel):
 
@@ -31,7 +32,7 @@ def main():
     from kombu.utils.debug import setup_logging
     setup_logging(loglevel='DEBUG')
 
-    with BrokerConnection(BROKER_URL) as connection:
+    with BrokerConnection(AMPQ_URL) as connection:
         try:
             Worker(connection).run()
         except KeyboardInterrupt:
