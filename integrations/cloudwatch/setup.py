@@ -21,7 +21,7 @@ setuptools.setup(
     zip_safe=False,
     entry_points={
         'console_scripts': [
-            'alerta-cloudwatch = cloudwatch:shell'
+            'alerta-cloudwatch = cloudwatch:main'
         ]
     }
 )

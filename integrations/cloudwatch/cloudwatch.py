@@ -147,7 +147,7 @@ class CloudWatch(object):
             return 'unknown'
 
 
-def shell():
+def main():
 
     cw = CloudWatch()
     return cw.run()
