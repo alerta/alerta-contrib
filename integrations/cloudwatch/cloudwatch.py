@@ -15,10 +15,10 @@ from alerta.heartbeat import Heartbeat
 
 __version__ = '3.2.0'
 
-AWS_SQS_QUEUE = 'cloudwatch-alarms'
+AWS_SQS_QUEUE = os.environ.get('AWS_SQS_QUEUE')
 AWS_ACCESS_KEY_ID = os.environ.get('AWS_ACCESS_KEY_ID')
 AWS_SECRET_ACCESS_KEY = os.environ.get('AWS_SECRET_ACCESS_KEY')
-AWS_REGION = 'eu-west-1'
+AWS_REGION = os.environ.get('AWS_REGION')
 
 ALERTA_ENDPOINT = os.environ.get('ALERTA_ENDPOINT')
 ALERTA_API_KEY = os.environ.get('ALERTA_API_KEY')
