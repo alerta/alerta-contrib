@@ -14,27 +14,20 @@ INFLUXDB_PASSWORD = 'alerta'
 
 class InfluxDBWrite(PluginBase):
 
-    def __init__(self):
-
-        self.endpoint = 'http://localhost:8086'
-
     def pre_receive(self, alert):
-
         pass
 
     def post_receive(self, alert):
 
-        url = self.endpoint + '/db/alerta/series'
+        url = INFLUXDB_URL + '/db/alerta/series'
 
-        data = [
-            {
-                "name": alert.event,
-                "columns": ["value", "environment", "resource"],
-                "points": [
-                    [alert.value, alert.environment, alert.resource]
-                ]
-            }
-        ]
+        data = [{
+            "name": alert.event,
+            "columns": ["value", "environment", "resource"],
+            "points": [
+                [alert.value, alert.environment, alert.resource]
+            ]
+        }]
 
         LOG.debug('InfluxDB data: %s', data)
 
