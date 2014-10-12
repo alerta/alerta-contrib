@@ -1,38 +1,30 @@
 #!/usr/bin/env python
 
-import os
-import sys
+import setuptools
 
-try:
-    from setuptools import setup
-except ImportError:
-    from distutils.core import setup
+version = '3.3.0'
 
-setup(
+setuptools.setup(
     name="alerta-urlmon",
-    version='3.2.0',
-    description="Alerta URL monitor daemon",
-    license="MIT",
-    author="Nick Satterly",
-    author_email="nick.satterly@theguardian.com",
-    url="http://github.com/alerta/alerta-contrib",
+    version=version,
+    description='Alerta script for URL monitoring',
+    url='https://github.com/alerta/alerta-contrib',
+    license='Apache License 2.0',
+    author='Nick Satterly',
+    author_email='nick.satterly@theguardian.com',
     py_modules=['urlmon'],
     install_requires=[
-        'alerta-server',
+        'alerta'
     ],
+    include_package_data=True,
+    zip_safe=False,
     entry_points={
         'console_scripts': [
             'alerta-urlmon = urlmon:main'
         ]
     },
-    keywords="alerta url monitor daemon",
+    keywords="alerta url monitoring",
     classifiers=[
-        'Development Status :: 5 - Production/Stable',
-        'License :: OSI Approved :: MIT License',
-        'Intended Audience :: System Administrators',
-        'Programming Language :: Python :: 2.6',
-        'Programming Language :: Python :: 2.7',
         'Topic :: System :: Monitoring',
     ]
 )
-
