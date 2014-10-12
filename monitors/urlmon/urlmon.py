@@ -50,7 +50,7 @@ MAX_TIMEOUT = 15000  # ms
 
 import settings
 
-LOG = logging.getLogger("urlmon")
+LOG = logging.getLogger("alerta.urlmon")
 logging.basicConfig(format="%(asctime)s - %(name)s: %(levelname)s - %(message)s", level=logging.DEBUG)
 
 
@@ -362,7 +362,7 @@ class UrlmonDaemon(object):
 
 def main():
 
-    LOG = logging.getLogger("urlmon")
+    LOG = logging.getLogger("alerta.urlmon")
 
     try:
         UrlmonDaemon().run()
