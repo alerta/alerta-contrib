@@ -9,14 +9,13 @@ Useful but non-essential additions to the alerta monitoring system which are gro
 
   * listeners - programs that listen for alerts forwarded by the server to AMQP or SQS queues
 
-                                   
-                                                                                   
-Example - Use AMQP Plug-in with RabbitMQ
-----------------------------------------                                                                                 
+
+Example - How to use the AMQP Plug-in with RabbitMQ
+---------------------------------------------------
 
 Standard monitors for Syslog, SNMP and ping send alerts to the Alerta sever. Once the database is updated, the AMQP plug-in forwards the alerts to RabbitMQ. Different components listen for these alerts either on a dedicated queue or a shared topic, reformat the alerts and send IRC messages, emails or alerts to Pagerduty based on alert attributes.
 
-```                                                                                   
+```
       +----------+                                   +-----+       +-----------+   
       |  syslog  +-------+   +------------+-----+    |  R  +-----> | IRC       |   
       +----------+       |   |            |   P |    |  a  |       +-----------+   
@@ -34,6 +33,4 @@ Standard monitors for Syslog, SNMP and ping send alerts to the Alerta sever. Onc
                                  |       |                                         
                                  |       |                                         
                                  +-------+                                         
-```                                                                                   
-                                                                                   
-
+```
