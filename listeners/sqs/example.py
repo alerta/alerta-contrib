@@ -14,8 +14,8 @@ __version__ = '3.3.0'
 LOG = logging.getLogger(__name__)
 
 AWS_SQS_QUEUE = 'example'
-AWS_ACCESS_KEY_ID = 'AKIAJP37OJN36SMEEVJQ'
-AWS_SECRET_ACCESS_KEY = '8B3px/mZwAja93wFYgENkFcf81SG/zi2wly+fQyd'
+AWS_ACCESS_KEY_ID = ''
+AWS_SECRET_ACCESS_KEY = ''
 AWS_REGION = 'eu-west-1'
 
 
