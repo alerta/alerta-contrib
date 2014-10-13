@@ -3,39 +3,96 @@ import sys
 import socket
 import select
 import re
+import logging
 
-from alerta.common import config
-from alerta.common import log as logging
-from alerta.common.daemon import Daemon
-from alerta.common.alert import Alert
-from alerta.common.heartbeat import Heartbeat
-from alerta.common.transform import Transformers
-from alerta.common.dedup import DeDup
-from alerta.common.api import ApiClient
-from alerta.common.graphite import StatsD
+from transform import Transformers
 
-from priority import priority_to_code, decode_priority
-
-__version__ = '3.2.0'
-
-LOG = logging.getLogger('alerta.syslog')
-CONF = config.CONF
+from alerta.api import ApiClient
+from alerta.alert import Alert
+from alerta.heartbeat import Heartbeat
 
 
-class SyslogDaemon(Daemon):
+SYSLOG_FACILITY_NAMES = [
+    "kern",
+    "user",
+    "mail",
+    "daemon",
+    "auth",
+    "syslog",
+    "lpr",
+    "news",
+    "uucp",
+    "cron",
+    "authpriv",
+    "ftp",
+    "ntp",
+    "audit",
+    "alert",
+    "clock",
+    "local0",
+    "local1",
+    "local2",
+    "local3",
+    "local4",
+    "local5",
+    "local6",
+    "local7"
+]
 
-    syslog_opts = {
-        'user_id': 'root',
-        'use_syslog': False,
-        'syslog_udp_port': 514,
-        'syslog_tcp_port': 514,
-    }
+SYSLOG_SEVERITY_NAMES = [
+    "emerg",
+    "alert",
+    "crit",
+    "err",
+    "warning",
+    "notice",
+    "info",
+    "debug"
+]
 
-    def __init__(self, prog, **kwargs):
+SYSLOG_SEVERITY_MAP = {
+    "emerg":   "critical",
+    "alert":   "critical",
+    "crit":    "major",
+    "err":     "minor",
+    "warning": "warning",
+    "notice":  "normal",
+    "info":    "informational",
+    "debug":   "debug",
+}
 
-        config.register_opts(SyslogDaemon.syslog_opts)
+DEFAULT_UDP_PORT = 514
+DEFAULT_TCP_PORT = 514
 
-        Daemon.__init__(self, prog, kwargs)
+
+def priority_to_code(name):
+    return SYSLOG_SEVERITY_MAP.get(name, "unknown")
+
+
+def decode_priority(priority):
+    facility = priority >> 3
+    facility = SYSLOG_FACILITY_NAMES[facility]
+    level = priority & 7
+    level = SYSLOG_SEVERITY_NAMES[level]
+    return facility, level
+
+__version__ = '3.3.0'
+
+LOOP_EVERY = 20  # seconds
+SYSLOG_UDP_PORT = 514
+SYSLOG_TCP_PORT = 514
+
+import settings
+
+LOG = logging.getLogger("alerta.syslog")
+logging.basicConfig(format="%(asctime)s - %(name)s: %(levelname)s - %(message)s", level=logging.DEBUG)
+
+
+class SyslogDaemon(object):
+
+    def __init__(self):
+
+        self.shuttingdown = False
 
     def run(self):
 
@@ -45,35 +102,31 @@ class SyslogDaemon(Daemon):
         # Set up syslog UDP listener
         try:
             udp = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-            udp.bind(('', CONF.syslog_udp_port))
+            udp.bind(('', SYSLOG_UDP_PORT))
         except socket.error, e:
             LOG.error('Syslog UDP error: %s', e)
             sys.exit(2)
-        LOG.info('Listening on syslog port %s/udp' % CONF.syslog_udp_port)
+        LOG.info('Listening on syslog port %s/udp' % SYSLOG_UDP_PORT)
 
         LOG.info('Starting TCP listener...')
         # Set up syslog TCP listener
         try:
             tcp = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             tcp.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-            tcp.bind(('', CONF.syslog_tcp_port))
+            tcp.bind(('', SYSLOG_TCP_PORT))
             tcp.listen(5)
         except socket.error, e:
             LOG.error('Syslog TCP error: %s', e)
             sys.exit(2)
-        LOG.info('Listening on syslog port %s/tcp' % CONF.syslog_tcp_port)
+        LOG.info('Listening on syslog port %s/tcp' % SYSLOG_TCP_PORT)
 
-        self.statsd = StatsD()  # graphite metrics
-
-        self.api = ApiClient()
-
-        self.dedup = DeDup(by_value=True)
+        self.api = self.api = ApiClient(endpoint=settings.ENDPOINT, key=settings.API_KEY)
 
         count = 0
         while not self.shuttingdown:
             try:
                 LOG.debug('Waiting for syslog messages...')
-                ip, op, rdy = select.select([udp, tcp], [], [], CONF.loop_every)
+                ip, op, rdy = select.select([udp, tcp], [], [], LOOP_EVERY)
                 if ip:
                     for i in ip:
                         if i == udp:
@@ -89,12 +142,10 @@ class SyslogDaemon(Daemon):
 
                         syslogAlerts = self.parse_syslog(addr[0], data)
                         for syslogAlert in syslogAlerts:
-                            if self.dedup.is_send(syslogAlert):
-                                try:
-                                    self.api.send(syslogAlert)
-                                except Exception, e:
-                                    LOG.warning('Failed to send alert: %s', e)
-                                self.statsd.metric_send('alert.syslog.alerts.total', 1)
+                            try:
+                                self.api.send(syslogAlert)
+                            except Exception, e:
+                                LOG.warning('Failed to send alert: %s', e)
 
                     count += 1
                 if not ip or count % 5 == 0:
@@ -196,7 +247,7 @@ class SyslogDaemon(Daemon):
             group = 'Syslog'
             value = level
             text = MSG
-            environment = 'PROD'
+            environment = 'Production'
             service = ['Platform']
             tags = ['%s.%s' % (facility, level)]
             correlate = list()
@@ -219,7 +270,12 @@ class SyslogDaemon(Daemon):
                 raw_data=raw_data,
             )
 
-            suppress = Transformers.normalise_alert(syslogAlert, facility=facility, level=level)
+            suppress = False
+            try:
+                suppress = Transformers.normalise_alert(syslogAlert, facility=facility, level=level)
+            except RuntimeWarning:
+                pass
+
             if suppress:
                 LOG.info('Suppressing %s.%s alert', facility, level)
                 LOG.debug('%s', syslogAlert)
@@ -235,10 +291,17 @@ class SyslogDaemon(Daemon):
 
 def main():
 
-    config.parse_args(version=__version__)
-    logging.setup('alerta')
-    syslog = SyslogDaemon('alert-syslog')
-    syslog.start()
+    LOG = logging.getLogger("alerta.syslog")
+
+    try:
+        SyslogDaemon().run()
+    except (SystemExit, KeyboardInterrupt):
+        LOG.info("Exiting alerta syslog.")
+        sys.exit(0)
+    except Exception as e:
+        LOG.error(e, exc_info=1)
+        sys.exit(1)
 
 if __name__ == '__main__':
     main()
+

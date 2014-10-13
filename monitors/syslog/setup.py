@@ -1,38 +1,30 @@
 #!/usr/bin/env python
 
-import os
-import sys
+import setuptools
 
-try:
-    from setuptools import setup
-except ImportError:
-    from distutils.core import setup
+version = '3.3.0'
 
-setup(
+setuptools.setup(
     name="alerta-syslog",
-    version='3.2.0',
-    description="Alerta Syslog daemon",
-    license="MIT",
-    author="Nick Satterly",
-    author_email="nick.satterly@theguardian.com",
-    url="http://github.com/alerta/alerta-contrib",
-    packages=[''],
+    version=version,
+    description='Alerta script for Syslog messages',
+    url='https://github.com/alerta/alerta-contrib',
+    license='Apache License 2.0',
+    author='Nick Satterly',
+    author_email='nick.satterly@theguardian.com',
+    py_modules=['syslog', 'transform', 'settings'],
     install_requires=[
-        'alerta-server',
+        'alerta'
     ],
+    include_package_data=True,
+    zip_safe=False,
     entry_points={
         'console_scripts': [
             'alerta-syslog = syslog:main'
         ]
     },
-    keywords="alerta syslog daemon",
+    keywords="alerta syslog monitoring",
     classifiers=[
-        'Development Status :: 5 - Production/Stable',
-        'License :: OSI Approved :: MIT License',
-        'Intended Audience :: System Administrators',
-        'Programming Language :: Python :: 2.6',
-        'Programming Language :: Python :: 2.7',
         'Topic :: System :: Monitoring',
     ]
 )
-
