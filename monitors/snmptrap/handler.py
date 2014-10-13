@@ -2,62 +2,49 @@
 import os
 import sys
 import datetime
+import logging
 import re
 
-from alerta.common import config
-from alerta.common import log as logging
-from alerta.common.alert import Alert
-from alerta.common.heartbeat import Heartbeat
-from alerta.common import severity_code
-from alerta.common.transform import Transformers
-from alerta.common.api import ApiClient
-from alerta.common.graphite import StatsD
+
+from alerta.api import ApiClient
+from alerta.alert import Alert
+from alerta.heartbeat import Heartbeat
+
+__version__ = '3.3.0'
 
 
-__version__ = '3.0.4'
-
-LOG = logging.getLogger(__name__)
-CONF = config.CONF
+LOG = logging.getLogger("alerta.snmptrap")
+logging.basicConfig(format="%(asctime)s - %(name)s: %(levelname)s - %(message)s", level=logging.DEBUG)
 
 
 class SnmpTrapHandler(object):
 
-    def __init__(self, prog, disable_flag=None):
+    def __init__(self):
 
-        self.prog = prog
-        self.disable_flag = disable_flag or CONF.disable_flag
-
-    def start(self):
-
-        LOG.info('Starting %s...' % self.prog)
-        self.skip_on_disable()
-        self.run()
-
-    def skip_on_disable(self):
-
-        if os.path.isfile(self.disable_flag):
-            LOG.warning('Disable flag %s exists. Skipping...', self.disable_flag)
-            sys.exit(0)
+        self.api = None
 
     def run(self):
 
-        self.statsd = StatsD()  # graphite metrics
+        print os.environ
+
+        endpoint = os.environ.get('ALERTA_ENDPOINT', 'http://localhost:8080')
+        key = os.environ.get('ALERTA_API_KEY', None)
+
+        self.api = ApiClient(endpoint=endpoint, key=key)
 
         data = sys.stdin.read()
         LOG.info('snmptrapd -> %r', data)
         data = unicode(data, 'utf-8', errors='ignore')
         LOG.debug('unicoded -> %s', data)
 
-        snmptrapAlert = SnmpTrapHandler.parse_snmptrap(data)
 
-        self.api = ApiClient()
+        snmptrapAlert = SnmpTrapHandler.parse_snmptrap(data)
 
         if snmptrapAlert:
             try:
                 self.api.send(snmptrapAlert)
             except Exception, e:
                 LOG.warning('Failed to send alert: %s', e)
-            self.statsd.metric_send('alert.snmptrap.alerts.total', 1)
 
         LOG.debug('Send heartbeat...')
         heartbeat = Heartbeat(tags=[__version__])
@@ -90,7 +77,8 @@ class SnmpTrapHandler(object):
                 version = 'SNMPv3'
             trapvars['$s'] = version
         else:
-            version = 'SNMP'
+            LOG.warning('Failed to parse unknown trap type.')
+            return
 
         # Get varbinds
         varbinds = dict()
@@ -181,11 +169,11 @@ class SnmpTrapHandler(object):
 
         # Defaults
         event = trapvars['$O']
-        severity = severity_code.NORMAL
+        severity = 'normal'
         group = 'SNMP'
         value = trapvars['$w']
         text = trapvars['$W']
-        environment = 'PROD'
+        environment = 'Production'
         service = ['Network']
         attributes = {'source': trapvars['$B']}
         tags = [version]
@@ -209,12 +197,6 @@ class SnmpTrapHandler(object):
             create_time=create_time,
             raw_data=data,
         )
-
-        suppress = Transformers.normalise_alert(snmptrapAlert, trapoid=trapvars['$O'], trapvars=trapvars, varbinds=varbinds)
-        if suppress:
-            LOG.info('Suppressing %s SNMP trap', snmptrapAlert.event)
-            LOG.debug('%s', snmptrapAlert)
-            return
 
         SnmpTrapHandler.translate_alert(snmptrapAlert, trapvars)
 
@@ -248,3 +230,24 @@ class SnmpTrapHandler(object):
                 alert.tags[:] = [tag.replace(k, v) for tag in alert.tags]
             if alert.attributes is not None:
                 alert.attributes = dict([(attrib[0], attrib[1].replace(k, v)) for attrib in alert.attributes.iteritems()])
+
+
+def main():
+
+    LOG = logging.getLogger("alerta.snmptrap")
+
+    # if os.path.exists(settings.DISABLE_FLAG):
+    #     LOG.debug('Disable flag %s exists. Exiting.', settings.DISABLE_FLAG)
+    #     sys.exit(0)
+
+    try:
+        SnmpTrapHandler().run()
+    except (SystemExit, KeyboardInterrupt):
+        LOG.info("Exiting alerta SNMP trapper.")
+        sys.exit(0)
+    except Exception as e:
+        LOG.error(e, exc_info=1)
+        sys.exit(1)
+
+if __name__ == '__main__':
+    main()
