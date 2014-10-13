@@ -3,11 +3,10 @@ import re
 import logging
 import fnmatch
 
-LOG = logging.getLogger("alerta.syslog")
+LOG = logging.getLogger("alerta.transform")
 
 try:
     import settings
-    print 'imported!'
 except ImportError:
     settings = {'parsers': []}
 
