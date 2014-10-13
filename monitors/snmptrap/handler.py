@@ -25,8 +25,6 @@ class SnmpTrapHandler(object):
 
     def run(self):
 
-        print os.environ
-
         endpoint = os.environ.get('ALERTA_ENDPOINT', 'http://localhost:8080')
         key = os.environ.get('ALERTA_API_KEY', None)
 
@@ -36,7 +34,6 @@ class SnmpTrapHandler(object):
         LOG.info('snmptrapd -> %r', data)
         data = unicode(data, 'utf-8', errors='ignore')
         LOG.debug('unicoded -> %s', data)
-
 
         snmptrapAlert = SnmpTrapHandler.parse_snmptrap(data)
 

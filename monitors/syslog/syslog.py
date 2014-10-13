@@ -96,8 +96,6 @@ class SyslogDaemon(object):
 
     def run(self):
 
-        self.running = True
-
         LOG.info('Starting UDP listener...')
         # Set up syslog UDP listener
         try:
@@ -160,7 +158,6 @@ class SyslogDaemon(object):
                 self.shuttingdown = True
 
         LOG.info('Shutdown request received...')
-        self.running = False
 
     def parse_syslog(self, addr, data):
 
