@@ -2,14 +2,14 @@
 
 import setuptools
 
-version = '3.2.0'
+version = '3.3.0'
 
 setuptools.setup(
     name="alerta-cloudwatch",
     version=version,
-    description='Alerta daemon for AWS CloudWatch',
+    description='Alerta integration for AWS CloudWatch alarms',
     url='https://github.com/alerta/alerta-contrib',
-    license='MIT',
+    license='Apache License 2.0',
     author='Nick Satterly',
     author_email='nick.satterly@theguardian.com',
     py_modules=['cloudwatch'],
@@ -23,5 +23,9 @@ setuptools.setup(
         'console_scripts': [
             'alerta-cloudwatch = cloudwatch:main'
         ]
-    }
+    },
+    keywords="alerta cloudwatch monitoring",
+    classifiers=[
+        'Topic :: System :: Monitoring',
+    ]
 )
