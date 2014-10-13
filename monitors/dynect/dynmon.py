@@ -1,56 +1,56 @@
 
+import sys
 import time
 import json
+import logging
+import ConfigParser
 
 # https://github.com/dyninc/Dynect-API-Python-Library
 from dynect.DynectDNS import DynectRest
 
-from alerta.common import config
-from alerta.common import log as logging
-from alerta.common.daemon import Daemon
-from alerta.common.alert import Alert
-from alerta.common.heartbeat import Heartbeat
-from alerta.common import severity_code
-from alerta.common.transform import Transformers
-from alerta.common.dedup import DeDup
-from alerta.common.api import ApiClient
+from alerta.api import ApiClient
+from alerta.alert import Alert
+from alerta.heartbeat import Heartbeat
 
-__version__ = '3.0.3'
+__version__ = '3.3.0'
 
-LOG = logging.getLogger(__name__)
-CONF = config.CONF
+DEBUG = False
+CONF_FILE = '/etc/alerta.conf'
+LOOP_EVERY = 30  # seconds
+
+LOG = logging.getLogger("alerta.dynect")
+logging.basicConfig(format="%(asctime)s - %(name)s: %(levelname)s - %(message)s", level=logging.DEBUG)
 
 
-class DynectDaemon(Daemon):
+class DynectDaemon(object):
 
-    dynect_opts = {
-        'dynect_customer': '',
-        'dynect_username': '',
-        'dynect_password': '',
-    }
+    def __init__(self):
 
-    def __init__(self, prog, **kwargs):
-
-        config.register_opts(DynectDaemon.dynect_opts)
-
-        Daemon.__init__(self, prog, kwargs)
-
+        self.api = ApiClient()  # Set using ALERTA_ENDPOINT and ALERTA_API_KEY environment variables
         self.info = {}
         self.last_info = {}
-        self.updating = False
-        self.dedup = DeDup(threshold=10)
+        self.shuttingdown = False
+
+        config = ConfigParser.RawConfigParser()
+        config.read(CONF_FILE)
+
+        try:
+            self.customer = config.get('alerta-dynect', 'customer')
+            self.username = config.get('alerta-dynect', 'username')
+            self.password = config.get('alerta-dynect', 'password')
+        except Exception:
+            LOG.error('Failed to read Dynect credentials from %s', CONF_FILE)
+            sys.exit(1)
 
     def run(self):
 
-        self.running = True
-
-        self.api = ApiClient()
-
         while not self.shuttingdown:
             try:
-                self.queryDynect()
-
-                if self.updating:
+                try:
+                    self.queryDynect()
+                except Exception:
+                    pass
+                else:
                     self.alertDynect()
                     self.last_info = self.info
 
@@ -62,11 +62,9 @@ class DynectDaemon(Daemon):
                         LOG.warning('Failed to send heartbeat: %s', e)
 
                 LOG.debug('Waiting for next check run...')
-                time.sleep(CONF.loop_every)
+                time.sleep(LOOP_EVERY)
             except (KeyboardInterrupt, SystemExit):
                 self.shuttingdown = True
-
-        self.running = False
 
     def alertDynect(self):
 
@@ -83,10 +81,10 @@ class DynectDaemon(Daemon):
 
                 if self.info[resource]['status'] == 'ok':
                     event = 'GslbOK'
-                    severity = severity_code.NORMAL
+                    severity = 'normal'
                 else:
                     event = 'GslbNotOK'
-                    severity = severity_code.CRITICAL
+                    severity = 'critical'
                 correlate = ['GslbOK', 'GslbNotOK']
 
             elif resource.startswith('pool-'):
@@ -97,19 +95,19 @@ class DynectDaemon(Daemon):
 
                 if 'down' in self.info[resource]['status']:
                     event = 'PoolDown'
-                    severity = severity_code.MAJOR
+                    severity = 'major'
                     text = 'Pool is down'
                 elif 'obey' not in self.info[resource]['status']:
                     event = 'PoolServe'
-                    severity = severity_code.MAJOR
+                    severity = 'major'
                     text = 'Pool with an incorrect serve mode'
                 elif self.check_weight(self.info[resource]['gslb'], resource) is False:
                     event = 'PoolWeightError'
-                    severity = severity_code.MINOR
+                    severity = 'minor'
                     text = 'Pool with an incorrect weight'
                 else:
                     event = 'PoolUp'
-                    severity = severity_code.NORMAL
+                    severity = 'normal'
                     text = 'Pool status is normal'
                 correlate = ['PoolUp', 'PoolDown', 'PoolServe', 'PoolWeightError']
 
@@ -142,17 +140,10 @@ class DynectDaemon(Daemon):
                 raw_data=raw_data,
             )
 
-            suppress = Transformers.normalise_alert(dynectAlert)
-            if suppress:
-                LOG.info('Suppressing %s alert', dynectAlert.event)
-                LOG.debug('%s', dynectAlert)
-                continue
-
-            if self.dedup.is_send(dynectAlert):
-                try:
-                    self.api.send(dynectAlert)
-                except Exception, e:
-                    LOG.warning('Failed to send alert: %s', e)
+            try:
+                self.api.send(dynectAlert)
+            except Exception, e:
+                LOG.warning('Failed to send alert: %s', e)
 
     def check_weight(self, parent, resource):
         
@@ -172,22 +163,20 @@ class DynectDaemon(Daemon):
         LOG.info('Query DynECT to get the state of GSLBs')
         try:
             rest_iface = DynectRest()
-            if CONF.debug and CONF.use_stderr:
-                rest_iface.verbose = True
+            rest_iface.verbose = DEBUG
 
             # login
             credentials = {
-                'customer_name': CONF.dynect_customer,
-                'user_name': CONF.dynect_username,
-                'password': CONF.dynect_password,
+                'customer_name': self.customer,
+                'user_name': self.username,
+                'password': self.password,
             }
             LOG.debug('credentials = %s', credentials)
             response = rest_iface.execute('/Session/', 'POST', credentials)
 
             if response['status'] != 'success':
                 LOG.error('Failed to create API session: %s', response['msgs'][0]['INFO'])
-                self.updating = False
-                return
+                raise RuntimeWarning
 
             # Discover all the Zones in DynECT
             response = rest_iface.execute('/Zone/', 'GET')
@@ -223,6 +212,20 @@ class DynectDaemon(Daemon):
 
         except Exception, e:
             LOG.error('Failed to discover GSLBs: %s', e)
-            self.updating = False
 
-        self.updating = True
+
+def main():
+
+    LOG = logging.getLogger("alerta.dynect")
+
+    try:
+        DynectDaemon().run()
+    except (SystemExit, KeyboardInterrupt):
+        LOG.info("Exiting alerta Dynect.")
+        sys.exit(0)
+    except Exception as e:
+        LOG.error(e, exc_info=1)
+        sys.exit(1)
+
+if __name__ == '__main__':
+    main()
