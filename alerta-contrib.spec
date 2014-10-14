@@ -16,11 +16,11 @@ BuildArch: x86_64
 Vendor: Nick Satterly <nick.satterly@theguardian.com>
 Url: https://github.com/alerta/alerta-contrib
 BuildRequires: python-devel, python-setuptools, python-virtualenv
-Requires: supervisor
+# Requires: supervisor
 
 %description
 Alerta is a monitoring framework that consolidates alerts
-from multiple sources like syslog, SNMP, Nagios, Riemann,
+from multiple sources like Syslog, SNMP, Nagios, Riemann,
 Zabbix, and displays them on an alert console.
 
 %prep
@@ -44,10 +44,10 @@ cp %{_builddir}/alerta-contrib-%{version}/alerta/bin/alerta* %{buildroot}/opt/al
 cp %{_builddir}/alerta-contrib-%{version}/alerta/bin/python* %{buildroot}/opt/alerta/bin/
 cp %{_builddir}/alerta-contrib-%{version}/alerta/bin/activate* %{buildroot}/opt/alerta/bin/
 cp -r %{_builddir}/alerta-contrib-%{version}/alerta/lib %{buildroot}/opt/alerta/
+%__mkdir_p %{buildroot}%{_sysconfdir}/
 %__install -m 0444 etc/alerta.conf.example %{buildroot}%{_sysconfdir}/alerta.conf
-%__install -m 0444 etc/supervisord.conf.example %{buildroot}%{_sysconfdir}/supervisord.conf
-
-prelink -u %{buildroot}/opt/alerta/bin/python
+%__mkdir_p %{buildroot}%{_sysconfdir}/supervisord.d/
+%__install -m 0444 etc/supervisord.conf.example %{buildroot}%{_sysconfdir}/supervisord.d/alerta.conf
 
 %clean
 rm -rf %{buildroot}
@@ -57,7 +57,7 @@ rm -rf %{buildroot}
 %config(noreplace) %{_sysconfdir}/alerta.conf
 %defattr(-,alerta,alerta)
 /opt/alerta/bin/alerta*
-%config(noreplace) %{_sysconfdir}/supervisord.conf
+%config(noreplace) %{_sysconfdir}/supervisord.d/alerta.conf
 /opt/alerta/bin/python*
 /opt/alerta/bin/activate*
 /opt/alerta/lib/*
@@ -68,6 +68,9 @@ getent passwd alerta >/dev/null || \
     useradd -r -g alerta -d /var/lib/alerta -s /sbin/nologin \
     -c "Alerta monitoring tool" alerta
 exit 0
+
+%post
+echo -e "\n[include]\nfiles = /etc/supervisord.d/*.conf" >>/etc/supervisord.conf
 
 %changelog
 * Wed Oct 14 2014 Nick Satterly <nick.satterly@theguardian.com> - 3.3.0-1
