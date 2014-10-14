@@ -1,0 +1,16 @@
+[supervisord]
+logfile=/var/log/supervisord.log
+logfile_backups=2
+loglevel=debug
+pidfile=/var/run/supervisord.pid
+nocleanup=true
+childlogdir=/var/log
+environment=ALERTA_ENDPOINT="http://localhost:8080",ALERTA_API_KEY=""
+
+[program:foo]
+command=sleep 300
+
+[eventlistener:evlistener]
+command=/Users/nsatterl/Vagrants/centos64/alerta-contrib/contrib/supervisor/evlistener.py
+events=PROCESS_STATE,TICK_60
+buffer_size=1024
