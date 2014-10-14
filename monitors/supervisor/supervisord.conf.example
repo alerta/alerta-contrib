@@ -5,12 +5,12 @@ loglevel=debug
 pidfile=/var/run/supervisord.pid
 nocleanup=true
 childlogdir=/var/log
-environment=ALERTA_ENDPOINT="http://localhost:8080",ALERTA_API_KEY=""
+environment=ALERTA_ENDPOINT="http://localhost:8080",ALERTA_API_KEY="demo-key"
 
 [program:foo]
 command=sleep 300
 
 [eventlistener:evlistener]
-command=/Users/nsatterl/Vagrants/centos64/alerta-contrib/contrib/supervisor/evlistener.py
+command=%(here)s/evlistener.py
 events=PROCESS_STATE,TICK_60
 buffer_size=1024

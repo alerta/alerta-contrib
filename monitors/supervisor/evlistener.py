@@ -7,12 +7,14 @@ from alerta.api import ApiClient
 from alerta.alert import Alert
 from alerta.heartbeat import Heartbeat
 
+__version__ = '3.3.0'
+
 
 class Listener(object):
 
     def __init__(self):
 
-        self.api = ApiClient(endpoint="http://localhost:8080")
+        self.api = ApiClient()
 
     def send_cmd(self, s):
         sys.stdout.write(s)
