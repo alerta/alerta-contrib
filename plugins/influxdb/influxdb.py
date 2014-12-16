@@ -15,7 +15,8 @@ INFLUXDB_PASSWORD = 'alerta'
 class InfluxDBWrite(PluginBase):
 
     def pre_receive(self, alert):
-        pass
+
+        return alert
 
     def post_receive(self, alert):
 
