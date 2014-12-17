@@ -30,17 +30,17 @@ class ServiceIntegration(PluginBase):
         )
 
         if alert.severity == 'critical':
-            color = "#FF0000"
+            color = "#FF0000"  # red
         elif alert.severity == 'major':
-            color = "#FFA500"
+            color = "#FFA500"  # orange
         elif alert.severity == 'minor':
-            color = "#FFFF00"
+            color = "#FFFF00"  # yellow
         elif alert.severity == 'warning':
             color = "#1E90FF"  # blue
         else:
             color = "#00CC00"  # green
 
-        text = "<http://try.alerta.io/#/alert/%s|%s> %s" % (alert.get_id(), alert.get_id(short=True), alert.text)
+        text = "<http://try.alerta.io/#/alert/%s|%s> %s - %s" % (alert.get_id(), alert.get_id(short=True), alert.event, alert.text)
 
         if not SLACK_ATTACHMENTS:
 
@@ -64,7 +64,7 @@ class ServiceIntegration(PluginBase):
                         {"title": "Status", "value": alert.status.capitalize(), "short": True},
                         {"title": "Environment", "value": alert.environment, "short": True},
                         {"title": "Resource", "value": alert.resource, "short": True},
-                        {"title": "Event", "value": alert.event, "short": True}
+                        {"title": "Service", "value": alert.service, "short": True}
                     ]
                 }]
             }
