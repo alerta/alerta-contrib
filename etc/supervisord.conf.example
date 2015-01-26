@@ -1,8 +1,0 @@
-
-[eventlistener:evlistener]
-command=%(here)s/evlistener.py
-events=PROCESS_STATE,TICK_60
-buffer_size=1024
-
-[program:alerta-dynect]
-command=alerta-dynect
