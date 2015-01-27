@@ -6,8 +6,8 @@
 
 /** Plugin specific variables required
  * Global Config:
- *  - base_url: The path to your Pagerduty API, e.g. https://company.pagerduty.com/api/v1
- *  - apikey: A user that can access your Pagerduty account using the API
+ *  - base_url: The path to your Alerta API, e.g. https://api.alerta.io
+ *  - apikey: An API key created for Opsweekly in the Alerta console
  *
  * Team Config:
  *  - alerta_search: The search filter that narrows down the results to the team.
