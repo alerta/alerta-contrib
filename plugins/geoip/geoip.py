@@ -13,7 +13,10 @@ class GeoLocation(PluginBase):
 
     def pre_receive(self, alert):
 
-        url = '%s/%s' % (GEOIP_URL, alert.attributes['ip'])
+        if 'ip' in alert.attributes:
+            url = '%s/%s' % (GEOIP_URL, alert.attributes['ip'])
+        else:
+            raise RuntimeWarning("IP address must be included as an alert attribute.")
 
         r = requests.get(url, headers={'Content-type': 'application/json'}, timeout=2)
         try:
