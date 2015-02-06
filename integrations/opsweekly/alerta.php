@@ -46,7 +46,7 @@ function getOnCallNotifications($on_call_name, $provider_global_config, $provide
     parse_str($search, $parameters);
 
     $parameters['from-date'] = str_replace("+00:00", ".000Z", date('c', $start));
-    // $parameters['to-date'] = str_replace("+00:00", ".000Z", date('c', $end)); // FIXME - not supported by API
+    $parameters['to-date'] = str_replace("+00:00", ".000Z", date('c', $end));
 
     $notifications = array();
     $results = doAlertaAPICall('/alerts', $parameters, $base_url, $apikey);
