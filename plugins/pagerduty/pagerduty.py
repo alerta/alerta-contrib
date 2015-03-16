@@ -23,8 +23,6 @@ class TriggerEvent(PluginBase):
         if alert.repeat:
             return
 
-        incident_key = '%s:%s' % (alert.environment, alert.resource)
-
         message = "%s: %s alert for %s - %s is %s" % (
             alert.environment, alert.severity.capitalize(),
             ','.join(alert.service), alert.resource, alert.event
@@ -32,7 +30,7 @@ class TriggerEvent(PluginBase):
 
         payload = {
             "service_key": PAGERDUTY_SERVICE_KEY,
-            "incident_key": incident_key,
+            "incident_key": alert.id,
             "event_type": "trigger",
             "description": message,
             "client": "alerta",
@@ -48,3 +46,4 @@ class TriggerEvent(PluginBase):
             raise RuntimeError("PagerDuty connection error: %s" % e)
 
         LOG.debug('PagerDuty response: %s - %s', r.status_code, r.text)
+
