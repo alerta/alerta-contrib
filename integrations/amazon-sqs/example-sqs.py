@@ -7,8 +7,6 @@ import boto.sqs
 from boto.sqs.message import RawMessage
 from boto import exception
 
-__version__ = '3.2.0'
-
 AWS_SQS_QUEUE = 'example'
 AWS_ACCESS_KEY_ID = ''
 AWS_SECRET_ACCESS_KEY = ''

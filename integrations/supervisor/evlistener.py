@@ -7,14 +7,16 @@ from alerta.api import ApiClient
 from alerta.alert import Alert
 from alerta.heartbeat import Heartbeat
 
-__version__ = '3.3.0'
-
 
 class Listener(object):
 
-    def __init__(self):
+    def wait(self):
 
-        self.api = ApiClient()
+        data = sys.stdin.readline()
+        headers = dict([x.split(':') for x in data.split()])
+        data = sys.stdin.read(int(headers['len']))
+        body = dict([x.split(':') for x in data.split()])
+        return headers, body
 
     def send_cmd(self, s):
         sys.stdout.write(s)
@@ -27,15 +29,12 @@ class Listener(object):
 
 def main():
 
+    api = ApiClient()
     listener = Listener()
 
     while True:
         listener.send_cmd('READY\n')
-
-        data = sys.stdin.readline()
-        headers = dict([x.split(':') for x in data.split()])
-        data = sys.stdin.read(int(headers['len']))
-        body = dict([x.split(':') for x in data.split()])
+        headers, body = listener.wait()
 
         event = headers['eventname']
         if event.startswith('TICK'):
@@ -75,7 +74,7 @@ def main():
                 raw_data='%s\n\n%s' % (json.dumps(headers), json.dumps(body))
             )
         try:
-            listener.api.send(supervisorAlert)
+            api.send(supervisorAlert)
         except Exception as e:
             listener.log_stderr(e)
             listener.send_cmd('RESULT 4\nFAIL')
