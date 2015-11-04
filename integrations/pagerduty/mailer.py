@@ -1,25 +1,24 @@
+#!/usr/bin/env python
 
 import time
 import datetime
 import threading
+import logging
 
-from alerta.common import config
-from alerta.common import log as logging
-from alerta.common.daemon import Daemon
-from alerta.common.api import ApiClient
-from alerta.common.amqp import Messaging, FanoutConsumer
-from alerta.common.alert import AlertDocument
-from alerta.common.heartbeat import Heartbeat
-from alerta.common import severity_code, status_code
-from alerta.mailer.sendmail import Mailer
-from alerta.common.tokens import LeakyBucket
+from kombu import BrokerConnection, Exchange, Producer
+from kombu.utils.debug import setup_logging
 
-__version__ = '3.0.5'
+from sendmail import Mailer
+from tokens import LeakyBucket
+
+from alerta.api import ApiClient
+from alerta.alert import Alert
+from alerta.heartbeat import Heartbeat
+
 
 LOG = logging.getLogger(__name__)
-CONF = config.CONF
 
-_EMAIL_HOLD_TIME = 30  # hold emails before sending
+EMAIL_HOLD_TIME = 30  # hold emails before sending
 
 
 class MailerMessage(FanoutConsumer, threading.Thread):
@@ -113,7 +112,7 @@ class MailSender(threading.Thread):
             time.sleep(2)
 
 
-class MailerDaemon(Daemon):
+class MailerDaemon(object):
 
     def run(self):
 
@@ -129,16 +128,29 @@ class MailerDaemon(Daemon):
         sender = MailSender(onhold, tokens)
         sender.start()
 
-        self.api = ApiClient()
+        api = ApiClient()
 
         try:
             while True:
                 LOG.debug('Send heartbeat...')
                 heartbeat = Heartbeat(tags=[__version__])
                 try:
-                    self.api.send(heartbeat)
+                    api.send(heartbeat)
                 except Exception, e:
                     LOG.warning('Failed to send heartbeat: %s', e)
                 time.sleep(CONF.loop_every)
         except (KeyboardInterrupt, SystemExit):
             mailer.should_stop = True
+
+
+def main():
+
+    try:
+        MailerDaemon().run()
+    except (SystemExit, KeyboardInterrupt):
+        return
+
+if __name__ == '__main__':
+    main()
+
+
