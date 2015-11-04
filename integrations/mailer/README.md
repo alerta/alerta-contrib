@@ -42,26 +42,31 @@ debug = True
 ```
 
 Environment Variables
----------------------
+~~~~~~~~~~~~~~~~~~~~~
 
 ``SMTP_PASSWORD`` - can be used instead of smtp_password in the configuration file.
 
-Email Template
---------------
+Email Format
+~~~~~~~~~~~~
 
-The format for emails uses a templating package called Jinja2.
+The format for emails uses a templating engine called Jinja2.
 
 ```
    {{ alert.severity|title }}
 ```
 
-Run
----
+Deployment
+----------
 
     $ export SMTP_PASSWORD=okvqhitqomebufyv
     $ alerta-mailer
 
+Dependencies
+------------
+
+The Alerta server *MUST* have the AMQP plugin enabled and configured. (see link)
+
 TODO
 ----
 
- [] make the template location configurable.
+ - [ ] make the template location configurable.
