@@ -8,11 +8,11 @@ from alerta.plugins import PluginBase
 
 LOG = app.logger
 
-TWILIO_ACCOUNT_SID = os.environ.get('TWILIO_ACCOUNT_SID')
-TWILIO_AUTH_TOKEN = os.environ.get('TWILIO_AUTH_TOKEN')
+TWILIO_ACCOUNT_SID = os.environ.get('TWILIO_ACCOUNT_SID') or app.config['TWILIO_ACCOUNT_SID']
+TWILIO_AUTH_TOKEN = os.environ.get('TWILIO_AUTH_TOKEN') or app.config['TWILIO_AUTH_TOKEN']
 
-TWILIO_TO_NUMBER = os.environ.get('TWILIO_TO_NUMBER')
-TWILIO_FROM_NUMBER = os.environ.get('TWILIO_FROM_NUMBER')
+TWILIO_TO_NUMBER = os.environ.get('TWILIO_TO_NUMBER') or app.config['TWILIO_TO_NUMBER']
+TWILIO_FROM_NUMBER = os.environ.get('TWILIO_FROM_NUMBER') or app.config['TWILIO_FROM_NUMBER']
 
 
 class SendSMSMessage(PluginBase):
