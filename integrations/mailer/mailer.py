@@ -84,7 +84,7 @@ class FanoutConsumer(ConsumerMixin):
     def on_message(self, body, message):
 
         try:
-            alert = AlertDocument.parse_alert(json.loads(body))
+            alert = AlertDocument.parse_alert(body)
             alertid = alert.get_id()
         except Exception as e:
             LOG.warn(e)
