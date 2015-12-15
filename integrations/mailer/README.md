@@ -64,7 +64,7 @@ Deployment
 Dependencies
 ------------
 
-The Alerta server *MUST* have the AMQP plugin enabled and configured. (see link)
+The Alerta server *MUST* have the AMQP plugin enabled and configured. See [default settings](https://github.com/guardian/alerta/blob/master/alerta/settings.py#L57)
 
 TODO
 ----
