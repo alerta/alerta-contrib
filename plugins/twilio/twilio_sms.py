@@ -1,4 +1,6 @@
 
+import os
+
 from twilio.rest import TwilioRestClient
 
 from alerta.app import app
@@ -6,11 +8,11 @@ from alerta.plugins import PluginBase
 
 LOG = app.logger
 
-TWILIO_ACCOUNT_SID = 'ACxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'
-TWILIO_AUTH_TOKEN = ''
+TWILIO_ACCOUNT_SID = os.environ.get('TWILIO_ACCOUNT_SID')
+TWILIO_AUTH_TOKEN = os.environ.get('TWILIO_AUTH_TOKEN')
 
-TWILIO_TO_NUMBER = ''
-TWILIO_FROM_NUMBER = ''
+TWILIO_TO_NUMBER = os.environ.get('TWILIO_TO_NUMBER')
+TWILIO_FROM_NUMBER = os.environ.get('TWILIO_FROM_NUMBER')
 
 
 class SendSMSMessage(PluginBase):
