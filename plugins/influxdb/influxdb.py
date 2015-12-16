@@ -1,4 +1,5 @@
 
+import os
 import json
 import requests
 
@@ -7,9 +8,9 @@ from alerta.plugins import PluginBase
 
 LOG = app.logger
 
-INFLUXDB_URL = 'http://localhost:8086'
-INFLUXDB_USER = 'alerta'
-INFLUXDB_PASSWORD = 'alerta'
+INFLUXDB_URL = os.environ.get('INFLUXDB_URL') or app.config['INFLUXDB_URL']
+INFLUXDB_USER = os.environ.get('INFLUXDB_USER') or app.config['INFLUXDB_USER']
+INFLUXDB_PASSWORD = os.environ.get('INFLUXDB_PASSWORD') or app.config['INFLUXDB_PASSWORD']
 
 
 class InfluxDBWrite(PluginBase):

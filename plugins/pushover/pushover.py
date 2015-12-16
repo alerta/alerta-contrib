@@ -1,7 +1,6 @@
 
+import os
 import requests
-import time
-import pytz
 
 from alerta.app import app
 from alerta.plugins import PluginBase
@@ -9,9 +8,10 @@ from alerta.plugins import PluginBase
 LOG = app.logger
 
 PUSHOVER_URL = 'https://api.pushover.net/1/messages.json'
-PUSHOVER_TOKEN = 'INSERT_API_TOKEN_HERE'
-PUSHOVER_USER = 'INSERT_USER_KEY_HERE'
-DASHBOARD_URL = 'http://try.alerta.io'
+
+PUSHOVER_TOKEN = os.environ.get('PUSHOVER_TOKEN') or app.config['PUSHOVER_TOKEN']
+PUSHOVER_USER = os.environ.get('PUSHOVER_USER') or app.config['PUSHOVER_USER']
+DASHBOARD_URL = os.environ.get('DASHBOARD_URL') or app.config.get('DASHBOARD_URL', '')
 
 PUSHOVER_EMERG = 2  # requires user ack
 PUSHOVER_HIGH = 1
