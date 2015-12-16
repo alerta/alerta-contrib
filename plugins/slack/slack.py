@@ -1,4 +1,5 @@
 
+import os
 import json
 import requests
 
@@ -7,8 +8,8 @@ from alerta.plugins import PluginBase
 
 LOG = app.logger
 
-SLACK_WEBHOOK_URL = 'https://hooks.slack.com/services/INSERT/YOUR/KEY'
-SLACK_ATTACHMENTS = True
+SLACK_WEBHOOK_URL = os.environ.get('SLACK_WEBHOOK_URL') or app.config['SLACK_WEBHOOK_URL']
+SLACK_ATTACHMENTS = True if os.environ['SLACK_ATTACHMENTS'] == 'True' else app.config.get('SLACK_ATTACHMENTS', False)
 
 
 class ServiceIntegration(PluginBase):

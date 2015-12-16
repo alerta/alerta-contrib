@@ -1,4 +1,5 @@
 
+import os
 import json
 import requests
 
@@ -8,8 +9,8 @@ from alerta.plugins import PluginBase
 LOG = app.logger
 
 HIPCHAT_URL = 'https://api.hipchat.com/v2'
-HIPCHAT_ROOM = 'room'  # Room Name or Room API ID
-HIPCHAT_API_KEY = 'INSERT_API_KEY'  # Room Notification Token
+HIPCHAT_ROOM = os.environ.get('HIPCHAT_ROOM') or app.config['HIPCHAT_ROOM']  # Room Name or Room API ID
+HIPCHAT_API_KEY = os.environ.get('HIPCHAT_API_KEY') or app.config['HIPCHAT_API_KEY']  # Room Notification Token
 
 
 class SendRoomNotification(PluginBase):

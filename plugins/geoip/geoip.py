@@ -1,4 +1,5 @@
 
+import os
 import requests
 
 from alerta.app import app
@@ -6,7 +7,7 @@ from alerta.plugins import PluginBase
 
 LOG = app.logger
 
-GEOIP_URL = 'http://freegeoip.net/json'
+GEOIP_URL = os.environ.get('GEOIP_URL') or app.config.get('GEOIP_URL', 'http://freegeoip.net/json')
 
 
 class GeoLocation(PluginBase):
