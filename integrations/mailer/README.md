@@ -12,7 +12,16 @@ It is specifically designed to reduce the number of unnecessary emails by ensuri
 
 To achieve the above, alerts are actually held for a minimum of 30 seconds before they generate emails.
 
-Note: Currently only Google Gmail is supported as the SMTP server. You will need to create an application-specific password.
+If you are using Google Gmail as the SMTP server. You will need to create an application-specific password.
+
+You can skip the use of an SMTP server using the option 'skip_mta'. Note that in most cases is recommended to
+use an SMTP outbound server as the MTA, but if you know what you're doing you can use skip_mta and then alerta-mailer
+will resolve the proper destination MX DNS record for each address and attempt to deliver the email directly. Some
+email systems may detect certain email patterns to black-list you, such as sending email using a hostname such as
+'localhost'. You may need to set the 'mail_localhost' option or set a proper FQDN in your server to avoid this.
+
+You can also use IP-authentication in your own SMTP server (by only white-listing the alerta server IP), in such
+cases you should not set the 'smtp_password' option to skip authentication altogether.
 
 Application-specific passwords
 https://support.google.com/accounts/answer/185833?hl=en
