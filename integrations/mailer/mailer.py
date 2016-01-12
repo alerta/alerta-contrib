@@ -243,6 +243,8 @@ class MailSender(threading.Thread):
 
 
 def main():
+    global OPTIONS
+
     CONFIG_SECTION = 'alerta-mailer'
     config_file = os.environ.get('ALERTA_CONF_FILE') or DEFAULT_OPTIONS['config_file']
 
