@@ -34,6 +34,7 @@ from alerta.api import ApiClient
 from alerta.alert import AlertDocument
 from alerta.heartbeat import Heartbeat
 
+logging.basicConfig()
 LOG = logging.getLogger(__name__)
 root = logging.getLogger()
 
@@ -51,6 +52,11 @@ DEFAULT_OPTIONS = {
     'mail_from':     '',  # alerta@example.com
     'mail_to':       [],  # devops@example.com, support@example.com
     'mail_localhost': None, # fqdn to use in the HELO/EHLO command
+    'mail_template':  os.path.dirname(__file__) + os.sep + 'email.tmpl',
+    'mail_subject':  ('[{{ alert.status|capitalize }}] {{ alert.environment }}: '
+                      '{{ alert.severity|capitalize }} {{ alert.event }} on '
+                      '{{ alert.service|join(\',\') }} {{ alert.resource }}'
+                     ),
     'dashboard_url': 'http://try.alerta.io',
     'debug':         False,
     'skip_mta':      False
@@ -134,6 +140,15 @@ class MailSender(threading.Thread):
     def __init__(self):
 
         self.should_stop = False
+        self._template_dir = os.path.dirname(os.path.realpath(OPTIONS['mail_template']))
+        self._template_name = os.path.basename(OPTIONS['mail_template'])
+        self._subject_template = jinja2.Template(OPTIONS['mail_subject'])
+        self._template_env = jinja2.Environment(
+            loader=jinja2.FileSystemLoader(self._template_dir),
+            extensions=['jinja2.ext.autoescape'],
+            autoescape=True
+        )
+
         super(MailSender, self).__init__()
 
     def run(self):
@@ -155,30 +170,17 @@ class MailSender(threading.Thread):
                         continue
             if keep_alive >= 10:
                 tag = OPTIONS['smtp_host'] or 'alerta-mailer'
-                api.send(Heartbeat(tags=[OPTIONS['smtp_host']]))
+                api.send(Heartbeat(tags=[tag]))
                 keep_alive = 0
             keep_alive += 1
             time.sleep(2)
 
     def send_email(self, alert):
-
-        # email subject
-        subject = '[%s] %s: %s %s on %s %s' % (
-            alert.status.capitalize(),
-            alert.environment,
-            alert.severity.capitalize(),
-            alert.event,
-            ','.join(alert.service),
-            alert.resource
-        )
-
-        # email body
-        env = jinja2.Environment(
-            loader=jinja2.FileSystemLoader(os.path.dirname(__file__)),
-            extensions=['jinja2.ext.autoescape'],
-            autoescape=True
-        )
-        context = {
+        """Attempt to send an email for the provided alert, compiling
+        the subject and text template and using all the other smtp settings
+        that were specified in the configuration file
+        """
+        template_vars = {
             'alert': alert,
             'mail_to': OPTIONS['mail_to'],
             'dashboard_url': OPTIONS['dashboard_url'],
@@ -186,8 +188,10 @@ class MailSender(threading.Thread):
             'hostname': os.uname()[1],
             'now': datetime.datetime.utcnow()
         }
-        template = env.get_template('email.tmpl')
-        text = template.render(context)
+
+        subject = self._subject_template.render(alert=alert)
+        text = self._template_env.get_template(self._template_name) \
+                   .render(**template_vars)
 
         msg = MIMEMultipart('related')
         msg['Subject'] = subject
