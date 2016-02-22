@@ -52,10 +52,29 @@ skip_mta = False
 email_type = text
 ```
 
+Notifications by different groups of server can be enabled using the section
+called ``[notifications]`` see the example above.
+
+```
+[notifications]
+rules = notification1, notification2
+
+[notification1]
+field = alert.resource
+regex = db-\w+
+contacts = dba@lists.mycompany.com, dev@lists.mycompany.com
+
+[notification2]
+field = alert.resource
+regex = web-\w+
+contacts = dev@lists.mycompany.com 
+```
+
 Environment Variables
 ~~~~~~~~~~~~~~~~~~~~~
 
 ``SMTP_PASSWORD`` - can be used instead of smtp_password in the configuration file.
+
 
 Email Format
 ~~~~~~~~~~~~
@@ -67,10 +86,6 @@ The variable email_type can have 2 possible values:
 - html: for just html emails, will fallback to text for text clients (mutt,
   etc) 
 - text: for just plain text emails
-
-```
-   {{ alert.severity|title }}
-```
 
 Deployment
 ----------
