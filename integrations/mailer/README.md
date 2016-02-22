@@ -48,6 +48,8 @@ amqp_url = redis://localhost:6379/
 dashboard_url = http://localhost:8000
 smtp_password = okvqhitqomebufyv
 debug = True
+skip_mta = False
+email_type = text
 ```
 
 Environment Variables
@@ -59,6 +61,12 @@ Email Format
 ~~~~~~~~~~~~
 
 The format for emails uses a templating engine called Jinja2.
+
+The variable email_type can have 2 possible values:
+
+- html: for just html emails, will fallback to text for text clients (mutt,
+  etc) 
+- text: for just plain text emails
 
 ```
    {{ alert.severity|title }}

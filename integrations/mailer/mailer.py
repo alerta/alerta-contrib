@@ -52,12 +52,14 @@ DEFAULT_OPTIONS = {
     'mail_to':       [],  # devops@example.com, support@example.com
     'mail_localhost': None,  # fqdn to use in the HELO/EHLO command
     'mail_template':  os.path.dirname(__file__) + os.sep + 'email.tmpl',
+    'mail_template_html': os.path.dirname(__file__) + os.sep + 'email.html.tmpl',  # nopep8
     'mail_subject':  ('[{{ alert.status|capitalize }}] {{ alert.environment }}: '
                       '{{ alert.severity|capitalize }} {{ alert.event }} on '
                       '{{ alert.service|join(\',\') }} {{ alert.resource }}'),
     'dashboard_url': 'http://try.alerta.io',
     'debug':         False,
-    'skip_mta':      False
+    'skip_mta':      False,
+    'email_type':    'text'  # options are: text, html
 }
 
 OPTIONS = {}
@@ -152,6 +154,9 @@ class MailSender(threading.Thread):
             extensions=['jinja2.ext.autoescape'],
             autoescape=True
         )
+        if OPTIONS['mail_template_html']:
+            self._template_name_html = os.path.basename(
+                OPTIONS['mail_template_html'])
 
         super(MailSender, self).__init__()
 
@@ -195,16 +200,30 @@ class MailSender(threading.Thread):
         }
 
         subject = self._subject_template.render(alert=alert)
-        text = self._template_env.get_template(self._template_name) \
-                   .render(**template_vars)
+        text = self._template_env.get_template(
+            self._template_name).render(**template_vars)
 
-        msg = MIMEMultipart('related')
+        if (
+            OPTIONS['email_type'] == 'html' and
+            self._template_name_html
+        ):
+            html = self._template_env.get_template(
+                self._template_name_html).render(**template_vars)
+        else:
+            html = None
+
+        msg = MIMEMultipart('alternative')
         msg['Subject'] = subject
         msg['From'] = OPTIONS['mail_from']
         msg['To'] = ", ".join(OPTIONS['mail_to'])
         msg.preamble = subject
 
+        # by default we are going to assume that the email is going to be text
         msg_text = MIMEText(text, 'plain', 'utf-8')
+        if html:
+            msg_html = MIMEText(html, 'html', 'utf-8')
+            msg.attach(msg_html)
+
         msg.attach(msg_text)
 
         try:
