@@ -70,14 +70,17 @@ regex = web-\w+
 contacts = dev@lists.mycompany.com 
 ```
 
+field is a reference to the alert object, regex is a valid python regexp and
+contacts are a list (comma separated) of mails who will receive an e-mail if
+the regular expression matches.
+
 Environment Variables
-~~~~~~~~~~~~~~~~~~~~~
+---------------------
 
 ``SMTP_PASSWORD`` - can be used instead of smtp_password in the configuration file.
 
-
 Email Format
-~~~~~~~~~~~~
+------------
 
 The format for emails uses a templating engine called Jinja2.
 
