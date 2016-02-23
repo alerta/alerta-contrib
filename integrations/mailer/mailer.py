@@ -3,6 +3,7 @@
 import datetime
 import logging
 import os
+import re
 import smtplib
 import socket
 import sys
@@ -212,6 +213,16 @@ class MailSender(threading.Thread):
         else:
             html = None
 
+        if 'group_rules' in OPTIONS:
+            for rules in OPTIONS['group_rules']:
+                contacts = []
+                if re.match(rules['regex'], eval(rules['field'])):
+                    # check for the contacts with OPTIONS['mail_to']
+                    contacts = [x.strip() for x in rules['contacts'].split(',')
+                                if x.strip() not in OPTIONS['mail_to']]
+                    if len(contacts) > 0:
+                        OPTIONS['mail_to'].extend(contacts)
+
         msg = MIMEMultipart('alternative')
         msg['Subject'] = subject
         msg['From'] = OPTIONS['mail_from']
@@ -284,6 +295,20 @@ class MailSender(threading.Thread):
             mx.close()
 
 
+def parse_group_rules(config):
+
+    notifications = [x.strip() for x in
+                     config.get('notifications', 'rules').split(',')]
+    rules = []
+    for notification in notifications:
+        regex = config.get(notification, 'regex')
+        contacts = config.get(notification, 'contacts')
+        field = config.get(notification, 'field')
+        rules.append({'regex': regex, 'contacts': contacts, 'field': field})
+
+    return rules
+
+
 def main():
     global OPTIONS
 
@@ -322,6 +347,9 @@ def main():
     OPTIONS['smtp_password'] = os.environ.get('SMTP_PASSWORD') or OPTIONS['smtp_password']  # nopep8
     if os.environ.get('DEBUG'):
         OPTIONS['debug'] = True
+
+    if config.has_section('notifications'):
+        OPTIONS['group_rules'] = parse_group_rules(config)
 
     try:
         mailer = MailSender()
