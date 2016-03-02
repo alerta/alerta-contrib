@@ -213,7 +213,7 @@ class MailSender(threading.Thread):
         else:
             html = None
 
-        if 'group_rules' in OPTIONS:
+        if 'group_rules' in OPTIONS and len(OPTIONS['group_rules']) > 0:
             for rules in OPTIONS['group_rules']:
                 contacts = []
                 if re.match(rules['regex'], eval(rules['field'])):
@@ -296,10 +296,10 @@ class MailSender(threading.Thread):
 
 
 def parse_group_rules(config):
-
-    notifications = [x.strip() for x in
-                     config.get('notifications', 'rules').split(',')]
+    notifications = [x for x in config.sections()
+                     if 'notification' == x.split(':')[0]]
     rules = []
+
     for notification in notifications:
         regex = config.get(notification, 'regex')
         contacts = config.get(notification, 'contacts')
@@ -319,8 +319,18 @@ def main():
     defopts = {k: str(v) if type(v) is bool else v for k, v in DEFAULT_OPTIONS.iteritems()}  # nopep8
     config = configparser.RawConfigParser(defaults=defopts)
 
+    if os.path.exists("{}.d".format(config_file)):
+        config_path = "{}.d".format(config_file)
+        config_list = []
+        for files in os.walk(config_path):
+            for filename in files[2]:
+                config_list.append("{}/{}".format(config_path, filename))
+
+        config_list.append(os.path.expanduser(config_file))
+        config_file = config_list
+
     try:
-        config.read(os.path.expanduser(config_file))
+        config.read(config_file)
     except Exception as e:
         LOG.warning("Problem reading configuration file %s - is this an ini file?", config_file)  # nopep8
         sys.exit(1)
@@ -348,8 +358,7 @@ def main():
     if os.environ.get('DEBUG'):
         OPTIONS['debug'] = True
 
-    if config.has_section('notifications'):
-        OPTIONS['group_rules'] = parse_group_rules(config)
+    OPTIONS['group_rules'] = parse_group_rules(config)
 
     try:
         mailer = MailSender()

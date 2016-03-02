@@ -2,7 +2,7 @@
 
 import setuptools
 
-version = '3.2.0'
+version = '3.3.0'
 
 setuptools.setup(
     name="alerta-mailer",
@@ -13,7 +13,7 @@ setuptools.setup(
     author='Nick Satterly',
     author_email='nick.satterly@theguardian.com',
     py_modules=['mailer'],
-    data_files=[('.', ['email.tmpl'])],
+    data_files=[('.', ['email.tmpl', 'email.html.tmpl'])],
     install_requires=[
         'alerta',
         'kombu',
