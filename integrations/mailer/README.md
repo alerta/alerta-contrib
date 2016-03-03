@@ -52,19 +52,17 @@ skip_mta = False
 email_type = text
 ```
 
-Notifications by different groups of server can be enabled using the section
-called ``[notifications]`` see the example above.
+Notifications to other emails according regexp criteria can be enabled,
+creating a section and calling them with the ``notification`` prefix see the example 
+above.
 
 ```
-[notifications]
-rules = notification1, notification2
-
-[notification1]
+[notification:foo]
 field = alert.resource
 regex = db-\w+
 contacts = dba@lists.mycompany.com, dev@lists.mycompany.com
 
-[notification2]
+[notification:bar]
 field = alert.resource
 regex = web-\w+
 contacts = dev@lists.mycompany.com 
@@ -89,6 +87,15 @@ The variable email_type can have 2 possible values:
 - html: for just html emails, will fallback to text for text clients (mutt,
   etc) 
 - text: for just plain text emails
+
+Multiple files config support
+-----------------------------
+
+Multiple configs files are supported for alerta-mailer you just need to create
+a directory with the name of the config file with the .d suffix, i.e: (assuming
+you have a config file called ``mailer.conf`` on ``/etc/alerta/`` you will need
+to create the directory ``mailer.conf.d`` at the same level of your config file
+(mailer.conf in this example), and place all your configs there.
 
 Deployment
 ----------
