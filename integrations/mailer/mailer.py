@@ -191,9 +191,27 @@ class MailSender(threading.Thread):
         the subject and text template and using all the other smtp settings
         that were specified in the configuration file
         """
+        contacts = list(OPTIONS['mail_to'])
+        LOG.debug('Initial contact list: %s' % (contacts))
+        if 'group_rules' in OPTIONS and len(OPTIONS['group_rules']) > 0:
+            LOG.debug('Checking %d group rules' % len(OPTIONS['group_rules']))
+            for rules in OPTIONS['group_rules']:
+                LOG.debug('Matching regex %s to %s (%s)' % (rules['regex'],
+                         rules['field'], eval(rules['field'])))
+                if re.match(rules['regex'], eval(rules['field'])):
+                    LOG.debug('Regex matched')
+                    # Add up any new contacts
+                    new_contacts = [x.strip() for x in rules['contacts'].split(',')
+                                    if x.strip() not in contacts]
+                    if len(new_contacts) > 0:
+                        LOG.debug('Extending contact to include %s' % (new_contacts))
+                        contacts.extend(new_contacts)
+                else:
+                    LOG.debug('regex did not match')
+
         template_vars = {
             'alert': alert,
-            'mail_to': OPTIONS['mail_to'],
+            'mail_to': contacts,
             'dashboard_url': OPTIONS['dashboard_url'],
             'program': os.path.basename(sys.argv[0]),
             'hostname': os.uname()[1],
@@ -213,20 +231,10 @@ class MailSender(threading.Thread):
         else:
             html = None
 
-        if 'group_rules' in OPTIONS and len(OPTIONS['group_rules']) > 0:
-            for rules in OPTIONS['group_rules']:
-                contacts = []
-                if re.match(rules['regex'], eval(rules['field'])):
-                    # check for the contacts with OPTIONS['mail_to']
-                    contacts = [x.strip() for x in rules['contacts'].split(',')
-                                if x.strip() not in OPTIONS['mail_to']]
-                    if len(contacts) > 0:
-                        OPTIONS['mail_to'].extend(contacts)
-
         msg = MIMEMultipart('alternative')
         msg['Subject'] = subject
         msg['From'] = OPTIONS['mail_from']
-        msg['To'] = ", ".join(OPTIONS['mail_to'])
+        msg['To'] = ", ".join(contacts)
         msg.preamble = subject
 
         # by default we are going to assume that the email is going to be text
@@ -238,22 +246,22 @@ class MailSender(threading.Thread):
         msg.attach(msg_text)
 
         try:
-            self._send_email_message(msg)
+            self._send_email_message(msg, contacts)
             LOG.debug('%s : Email sent to %s' % (alert.get_id(),
-                                                 ','.join(OPTIONS['mail_to'])))
+                                                 ','.join(contacts)))
         except (socket.error, socket.herror, socket.gaierror), e:
             LOG.error('Mail server connection error: %s', e)
             return
         except smtplib.SMTPException, e:
             LOG.error('Failed to send mail to %s on %s:%s : %s',
-                      ", ".join(OPTIONS['mail_to']),
+                      ", ".join(contacts),
                       OPTIONS['smtp_host'], OPTIONS['smtp_port'], e)
         except Exception as e:
             LOG.error('Unexpected error while sending email: {}'.format(str(e)))  # nopep8
 
-    def _send_email_message(self, msg):
+    def _send_email_message(self, msg, contacts):
         if OPTIONS['skip_mta'] and DNS_RESOLVER_AVAILABLE:
-            for dest in OPTIONS['mail_to']:
+            for dest in contacts:
                 try:
                     (_, ehost) = dest.split('@')
                     dns_answers = dns.resolver.query(ehost, 'MX')
@@ -290,7 +298,7 @@ class MailSender(threading.Thread):
                 mx.login(OPTIONS['mail_from'], OPTIONS['smtp_password'])
 
             mx.sendmail(OPTIONS['mail_from'],
-                        OPTIONS['mail_to'],
+                        contacts,
                         msg.as_string())
             mx.close()
 
