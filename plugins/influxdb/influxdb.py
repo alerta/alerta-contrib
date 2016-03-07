@@ -16,7 +16,6 @@ INFLUXDB_PASSWORD = os.environ.get('INFLUXDB_PASSWORD') or app.config['INFLUXDB_
 class InfluxDBWrite(PluginBase):
 
     def pre_receive(self, alert):
-
         return alert
 
     def post_receive(self, alert):
@@ -40,3 +39,5 @@ class InfluxDBWrite(PluginBase):
 
         LOG.debug('InfluxDB response: %s', response)
 
+    def status_change(self, alert, status, text):
+        return

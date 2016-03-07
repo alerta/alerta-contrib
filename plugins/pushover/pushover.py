@@ -31,7 +31,6 @@ PRIORITY_MAP = {
 class PushMessage(PluginBase):
 
     def pre_receive(self, alert):
-
         return alert
 
     def post_receive(self, alert):
@@ -70,3 +69,6 @@ class PushMessage(PluginBase):
             raise RuntimeError("Pushover.net connection error: %s" % e)
 
         LOG.debug('Pushover.net response: %s - %s', r.status_code, r.text)
+
+    def status_change(self, alert, status, text):
+        return

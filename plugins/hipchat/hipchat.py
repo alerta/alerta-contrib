@@ -21,10 +21,10 @@ if HIPCHAT_SUMMARY_FMT:
     except Exception as e:
         LOG.error('Jinja template error: {}, template functionality will be unavailable'.format(e))
 
+
 class SendRoomNotification(PluginBase):
 
     def pre_receive(self, alert):
-
         return alert
 
     def post_receive(self, alert):
@@ -83,3 +83,6 @@ class SendRoomNotification(PluginBase):
             raise RuntimeError("HipChat connection error: %s", e)
 
         LOG.debug('HipChat response: %s - %s', r.status_code, r.text)
+
+    def status_change(self, alert, status, text):
+        return

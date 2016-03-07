@@ -1,0 +1,1 @@
+Silence alerts in Alertmanager when acking alerts in the Alerta console
