@@ -18,7 +18,6 @@ TWILIO_FROM_NUMBER = os.environ.get('TWILIO_FROM_NUMBER') or app.config['TWILIO_
 class SendSMSMessage(PluginBase):
 
     def pre_receive(self, alert):
-
         return alert
 
     def post_receive(self, alert):
@@ -35,3 +34,6 @@ class SendSMSMessage(PluginBase):
         message = client.messages.create(body=message, to=TWILIO_TO_NUMBER, from_=TWILIO_FROM_NUMBER)
 
         LOG.info("Twilio SMS Message ID: %s", message.sid)
+
+    def status_change(self, alert, status):
+        return

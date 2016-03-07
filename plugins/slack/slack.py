@@ -15,7 +15,6 @@ SLACK_ATTACHMENTS = True if os.environ['SLACK_ATTACHMENTS'] == 'True' else app.c
 class ServiceIntegration(PluginBase):
 
     def pre_receive(self, alert):
-
         return alert
 
     def post_receive(self, alert):
@@ -78,4 +77,7 @@ class ServiceIntegration(PluginBase):
             raise RuntimeError("Slack connection error: %s", e)
 
         LOG.debug('Slack response: %s', r.status_code)
+
+    def status_change(self, alert, status, text):
+        return
 

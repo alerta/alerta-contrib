@@ -28,5 +28,7 @@ class GeoLocation(PluginBase):
         return alert
 
     def post_receive(self, alert):
-        pass
+        return
 
+    def status_change(self, alert, status, text):
+        return

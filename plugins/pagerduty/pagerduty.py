@@ -16,7 +16,6 @@ DASHBOARD_URL = os.environ.get('DASHBOARD_URL') or app.config.get('DASHBOARD_URL
 class TriggerEvent(PluginBase):
 
     def pre_receive(self, alert):
-
         return alert
 
     def post_receive(self, alert):
@@ -48,3 +47,5 @@ class TriggerEvent(PluginBase):
 
         LOG.debug('PagerDuty response: %s - %s', r.status_code, r.text)
 
+    def status_change(self, alert, status, text):
+        return
