@@ -28,10 +28,15 @@ class TriggerEvent(PluginBase):
             ','.join(alert.service), alert.resource, alert.event
         )
 
+        if alert.severity == 'ok':
+            event_type = "resolve"
+        else:
+            event_type = "trigger"
+
         payload = {
             "service_key": PAGERDUTY_SERVICE_KEY,
             "incident_key": alert.id,
-            "event_type": "trigger",
+            "event_type": event_type,
             "description": message,
             "client": "alerta",
             "client_url": '%s/#/alert/%s' % (DASHBOARD_URL, alert.id),
