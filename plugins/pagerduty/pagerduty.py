@@ -28,7 +28,7 @@ class TriggerEvent(PluginBase):
             ','.join(alert.service), alert.resource, alert.event
         )
 
-        if alert.severity == 'ok':
+        if alert.severity in ['cleared', 'normal', 'ok']:
             event_type = "resolve"
         else:
             event_type = "trigger"
@@ -40,17 +40,36 @@ class TriggerEvent(PluginBase):
             "description": message,
             "client": "alerta",
             "client_url": '%s/#/alert/%s' % (DASHBOARD_URL, alert.id),
-            "details": {}
+            "details": alert.get_body(history=False)
         }
 
         LOG.debug('PagerDuty payload: %s', payload)
 
         try:
-            r = requests.post(PAGERDUTY_EVENTS_URL, data=json.dumps(payload), timeout=2)
+            r = requests.post(PAGERDUTY_EVENTS_URL, json=payload, timeout=2)
         except Exception as e:
             raise RuntimeError("PagerDuty connection error: %s" % e)
 
         LOG.debug('PagerDuty response: %s - %s', r.status_code, r.text)
 
     def status_change(self, alert, status, text):
-        return
+
+        if status not in ['ack', 'assign']:
+            return
+
+        payload = {
+            "service_key": PAGERDUTY_SERVICE_KEY,
+            "incident_key": alert.id,
+            "event_type": "acknowledge",
+            "description": text,
+            "details": alert.get_body(history=False)
+        }
+
+        LOG.debug('PagerDuty payload: %s', payload)
+
+        try:
+            r = requests.post(PAGERDUTY_EVENTS_URL, json=payload, timeout=2)
+        except Exception as e:
+            raise RuntimeError("PagerDuty connection error: %s" % e)
+
+        LOG.debug('PagerDuty response: %s - %s', r.status_code, r.text)

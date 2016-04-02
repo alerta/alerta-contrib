@@ -4,7 +4,7 @@ import os
 
 from setuptools import setup, find_packages
 
-version = '0.1.1'
+version = '0.2.0'
 
 os.chdir(os.path.normpath(os.path.join(os.path.abspath(__file__), os.pardir)))
 
