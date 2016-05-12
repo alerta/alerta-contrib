@@ -58,12 +58,12 @@ above.
 
 ```
 [notification:foo]
-field = alert.resource
+field = resource
 regex = db-\w+
 contacts = dba@lists.mycompany.com, dev@lists.mycompany.com
 
 [notification:bar]
-field = alert.resource
+field = resource
 regex = web-\w+
 contacts = dev@lists.mycompany.com 
 ```

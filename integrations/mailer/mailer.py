@@ -197,8 +197,10 @@ class MailSender(threading.Thread):
             LOG.debug('Checking %d group rules' % len(OPTIONS['group_rules']))
             for rules in OPTIONS['group_rules']:
                 LOG.debug('Matching regex %s to %s (%s)' % (rules['regex'],
-                         rules['field'], eval(rules['field'])))
-                if re.match(rules['regex'], eval(rules['field'])):
+                          rules['field'],
+                          getattr(alert, rules['field'], None)))
+                if re.match(rules['regex'],
+                            getattr(alert, rules['field'], None)):
                     LOG.debug('Regex matched')
                     # Add up any new contacts
                     new_contacts = [x.strip() for x in rules['contacts'].split(',')
