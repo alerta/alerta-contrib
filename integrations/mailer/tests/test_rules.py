@@ -110,12 +110,6 @@ RULES_DATA = [
         "name": "Test1",
         "fields": [{"field": "resource", "regex": r"\d{4}"}],
         "contacts": ["test@example.com"]
-    }],
-    [{
-        "name": "Test2",
-        "fields": [{"field": "tags", "regex": "atag"}],
-        "exclude": True,
-        "contacts": ["test@example.com"]
     }]
 ]
 
@@ -131,7 +125,7 @@ def test_rules_evaluation(rules):
         mailer.OPTIONS['group_rules'] = rules
         mail_sender = mailer.MailSender()
         with patch.object(mail_sender, '_send_email_message') as _sem:
-            with patch.object(mailer, 're') as regex:
+            with patch.object(mail_sender, '_rule_matches') as _rule_matches:
                 alert = MagicMock()
                 mail_sender.send_email(alert)
                 assert _sem.call_count == 1
@@ -143,7 +137,40 @@ def test_rules_evaluation(rules):
                         rule['contacts'])
                     call_count += len(rule['fields'])
                     for fields in rule['fields']:
-                        regex.match.assert_called_with(
+                        _rule_matches.assert_called_with(
                             fields['regex'],
                             getattr(alert, fields['field']))
-                assert regex.match.call_count == call_count
+                assert _rule_matches.call_count == call_count
+
+
+def test_rule_matches_list():
+    '''
+    Test regex matching is working properly
+    for a list
+    '''
+    # Mock options to instantiate mailer
+    with patch.dict(mailer.OPTIONS, mailer.DEFAULT_OPTIONS):
+        mail_sender = mailer.MailSender()
+        with patch.object(mailer, 're') as regex:
+            regex.match.side_effect = [MagicMock(), None]
+            assert mail_sender._rule_matches('regex', ['item1']) is True
+            regex.match.assert_called_with('regex', 'item1')
+            assert mail_sender._rule_matches('regex', ['item2']) is False 
+            regex.match.assert_called_with('regex', 'item2')
+
+
+def test_rule_matches_string():
+    '''
+    Test regex matching is working properly
+    for a string
+    '''
+    # Mock options to instantiate mailer
+    with patch.dict(mailer.OPTIONS, mailer.DEFAULT_OPTIONS):
+        mail_sender = mailer.MailSender()
+        with patch.object(mailer, 're') as regex:
+            regex.match.side_effect = [MagicMock(), None]
+            assert mail_sender._rule_matches('regex', 'value1') is True
+            regex.match.assert_called_with('regex', 'value1')
+            assert mail_sender._rule_matches('regex', 'value2') is False
+            regex.match.assert_called_with('regex', 'value2')
+

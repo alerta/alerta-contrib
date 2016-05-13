@@ -187,6 +187,26 @@ class MailSender(threading.Thread):
             keep_alive += 1
             time.sleep(2)
 
+    def _rule_matches(self, regex, value):
+        '''Checks if a rule matches the regex to
+        its provided value considering its type
+        '''
+        if isinstance(value, list):
+            LOG.debug('%s is a list, at least one item must match %s',
+                      value, regex)
+            for item in value:
+                if re.match(regex, item) is not None:
+                    LOG.debug('Regex %s matches item %s', regex, item)
+                    return True
+            LOG.debug('Regex %s matches nothing', regex)
+            return False
+        elif isinstance(value, str) or isinstance(value, unicode):
+            LOG.debug('Trying to match %s to %s',
+                      value, regex)
+            return re.match(regex, value) is not None
+        LOG.warning('Field type is not supported')
+        return False
+
     def send_email(self, alert):
         """Attempt to send an email for the provided alert, compiling
         the subject and text template and using all the other smtp settings
@@ -198,17 +218,18 @@ class MailSender(threading.Thread):
             LOG.debug('Checking %d group rules' % len(OPTIONS['group_rules']))
             for rule in OPTIONS['group_rules']:
                 LOG.info('Evaluating rule %s', rule['name'])
-                is_matching = True 
+                is_matching = False
                 for field in rule['fields']:
-                    LOG.debug('Matching regex %s to %s (%s)' % (field['regex'],
-                              field['field'],
-                              getattr(alert, field['field'], None)))
-                    if re.match(field['regex'],
-                                getattr(alert, field['field'], None)):
-                        LOG.debug('Regex matched')
+                    LOG.debug('Evaluating rule field %s', field)
+                    value = getattr(alert, field['field'], None)
+                    if value is None:
+                        LOG.warning('Alert has no attribute %s',
+                                    field['field'])
+                        break
+                    if self._rule_matches(field['regex'], value):
+                        is_matching = True
                     else:
-                        LOG.debug('regex did not match')
-                        is_matching = False
+                        break
                 if is_matching:
                     # Add up any new contacts
                     new_contacts = [x.strip() for x in rule['contacts']
@@ -223,7 +244,6 @@ class MailSender(threading.Thread):
                                      ' adding for this rule only')
                             del contacts[:]
                             contacts.extend(new_contacts)
-
 
         template_vars = {
             'alert': alert,
