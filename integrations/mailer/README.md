@@ -53,24 +53,33 @@ email_type = text
 ```
 
 Notifications to other emails according regexp criteria can be enabled,
-creating a section and calling them with the ``notification`` prefix see the example 
-above.
+creating a JSON formatted file under ```alerta.rules.d/``` with the following format:
 
 ```
-[notification:foo]
-field = resource
-regex = db-\w+
-contacts = dba@lists.mycompany.com, dev@lists.mycompany.com
-
-[notification:bar]
-field = resource
-regex = web-\w+
-contacts = dev@lists.mycompany.com 
+[
+    {
+        "name": "foo",
+        "fields": [
+            {"field": "resource", "regex": "db-\w+"}
+        ],
+        "contacts": ["dba@lists.mycompany.com", "dev@lists.mycompany.com"]
+    },
+    {
+        "name": "bar",
+        "fields": [
+            {"field": "resource", "regex": "web-\w+"}
+        ],
+        "contacts": ["dev@lists.mycompany.com"]
+    }
+]
 ```
 
-field is a reference to the alert object, regex is a valid python regexp and
-contacts are a list (comma separated) of mails who will receive an e-mail if
+``field``` is a reference to the alert object, regex is a valid python regexp and
+contacts are a list of mails who will receive an e-mail if
 the regular expression matches.
+
+Multiple ```field``` dictionary can be supplied and all ```regex``` must match for
+the email to be sent.
 
 Environment Variables
 ---------------------
@@ -97,6 +106,9 @@ you have a config file called ``mailer.conf`` on ``/etc/alerta/`` you will need
 to create the directory ``mailer.conf.d`` at the same level of your config file
 (mailer.conf in this example), and place all your configs there.
 
+Multiple email rules files can be supplied as well and rules are going to be applied
+top-down as they appear on the filesystem and on the files themselves.
+
 Deployment
 ----------
 
@@ -107,3 +119,12 @@ Dependencies
 ------------
 
 The Alerta server *MUST* have the AMQP plugin enabled and configured. See [default settings](https://github.com/guardian/alerta/blob/master/alerta/settings.py#L57)
+
+Testing
+-------
+
+Running unit-tests should required nothing else but running:
+
+```
+python setup.py test
+```
