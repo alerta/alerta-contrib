@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import json
 import datetime
 import logging
 import os
@@ -191,25 +192,30 @@ class MailSender(threading.Thread):
         the subject and text template and using all the other smtp settings
         that were specified in the configuration file
         """
-        contacts = list(OPTIONS['mail_to'])
-        LOG.debug('Initial contact list: %s' % (contacts))
+        contacts = OPTIONS['mail_to']
+        LOG.debug('Initial contact list: %s', contacts)
         if 'group_rules' in OPTIONS and len(OPTIONS['group_rules']) > 0:
             LOG.debug('Checking %d group rules' % len(OPTIONS['group_rules']))
-            for rules in OPTIONS['group_rules']:
-                LOG.debug('Matching regex %s to %s (%s)' % (rules['regex'],
-                          rules['field'],
-                          getattr(alert, rules['field'], None)))
-                if re.match(rules['regex'],
-                            getattr(alert, rules['field'], None)):
-                    LOG.debug('Regex matched')
+            for rule in OPTIONS['group_rules']:
+                LOG.info('Evaluating rule %s', rule['name'])
+                is_matching = True 
+                for field in rule['fields']:
+                    LOG.debug('Matching regex %s to %s (%s)' % (field['regex'],
+                              field['field'],
+                              getattr(alert, field['field'], None)))
+                    if re.match(field['regex'],
+                                getattr(alert, field['field'], None)):
+                        LOG.debug('Regex matched')
+                    else:
+                        LOG.debug('regex did not match')
+                        is_matching = False
+                if is_matching:
                     # Add up any new contacts
-                    new_contacts = [x.strip() for x in rules['contacts'].split(',')
+                    new_contacts = [x.strip() for x in rule['contacts']
                                     if x.strip() not in contacts]
                     if len(new_contacts) > 0:
                         LOG.debug('Extending contact to include %s' % (new_contacts))
                         contacts.extend(new_contacts)
-                else:
-                    LOG.debug('regex did not match')
 
         template_vars = {
             'alert': alert,
@@ -305,18 +311,58 @@ class MailSender(threading.Thread):
             mx.close()
 
 
-def parse_group_rules(config):
-    notifications = [x for x in config.sections()
-                     if 'notification' == x.split(':')[0]]
-    rules = []
+def validate_rules(rules):
+    '''
+    Validates that rules are correct
+    '''
+    if not isinstance(rules, list):
+        LOG.warning('Invalid rules, must be list')
+        return
+    valid_rules = []
+    for rule in rules:
+        if not isinstance(rule, dict):
+            LOG.warning('Invalid rule %s, must be dict', rule)
+            continue
+        valid = True
+        # TODO: This could be optimized to use sets instead
+        for key in ['name', 'fields', 'contacts']:
+            if key not in rule:
+                LOG.warning('Invalid rule %s, must have %s', rule, key)
+                valid = False
+                break
+        if valid is False:
+            continue
+        if not isinstance(rule['fields'], list):
+            LOG.warning('Rule fields must be a list')
+            continue
+        for field in rule['fields']:
+            for key in ['regex', 'field']:
+                if key not in rule['fields']:
+                    LOG.warning('Invalid rule %s, must have %s on fields',
+                                rule, key)
+                    valid = False
+                    break
 
-    for notification in notifications:
-        regex = config.get(notification, 'regex')
-        contacts = config.get(notification, 'contacts')
-        field = config.get(notification, 'field')
-        rules.append({'regex': regex, 'contacts': contacts, 'field': field})
+        LOG.info('Adding rule %s to list of rules to be evaluated', rule)
+        valid_rules.append(rule)
+    return valid_rules
 
-    return rules
+
+def parse_group_rules(config_file):
+    rules_dir = "{}.rules.d".format(config_file)
+    LOG.debug('Looking for rules files in %s', rules_dir)
+    if os.path.exists(rules_dir):
+        rules_d = []
+        for files in os.walk(rules_dir):
+            LOG.debug('Parsing %s', files[2])
+            try:
+                with open(files[2], 'r') as f:
+                    rules = validate_rules(json.load(f))
+                    if rules is not None:
+                        rules_d.extend(rules)
+            except:
+                LOG.exception('Could not parse file')
+        return rules_d
 
 
 def main():
@@ -368,7 +414,9 @@ def main():
     if os.environ.get('DEBUG'):
         OPTIONS['debug'] = True
 
-    OPTIONS['group_rules'] = parse_group_rules(config)
+    group_rules = parse_group_rules(config_file)
+    if group_rules is not None:
+        OPTIONS['group_rules'] = group_rules
 
     try:
         mailer = MailSender()

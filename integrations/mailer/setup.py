@@ -2,7 +2,7 @@
 
 import setuptools
 
-version = '3.3.2'
+version = '3.4.0'
 
 setuptools.setup(
     name="alerta-mailer",
@@ -14,6 +14,8 @@ setuptools.setup(
     author_email='nick.satterly@theguardian.com',
     py_modules=['mailer'],
     data_files=[('.', ['email.tmpl', 'email.html.tmpl'])],
+    setup_requires=['pytest-runner'],
+    tests_require=['pytest', 'mock', 'pytest-capturelog'],
     install_requires=[
         'alerta',
         'kombu',
