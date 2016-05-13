@@ -35,7 +35,7 @@ except ImportError:
     import ConfigParser as configparser
 
 
-logging.basicConfig()
+logging.basicConfig(level=logging.DEBUG)
 LOG = logging.getLogger(__name__)
 root = logging.getLogger()
 
@@ -332,16 +332,18 @@ def validate_rules(rules):
                 break
         if valid is False:
             continue
-        if not isinstance(rule['fields'], list):
-            LOG.warning('Rule fields must be a list')
+        if not isinstance(rule['fields'], list) or len(rule['fields']) == 0:
+            LOG.warning('Rule fields must be a list and not empty')
             continue
         for field in rule['fields']:
             for key in ['regex', 'field']:
-                if key not in rule['fields']:
+                if key not in field:
                     LOG.warning('Invalid rule %s, must have %s on fields',
                                 rule, key)
                     valid = False
                     break
+        if valid is False:
+            continue
 
         LOG.info('Adding rule %s to list of rules to be evaluated', rule)
         valid_rules.append(rule)
@@ -354,14 +356,15 @@ def parse_group_rules(config_file):
     if os.path.exists(rules_dir):
         rules_d = []
         for files in os.walk(rules_dir):
-            LOG.debug('Parsing %s', files[2])
-            try:
-                with open(files[2], 'r') as f:
-                    rules = validate_rules(json.load(f))
-                    if rules is not None:
-                        rules_d.extend(rules)
-            except:
-                LOG.exception('Could not parse file')
+            for filename in files[2]:
+                LOG.debug('Parsing %s', filename)
+                try:
+                    with open(os.path.join(files[0], filename), 'r') as f:
+                        rules = validate_rules(json.load(f))
+                        if rules is not None:
+                            rules_d.extend(rules)
+                except:
+                    LOG.exception('Could not parse file')
         return rules_d
 
 

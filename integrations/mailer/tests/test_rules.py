@@ -25,9 +25,8 @@ def test_rules_parsing():
                         json=DEFAULT, validate_rules=DEFAULT) as mocks:
         mocks['os'].path.exists.return_value = True
         mocks['os'].walk().__iter__\
-            .return_value = [(None, None, 'cantopen.json'),
-                             (None, None, 'invalid.json'),
-                             (None, None, 'valid.json')]
+            .return_value = [('/', None,
+                              ['cantopen.json', 'invalid.json', 'valid.json'])]
         invalid_file = MagicMock()
         valid_file = MagicMock()
         mocks['open'].side_effect = [IOError, invalid_file, valid_file]
@@ -57,27 +56,32 @@ TESTDOCS = [
     ({}, False),
     ([], True),
     ([
-        {"name": "invalid_no_fields"}
+        {"name": "invalid_no_fields",
+         "contacts": []}
     ], False),
     ([
         {"name": "invalid_empty_fields",
-         "fields": []}
+         "fields": [],
+         "contacts": []}
     ], False),
     ([
         {"name": "invalid_no_contacts",
          "fields": [{"field": "resource", "regex": r"\d{4}"}]}
     ], False),
     ([
-        {"name": "invalid_no_fields_field",
-         "fields": [{"regex": r"\d{4}"}]}
+        {"name": "invalid_no_field_on_fields",
+         "fields": [{"regex": r"\d{4}"}],
+         "contacts": []}
     ], False),
     ([
-        {"name": "invalid_no_fields_not_list",
-         "fields": {"regex": r"\d{4}"}}
+        {"name": "invalid_fields_not_list",
+         "fields": {"regex": r"\d{4}"},
+         "contacts": []}
     ], False),
     ([
         {"name": "invalid_no_fields_regex",
-         "fields": [{"field": "test"}]}
+         "fields": [{"field": "test"}],
+         "contacts": []}
     ], False),
 ]
 
