@@ -69,7 +69,8 @@ creating a JSON formatted file under ```alerta.rules.d/``` with the following fo
         "fields": [
             {"field": "resource", "regex": "web-\w+"}
         ],
-        "contacts": ["dev@lists.mycompany.com"]
+        "contacts": ["dev@lists.mycompany.com"],
+        "exclude" : true
     }
 ]
 ```
@@ -80,6 +81,9 @@ the regular expression matches.
 
 Multiple ```field``` dictionary can be supplied and all ```regex``` must match for
 the email to be sent.
+
+If the ```exclude``` parameter is set, contact list will be cleared and replaced with
+only the contacts of the current matched rule.
 
 Environment Variables
 ---------------------

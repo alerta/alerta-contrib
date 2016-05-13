@@ -214,8 +214,16 @@ class MailSender(threading.Thread):
                     new_contacts = [x.strip() for x in rule['contacts']
                                     if x.strip() not in contacts]
                     if len(new_contacts) > 0:
-                        LOG.debug('Extending contact to include %s' % (new_contacts))
-                        contacts.extend(new_contacts)
+                        if not rule.get('exclude', False):
+                            LOG.debug('Extending contact to include %s' % (
+                                new_contacts))
+                            contacts.extend(new_contacts)
+                        else:
+                            LOG.info('Clearing initial list of contacts and'
+                                     ' adding for this rule only')
+                            del contacts[:]
+                            contacts.extend(new_contacts)
+
 
         template_vars = {
             'alert': alert,

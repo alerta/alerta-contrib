@@ -83,6 +83,12 @@ TESTDOCS = [
          "fields": [{"field": "test"}],
          "contacts": []}
     ], False),
+    ([
+        {"name": "invalid_no_fields_regex",
+         "fields": [{"field": "tags", "regex": "atag"}],
+         "exclude": True,
+         "contacts": []}
+    ], True),
 ]
 
 
@@ -93,7 +99,7 @@ def test_rules_validation(doc, is_valid):
     '''
     res = mailer.validate_rules(doc)
     if is_valid:
-        assert res is not None
+        assert res is not None and res == doc
     else:
         assert res is None or res == []
 
@@ -103,6 +109,12 @@ RULES_DATA = [
     [{
         "name": "Test1",
         "fields": [{"field": "resource", "regex": r"\d{4}"}],
+        "contacts": ["test@example.com"]
+    }],
+    [{
+        "name": "Test2",
+        "fields": [{"field": "tags", "regex": "atag"}],
+        "exclude": True,
         "contacts": ["test@example.com"]
     }]
 ]
@@ -116,7 +128,6 @@ def test_rules_evaluation(rules):
     with patch.dict(mailer.OPTIONS, mailer.DEFAULT_OPTIONS):
         contacts = MagicMock()
         mailer.OPTIONS['mail_to'] = contacts
-        print contacts, list(contacts)
         mailer.OPTIONS['group_rules'] = rules
         mail_sender = mailer.MailSender()
         with patch.object(mail_sender, '_send_email_message') as _sem:
@@ -126,7 +137,10 @@ def test_rules_evaluation(rules):
                 assert _sem.call_count == 1
                 call_count = 0
                 for rule in rules:
-                    contacts.extend.assert_called_once_with(rule['contacts'])
+                    if rule.get('exclude', False):
+                        assert contacts.__delitem__.called is True
+                    contacts.extend.assert_called_once_with(
+                        rule['contacts'])
                     call_count += len(rule['fields'])
                     for fields in rule['fields']:
                         regex.match.assert_called_with(
