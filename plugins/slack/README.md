@@ -3,6 +3,8 @@ Slack Plugin
 
 Send alerts to [Slack](https://slack.com/).
 
+![Slack Message](./images/alerta-slack-plugin.png)
+
 Installation
 ------------
 
