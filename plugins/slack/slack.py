@@ -9,7 +9,7 @@ from alerta.plugins import PluginBase
 LOG = app.logger
 
 SLACK_WEBHOOK_URL = os.environ.get('SLACK_WEBHOOK_URL') or app.config['SLACK_WEBHOOK_URL']
-SLACK_ATTACHMENTS = True if os.environ['SLACK_ATTACHMENTS'] == 'True' else app.config.get('SLACK_ATTACHMENTS', False)
+SLACK_ATTACHMENTS = True if os.environ.get('SLACK_ATTACHMENTS', 'False') == 'True' else app.config.get('SLACK_ATTACHMENTS', False)
 
 
 class ServiceIntegration(PluginBase):
@@ -80,4 +80,3 @@ class ServiceIntegration(PluginBase):
 
     def status_change(self, alert, status, text):
         return
-
