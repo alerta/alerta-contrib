@@ -10,6 +10,8 @@ LOG = app.logger
 
 SLACK_WEBHOOK_URL = os.environ.get('SLACK_WEBHOOK_URL') or app.config['SLACK_WEBHOOK_URL']
 SLACK_ATTACHMENTS = True if os.environ.get('SLACK_ATTACHMENTS', 'False') == 'True' else app.config.get('SLACK_ATTACHMENTS', False)
+SLACK_CHANNEL = os.environ.get('SLACK_CHANNEL', '')
+ALERTA_UI_URL = os.environ.get('ALERTA_UI_URL', 'http://try.alerta.io')
 
 
 class ServiceIntegration(PluginBase):
@@ -24,8 +26,8 @@ class ServiceIntegration(PluginBase):
 
         url = SLACK_WEBHOOK_URL
 
-        summary = "*[%s] %s %s - _%s on %s_* <http://try.alerta.io/#/alert/%s|%s>" % (
-            alert.status.capitalize(), alert.environment, alert.severity.capitalize(), alert.event, alert.resource,
+        summary = "*[%s] %s %s - _%s on %s_* <%s/#/alert/%s|%s>" % (
+            alert.status.capitalize(), alert.environment, alert.severity.capitalize(), alert.event, alert.resource, ALERTA_UI_URL,
             alert.id, alert.get_id(short=True)
         )
 
@@ -40,13 +42,13 @@ class ServiceIntegration(PluginBase):
         else:
             color = "#00CC00"  # green
 
-        text = "<http://try.alerta.io/#/alert/%s|%s> %s - %s" % (alert.get_id(), alert.get_id(short=True), alert.event, alert.text)
+        text = "<%s/#/alert/%s|%s> %s - %s" % (ALERTA_UI_URL, alert.get_id(), alert.get_id(short=True), alert.event, alert.text)
 
         if not SLACK_ATTACHMENTS:
 
             payload = {
                 "username": "alerta",
-                "channel": "#alerts",
+                "channel": SLACK_CHANNEL,
                 "text": summary,
                 "icon_emoji": ":rocket:"
             }
@@ -54,7 +56,7 @@ class ServiceIntegration(PluginBase):
         else:
             payload = {
                 "username": "alerta",
-                "channel": "#alerts",
+                "channel": SLACK_CHANNEL,
                 "icon_emoji": ":rocket:",
                 "attachments": [{
                     "fallback": summary,
