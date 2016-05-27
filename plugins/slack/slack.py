@@ -66,7 +66,7 @@ class ServiceIntegration(PluginBase):
                         {"title": "Status", "value": alert.status.capitalize(), "short": True},
                         {"title": "Environment", "value": alert.environment, "short": True},
                         {"title": "Resource", "value": alert.resource, "short": True},
-                        {"title": "Service", "value": alert.service, "short": True}
+                        {"title": "Services", "value": ", ".join(alert.service), "short": True}
                     ]
                 }]
             }
