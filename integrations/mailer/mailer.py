@@ -203,7 +203,7 @@ class MailSender(threading.Thread):
         elif isinstance(value, str) or isinstance(value, unicode):
             LOG.debug('Trying to match %s to %s',
                       value, regex)
-            return re.match(regex, value) is not None
+            return re.search(regex, value) is not None
         LOG.warning('Field type is not supported')
         return False
 
@@ -212,7 +212,7 @@ class MailSender(threading.Thread):
         the subject and text template and using all the other smtp settings
         that were specified in the configuration file
         """
-        contacts = OPTIONS['mail_to']
+        contacts = list(OPTIONS['mail_to'])
         LOG.debug('Initial contact list: %s', contacts)
         if 'group_rules' in OPTIONS and len(OPTIONS['group_rules']) > 0:
             LOG.debug('Checking %d group rules' % len(OPTIONS['group_rules']))
@@ -285,15 +285,18 @@ class MailSender(threading.Thread):
             self._send_email_message(msg, contacts)
             LOG.debug('%s : Email sent to %s' % (alert.get_id(),
                                                  ','.join(contacts)))
+            return (msg, contacts)
         except (socket.error, socket.herror, socket.gaierror), e:
             LOG.error('Mail server connection error: %s', e)
-            return
+            return None
         except smtplib.SMTPException, e:
             LOG.error('Failed to send mail to %s on %s:%s : %s',
                       ", ".join(contacts),
                       OPTIONS['smtp_host'], OPTIONS['smtp_port'], e)
+            return None
         except Exception as e:
             LOG.error('Unexpected error while sending email: {}'.format(str(e)))  # nopep8
+            return None
 
     def _send_email_message(self, msg, contacts):
         if OPTIONS['skip_mta'] and DNS_RESOLVER_AVAILABLE:
