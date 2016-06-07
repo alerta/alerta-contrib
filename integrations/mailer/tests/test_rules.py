@@ -3,6 +3,7 @@ Unit test definitions for all rules
 '''
 import pytest
 import mailer
+from alerta.alert import AlertDocument
 from mock import MagicMock, patch, DEFAULT
 
 
@@ -105,42 +106,30 @@ def test_rules_validation(doc, is_valid):
 
 
 RULES_DATA = [
-    [],
-    [{
-        "name": "Test1",
-        "fields": [{"field": "resource", "regex": r"\d{4}"}],
-        "contacts": ["test@example.com"]
-    }]
+    ({'resource': 'server-1234'}, [], []),
+    ({'resource': '1234'},
+     [{"name": "Test1",
+       "fields": [{"field": "resource", "regex": r"(\w.*)?\d{4}"}],
+       "contacts": ["test@example.com"]}],
+     ['test@example.com'])
 ]
 
 
-@pytest.mark.parametrize('rules', RULES_DATA)
-def test_rules_evaluation(rules):
+@pytest.mark.parametrize('alert_spec, input_rules, expected_contacts',
+                         RULES_DATA)
+def test_rules_evaluation(alert_spec, input_rules, expected_contacts):
     '''
     Test that rules are properly evaluated
     '''
     with patch.dict(mailer.OPTIONS, mailer.DEFAULT_OPTIONS):
-        contacts = MagicMock()
-        mailer.OPTIONS['mail_to'] = contacts
-        mailer.OPTIONS['group_rules'] = rules
+        mailer.OPTIONS['mail_to'] = []
+        mailer.OPTIONS['group_rules'] = input_rules
         mail_sender = mailer.MailSender()
         with patch.object(mail_sender, '_send_email_message') as _sem:
-            with patch.object(mail_sender, '_rule_matches') as _rule_matches:
-                alert = MagicMock()
-                mail_sender.send_email(alert)
-                assert _sem.call_count == 1
-                call_count = 0
-                for rule in rules:
-                    if rule.get('exclude', False):
-                        assert contacts.__delitem__.called is True
-                    contacts.extend.assert_called_once_with(
-                        rule['contacts'])
-                    call_count += len(rule['fields'])
-                    for fields in rule['fields']:
-                        _rule_matches.assert_called_with(
-                            fields['regex'],
-                            getattr(alert, fields['field']))
-                assert _rule_matches.call_count == call_count
+            alert = AlertDocument.parse_alert(alert_spec)
+            _, emailed_contacts = mail_sender.send_email(alert)
+            assert _sem.call_count == 1
+            assert emailed_contacts == expected_contacts
 
 
 def test_rule_matches_list():
@@ -168,9 +157,9 @@ def test_rule_matches_string():
     with patch.dict(mailer.OPTIONS, mailer.DEFAULT_OPTIONS):
         mail_sender = mailer.MailSender()
         with patch.object(mailer, 're') as regex:
-            regex.match.side_effect = [MagicMock(), None]
+            regex.search.side_effect = [MagicMock(), None]
             assert mail_sender._rule_matches('regex', 'value1') is True
-            regex.match.assert_called_with('regex', 'value1')
+            regex.search.assert_called_with('regex', 'value1')
             assert mail_sender._rule_matches('regex', 'value2') is False
-            regex.match.assert_called_with('regex', 'value2')
+            regex.search.assert_called_with('regex', 'value2')
 
