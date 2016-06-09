@@ -4,6 +4,7 @@ Consul
 Trigger alerts based on [consul][1]. health checks, triggered by [consul-alerts][2]
 
 Requirements:
+==========
 
     consul
     consul-alerts
