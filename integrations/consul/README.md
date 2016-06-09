@@ -1,12 +1,12 @@
 Consul
 ==========
 
-Trigger alerts based on [consul][1]. health checks
+Trigger alerts based on [consul][1]. health checks, triggered by [consul-alerts][2]
 
 Requirements:
 
-    [consul][1]
-    [consul-alerts][2]
+    consul
+    consul-alerts
 
 
 Installation
