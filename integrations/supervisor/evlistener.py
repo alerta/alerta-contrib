@@ -2,6 +2,7 @@
 
 import sys
 import json
+import platform
 
 from alerta.api import ApiClient
 from alerta.alert import Alert
@@ -11,7 +12,6 @@ from alerta.heartbeat import Heartbeat
 class Listener(object):
 
     def wait(self):
-
         data = sys.stdin.readline()
         headers = dict([x.split(':') for x in data.split()])
         data = sys.stdin.read(int(headers['len']))
@@ -53,7 +53,7 @@ def main():
                 severity = 'normal'
 
             supervisorAlert = Alert(
-                resource=body['processname'],
+                resource='%s:%s' % (platform.uname()[1], body['processname']),
                 environment='Production',
                 service=['supervisord'],
                 event=event,
