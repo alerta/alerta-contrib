@@ -64,6 +64,7 @@ class ServiceIntegration(PluginBase):
                     "pretext": text,
                     "fields": [
                         {"title": "Status", "value": alert.status.capitalize(), "short": True},
+                        {"title": "Server", "value": alert.origin.capitalize(), "short": True},
                         {"title": "Environment", "value": alert.environment, "short": True},
                         {"title": "Resource", "value": alert.resource, "short": True},
                         {"title": "Services", "value": ", ".join(alert.service), "short": True}
