@@ -1,15 +1,20 @@
 
+import os
 import sys
 import socket
 import select
 import re
 import logging
 
-from transform import Transformers
-
 from alerta.api import ApiClient
 from alerta.alert import Alert
 from alerta.heartbeat import Heartbeat
+
+
+__version__ = '3.4.0'
+
+SYSLOG_TCP_PORT = int(os.environ.get('SYSLOG_TCP_PORT', 514))
+SYSLOG_UDP_PORT = int(os.environ.get('SYSLOG_UDP_PORT', 514))
 
 
 SYSLOG_FACILITY_NAMES = [
@@ -61,28 +66,16 @@ SYSLOG_SEVERITY_MAP = {
     "debug":   "debug",
 }
 
-DEFAULT_UDP_PORT = 514
-DEFAULT_TCP_PORT = 514
-
-
 def priority_to_code(name):
     return SYSLOG_SEVERITY_MAP.get(name, "unknown")
 
 
 def decode_priority(priority):
     facility = priority >> 3
-    facility = SYSLOG_FACILITY_NAMES[facility]
     level = priority & 7
-    level = SYSLOG_SEVERITY_NAMES[level]
-    return facility, level
-
-__version__ = '3.3.0'
+    return SYSLOG_FACILITY_NAMES[facility], SYSLOG_SEVERITY_NAMES[level]
 
 LOOP_EVERY = 20  # seconds
-SYSLOG_UDP_PORT = 514
-SYSLOG_TCP_PORT = 514
-
-import settings
 
 LOG = logging.getLogger("alerta.syslog")
 logging.basicConfig(format="%(asctime)s - %(name)s: %(levelname)s - %(message)s", level=logging.DEBUG)
@@ -92,15 +85,13 @@ class SyslogDaemon(object):
 
     def __init__(self):
 
-        self.shuttingdown = False
-
-    def run(self):
+        self.api = ApiClient()
 
         LOG.info('Starting UDP listener...')
         # Set up syslog UDP listener
         try:
-            udp = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-            udp.bind(('', SYSLOG_UDP_PORT))
+            self.udp = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            self.udp.bind(('', SYSLOG_UDP_PORT))
         except socket.error, e:
             LOG.error('Syslog UDP error: %s', e)
             sys.exit(2)
@@ -109,39 +100,41 @@ class SyslogDaemon(object):
         LOG.info('Starting TCP listener...')
         # Set up syslog TCP listener
         try:
-            tcp = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            tcp.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-            tcp.bind(('', SYSLOG_TCP_PORT))
-            tcp.listen(5)
+            self.tcp = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            self.tcp.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+            self.tcp.bind(('', SYSLOG_TCP_PORT))
+            self.tcp.listen(5)
         except socket.error, e:
             LOG.error('Syslog TCP error: %s', e)
             sys.exit(2)
         LOG.info('Listening on syslog port %s/tcp' % SYSLOG_TCP_PORT)
 
-        self.api = self.api = ApiClient(endpoint=settings.ENDPOINT, key=settings.API_KEY)
+        self.shuttingdown = False
+
+    def run(self):
 
         count = 0
         while not self.shuttingdown:
             try:
                 LOG.debug('Waiting for syslog messages...')
-                ip, op, rdy = select.select([udp, tcp], [], [], LOOP_EVERY)
+                ip, op, rdy = select.select([self.udp, self.tcp], [], [], LOOP_EVERY)
                 if ip:
                     for i in ip:
-                        if i == udp:
-                            data, addr = udp.recvfrom(4096)
+                        if i == self.udp:
+                            data, addr = self.udp.recvfrom(4096)
                             data = unicode(data, 'utf-8', errors='ignore')
                             LOG.debug('Syslog UDP data received from %s: %s', addr, data)
-                        if i == tcp:
-                            client, addr = tcp.accept()
+                        if i == self.tcp:
+                            client, addr = self.tcp.accept()
                             data = client.recv(4096)
                             data = unicode(data, 'utf-8', errors='ignore')
                             client.close()
                             LOG.debug('Syslog TCP data received from %s: %s', addr, data)
 
-                        syslogAlerts = self.parse_syslog(addr[0], data)
-                        for syslogAlert in syslogAlerts:
+                        alerts = self.parse_syslog(ip=addr[0], data=data)
+                        for alert in alerts:
                             try:
-                                self.api.send(syslogAlert)
+                                self.api.send(alert)
                             except Exception, e:
                                 LOG.warning('Failed to send alert: %s', e)
 
@@ -159,7 +152,7 @@ class SyslogDaemon(object):
 
         LOG.info('Shutdown request received...')
 
-    def parse_syslog(self, addr, data):
+    def parse_syslog(self, ip, data):
 
         LOG.debug('Parsing syslog message...')
         syslogAlerts = list()
@@ -168,10 +161,6 @@ class SyslogDaemon(object):
         resource = None
 
         for msg in data.split('\n'):
-
-            # NOTE: if syslog msgs aren't being split on newlines and #012 appears instead then
-            #       try adding "$EscapeControlCharactersOnReceive off" to rsyslog.conf
-
             if not msg or 'last message repeated' in msg:
                 continue
 
@@ -225,10 +214,10 @@ class SyslogDaemon(object):
 
                     # replace IP address with a hostname, if necessary
                     try:
-                        socket.inet_aton(addr)
-                        (resource, _, _) = socket.gethostbyaddr(addr)
+                        socket.inet_aton(ip)
+                        (resource, _, _) = socket.gethostbyaddr(ip)
                     except (socket.error, socket.herror):
-                        resource = addr
+                        resource = ip
 
                     resource = '%s:%s' % (resource, CISCO_FACILITY)
                 else:
@@ -248,7 +237,6 @@ class SyslogDaemon(object):
             service = ['Platform']
             tags = ['%s.%s' % (facility, level)]
             correlate = list()
-            timeout = None
             raw_data = msg
 
             syslogAlert = Alert(
@@ -263,24 +251,8 @@ class SyslogDaemon(object):
                 text=text,
                 event_type='syslogAlert',
                 tags=tags,
-                timeout=timeout,
                 raw_data=raw_data,
             )
-
-            suppress = False
-            try:
-                suppress = Transformers.normalise_alert(syslogAlert, facility=facility, level=level)
-            except RuntimeWarning:
-                pass
-
-            if suppress:
-                LOG.info('Suppressing %s.%s alert', facility, level)
-                LOG.debug('%s', syslogAlert)
-                continue
-
-            if syslogAlert.get_type() == 'Heartbeat':
-                syslogAlert = Heartbeat(origin=syslogAlert.origin, timeout=syslogAlert.timeout)
-
             syslogAlerts.append(syslogAlert)
 
         return syslogAlerts
