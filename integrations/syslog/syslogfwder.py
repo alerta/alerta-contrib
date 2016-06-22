@@ -11,7 +11,7 @@ from alerta.alert import Alert
 from alerta.heartbeat import Heartbeat
 
 
-__version__ = '3.4.0'
+__version__ = '3.4.2'
 
 SYSLOG_TCP_PORT = int(os.environ.get('SYSLOG_TCP_PORT', 514))
 SYSLOG_UDP_PORT = int(os.environ.get('SYSLOG_UDP_PORT', 514))
@@ -270,7 +270,4 @@ def main():
     except Exception as e:
         LOG.error(e, exc_info=1)
         sys.exit(1)
-
-if __name__ == '__main__':
-    main()
 
