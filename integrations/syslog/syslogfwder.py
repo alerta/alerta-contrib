@@ -236,21 +236,21 @@ class SyslogDaemon(object):
             environment = 'Production'
             service = ['Platform']
             tags = ['%s.%s' % (facility, level)]
-            correlate = list()
+            correlate = ['%s%s' % (facility.capitalize(), s.capitalize()) for s in SYSLOG_SEVERITY_NAMES]
             raw_data = msg
 
             syslogAlert = Alert(
                 resource=resource,
                 event=event,
+                environment=environment,
+                severity=severity,
                 correlate=correlate,
+                service=service,
                 group=group,
                 value=value,
-                severity=severity,
-                environment=environment,
-                service=service,
                 text=text,
-                event_type='syslogAlert',
                 tags=tags,
+                event_type='syslogAlert',
                 raw_data=raw_data,
             )
             syslogAlerts.append(syslogAlert)
