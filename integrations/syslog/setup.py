@@ -2,7 +2,7 @@
 
 import setuptools
 
-version = '3.3.0'
+version = '3.4.3'
 
 setuptools.setup(
     name="alerta-syslog",
@@ -12,7 +12,7 @@ setuptools.setup(
     license='Apache License 2.0',
     author='Nick Satterly',
     author_email='nick.satterly@theguardian.com',
-    py_modules=['syslog', 'transform', 'settings'],
+    py_modules=['syslogfwder'],
     install_requires=[
         'alerta'
     ],
@@ -20,7 +20,7 @@ setuptools.setup(
     zip_safe=False,
     entry_points={
         'console_scripts': [
-            'alerta-syslog = syslog:main'
+            'alerta-syslog = syslogfwder:main'
         ]
     },
     keywords="alerta syslog monitoring",
