@@ -24,7 +24,7 @@ timeout = int(client.kv.get('alerta/timeout')[1]['Value'])
 origin = client.kv.get('alerta/origin')[1]['Value']
 alerttype = client.kv.get('alerta/alerttype')[1]['Value']
 
-event = 'event'
+event = 'Problem'
 value = 'Error'
 
 api = ApiClient(endpoint=url, key=key)
