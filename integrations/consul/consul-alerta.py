@@ -23,7 +23,12 @@ timeout = int(client.kv.get('alerta/timeout')[1]['Value'])
 
 origin = client.kv.get('alerta/origin')[1]['Value']
 alerttype = client.kv.get('alerta/alerttype')[1]['Value']
+
+event = 'event'
+value = 'Error'
+
 api = ApiClient(endpoint=url, key=key)
+
 
 SEVERITY_MAP = {
     'critical':   'critical',
@@ -32,7 +37,11 @@ SEVERITY_MAP = {
 }
 
 def createalert( data ):
-    alert = Alert(resource=data['Node'], event='Problem', environment='Production', service=[data['CheckId']], severity=SEVERITY_MAP[data['Status']], text=data['Output'], value='Error', timeout=timeout, origin=origin, type=alerttype)
+    try:
+        environment = client.kv.get('alerta/env/{0}'.format(data['Node']))[1]['Value']
+    except:
+        environment = client.kv.get('alerta/defaultenv')[1]['Value']
+    alert = Alert(resource=data['Node'], event=event, environment=environment, service=[data['CheckId']], severity=SEVERITY_MAP[data['Status']], text=data['Output'], value=value, timeout=timeout, origin=origin, type=alerttype)
     for i in range(max_retries):
         try:
             print(api.send(alert))
