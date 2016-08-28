@@ -30,6 +30,8 @@ Configuration
         alerta/max_retries:3 // max api call attemps
         alerta/sleep:2 // sleep between attemps
         alerta/origin:consul // alert origin
+        alerta/defaultenv:Production // default alert environment
+        alerta/env/{hostname}:Testing // exceptions for env of specific nodes
         alerta/alerttype:ConsulAlerts // alert type
         consul-alerts/config/notif-profiles/default: { "Interval": 10 } // will keep active alerts "open" in alerta, before timeout removes them
 
