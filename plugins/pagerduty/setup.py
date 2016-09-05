@@ -1,14 +1,10 @@
 #!/usr/bin/env python
 
-import os
+import setuptools
 
-from setuptools import setup, find_packages
+version = '0.2.1'
 
-version = '0.2.0'
-
-os.chdir(os.path.normpath(os.path.join(os.path.abspath(__file__), os.pardir)))
-
-setup(
+setuptools.setup(
     name="alerta-pagerduty",
     version=version,
     description='Alerta plugin for PagerDuty',
@@ -16,7 +12,6 @@ setup(
     license='Apache License 2.0',
     author='Nick Satterly',
     author_email='nick.satterly@theguardian.com',
-    packages=find_packages(),
     py_modules=['pagerduty'],
     install_requires=[
         'requests',
