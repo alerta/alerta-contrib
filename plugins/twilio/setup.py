@@ -1,14 +1,10 @@
 #!/usr/bin/env python
 
-import os
-
-from setuptools import setup, find_packages
+import setuptools
 
 version = '0.1.0'
 
-os.chdir(os.path.normpath(os.path.join(os.path.abspath(__file__), os.pardir)))
-
-setup(
+setuptools.setup(
     name="alerta-twilio",
     version=version,
     description='Alerta plugin for Twilio SMS',
@@ -16,7 +12,6 @@ setup(
     license='Apache License 2.0',
     author='Nick Satterly',
     author_email='nick.satterly@theguardian.com',
-    packages=find_packages(),
     py_modules=['twilio_sms'],
     install_requires=[
         'twilio',
