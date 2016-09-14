@@ -1,10 +1,9 @@
-#!/usr/bin/env python
 
-import setuptools
+from setuptools import setup, find_packages
 
-version = '0.2.1'
+version = '0.3.0'
 
-setuptools.setup(
+setup(
     name="alerta-geoip",
     version=version,
     description='Alerta plugin for GeoIP Lookup',
@@ -12,13 +11,13 @@ setuptools.setup(
     license='Apache License 2.0',
     author='Nick Satterly',
     author_email='nick.satterly@theguardian.com',
+    packages=find_packages(),
     py_modules=['alerta_geoip'],
     install_requires=[
-        'requests',
-        'alerta-server'
+        'requests'
     ],
     include_package_data=True,
-    zip_safe=False,
+    zip_safe=True,
     entry_points={
         'alerta.plugins': [
             'geoip = alerta_geoip:GeoLocation'

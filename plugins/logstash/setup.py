@@ -1,10 +1,9 @@
-#!/usr/bin/env python
 
-import setuptools
+from setuptools import setup, find_packages
 
-version = '0.2.1'
+version = '0.3.0'
 
-setuptools.setup(
+setup(
     name="alerta-logstash",
     version=version,
     description='Alerta plugin for ELK logstash',
@@ -12,12 +11,10 @@ setuptools.setup(
     license='Apache License 2.0',
     author='Nick Satterly',
     author_email='nick.satterly@theguardian.com',
+    packages=find_packages(),
     py_modules=['alerta_logstash'],
-    install_requires=[
-        'alerta-server'
-    ],
     include_package_data=True,
-    zip_safe=False,
+    zip_safe=True,
     entry_points={
         'alerta.plugins': [
             'logstash = alerta_logstash:LogStashOutput'
