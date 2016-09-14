@@ -1,10 +1,9 @@
-#!/usr/bin/env python
 
-import setuptools
+from setuptools import setup, find_packages
 
-version = '0.2.0'
+version = '0.3.0'
 
-setuptools.setup(
+setup(
     name="alerta-enhance",
     version=version,
     description='Alerta plugin for alert enhancement',
@@ -12,15 +11,13 @@ setuptools.setup(
     license='Apache License 2.0',
     author='Nick Satterly',
     author_email='nick.satterly@theguardian.com',
-    py_modules=['enhance'],
-    install_requires=[
-        'alerta-server'
-    ],
+    packages=find_packages(),
+    py_modules=['alerta_enhance'],
     include_package_data=True,
-    zip_safe=False,
+    zip_safe=True,
     entry_points={
         'alerta.plugins': [
-            'enhance = enhance:EnhanceAlert'
+            'enhance = alerta_enhance:EnhanceAlert'
         ]
     }
 )
