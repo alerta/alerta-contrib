@@ -2,7 +2,7 @@
 
 import setuptools
 
-version = '0.2.0'
+version = '0.2.1'
 
 setuptools.setup(
     name="alerta-geoip",
@@ -12,7 +12,7 @@ setuptools.setup(
     license='Apache License 2.0',
     author='Nick Satterly',
     author_email='nick.satterly@theguardian.com',
-    py_modules=['geoip'],
+    py_modules=['alerta_geoip'],
     install_requires=[
         'requests',
         'alerta-server'
@@ -21,7 +21,7 @@ setuptools.setup(
     zip_safe=False,
     entry_points={
         'alerta.plugins': [
-            'geoip = geoip:GeoLocation'
+            'geoip = alerta_geoip:GeoLocation'
         ]
     }
 )

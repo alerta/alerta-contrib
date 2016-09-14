@@ -2,7 +2,7 @@
 
 import setuptools
 
-version = '0.2.0'
+version = '0.2.1'
 
 setuptools.setup(
     name="alerta-logger",
@@ -12,7 +12,7 @@ setuptools.setup(
     license='Apache License 2.0',
     author='Nick Satterly',
     author_email='nick.satterly@theguardian.com',
-    py_modules=['logger'],
+    py_modules=['alerta_logger'],
     install_requires=[
         'alerta-server'
     ],
@@ -20,7 +20,7 @@ setuptools.setup(
     zip_safe=False,
     entry_points={
         'alerta.plugins': [
-            'syslog = logger:Syslog'
+            'syslog = alerta_logger:Syslog'
         ]
     }
 )

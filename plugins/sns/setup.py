@@ -2,7 +2,7 @@
 
 import setuptools
 
-version = '0.2.0'
+version = '0.2.1'
 
 setuptools.setup(
     name="alerta-sns",
@@ -12,7 +12,7 @@ setuptools.setup(
     license='Apache License 2.0',
     author='Nick Satterly',
     author_email='nick.satterly@theguardian.com',
-    py_modules=['sns'],
+    py_modules=['alerta_sns'],
     install_requires=[
         'alerta-server',
         'boto'
@@ -21,7 +21,7 @@ setuptools.setup(
     zip_safe=False,
     entry_points={
         'alerta.plugins': [
-            'sns = sns:SnsTopicPublisher'
+            'sns = alerta_sns:SnsTopicPublisher'
         ]
     }
 )
