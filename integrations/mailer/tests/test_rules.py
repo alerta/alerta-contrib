@@ -3,7 +3,7 @@ Unit test definitions for all rules
 '''
 import pytest
 import mailer
-from alerta.alert import AlertDocument
+from alertaclient.alert import AlertDocument
 from mock import MagicMock, patch, DEFAULT
 
 

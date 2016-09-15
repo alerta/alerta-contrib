@@ -2,15 +2,15 @@
 import time
 import threading
 
-from alerta.common import config
-from alerta.common import log as logging
-from alerta.common.daemon import Daemon
-from alerta.common.api import ApiClient
-from alerta.common.amqp import Messaging, FanoutConsumer
-from alerta.common.alert import AlertDocument
-from alerta.common.heartbeat import Heartbeat
-from alerta.common import severity_code, status_code
-from alerta.pagerduty.pdclientapi import PagerDutyClient
+from alertaclient.common import config
+from alertaclient.common import log as logging
+from alertaclient.common.daemon import Daemon
+from alertaclient.common.api import ApiClient
+from alertaclient.common.amqp import Messaging, FanoutConsumer
+from alertaclient.common.alert import AlertDocument
+from alertaclient.common.heartbeat import Heartbeat
+from alertaclient.common import severity_code, status_code
+from alertaclient.pagerduty.pdclientapi import PagerDutyClient
 
 __version__ = '3.0.3'
 

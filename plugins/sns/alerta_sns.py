@@ -3,8 +3,8 @@ import os
 import boto.sns
 import boto.exception
 
-from alerta.app import app
-from alerta.plugins import PluginBase
+from alertaclient.app import app
+from alertaclient.plugins import PluginBase
 
 LOG = app.logger
 

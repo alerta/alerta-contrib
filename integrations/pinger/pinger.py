@@ -8,16 +8,16 @@ import re
 
 import yaml
 
-from alerta.common import log as logging
-from alerta.common import config
-from alerta.common.alert import Alert
-from alerta.common.heartbeat import Heartbeat
-from alerta.common import severity_code
-from alerta.common.api import ApiClient
-from alerta.common.daemon import Daemon
-from alerta.common.transform import Transformers
-from alerta.common.dedup import DeDup
-from alerta.common.graphite import Carbon
+from alertaclient.common import log as logging
+from alertaclient.common import config
+from alertaclient.common.alert import Alert
+from alertaclient.common.heartbeat import Heartbeat
+from alertaclient.common import severity_code
+from alertaclient.common.api import ApiClient
+from alertaclient.common.daemon import Daemon
+from alertaclient.common.transform import Transformers
+from alertaclient.common.dedup import DeDup
+from alertaclient.common.graphite import Carbon
 
 __version__ = '3.2.0'
 

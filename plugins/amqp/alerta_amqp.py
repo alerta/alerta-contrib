@@ -3,8 +3,8 @@ import os
 from kombu import BrokerConnection, Exchange, Producer
 from kombu.utils.debug import setup_logging
 
-from alerta.app import app
-from alerta.plugins import PluginBase
+from alertaclient.app import app
+from alertaclient.plugins import PluginBase
 
 LOG = app.logger
 

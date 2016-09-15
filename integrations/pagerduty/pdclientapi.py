@@ -4,8 +4,8 @@ import json
 import requests
 import requests.exceptions
 
-from alerta.common import config
-from alerta.common import log as logging
+from alertaclient.common import config
+from alertaclient.common import log as logging
 
 LOG = logging.getLogger(__name__)
 CONF = config.CONF

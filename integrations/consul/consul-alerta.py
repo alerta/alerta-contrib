@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
-from alerta.api import ApiClient
-from alerta.alert import Alert
+from alertaclient.api import ApiClient
+from alertaclient.alert import Alert
 import sys
 import os
 import time

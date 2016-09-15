@@ -1,5 +1,5 @@
 
-from alerta.plugins import PluginBase
+from alertaclient.plugins import PluginBase
 
 
 class NormaliseAlert(PluginBase):
