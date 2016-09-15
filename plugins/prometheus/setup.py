@@ -1,10 +1,9 @@
-#!/usr/bin/env python
 
-import setuptools
+from setuptools import setup, find_packages
 
-version = '0.1.0'
+version = '0.3.0'
 
-setuptools.setup(
+setup(
     name="alerta-prometheus",
     version=version,
     description='Alerta plugin for Prometheus Alertmanager',
@@ -12,16 +11,16 @@ setuptools.setup(
     license='Apache License 2.0',
     author='Nick Satterly',
     author_email='nick.satterly@theguardian.com',
-    py_modules=['prometheus'],
+    packages=find_packages(),
+    py_modules=['alerta_prometheus'],
     install_requires=[
-        'requests',
-        'alerta-server'
+        'requests'
     ],
     include_package_data=True,
-    zip_safe=False,
+    zip_safe=True,
     entry_points={
         'alerta.plugins': [
-            'prometheus = prometheus:AlertmanagerSilence'
+            'prometheus = alerta_prometheus:AlertmanagerSilence'
         ]
     }
 )

@@ -1,12 +1,7 @@
-#!/usr/bin/env python
-
-import os
 
 from setuptools import setup, find_packages
 
-version = '0.1.0'
-
-os.chdir(os.path.normpath(os.path.join(os.path.abspath(__file__), os.pardir)))
+version = '0.3.0'
 
 setup(
     name="alerta-logger",
@@ -17,15 +12,12 @@ setup(
     author='Nick Satterly',
     author_email='nick.satterly@theguardian.com',
     packages=find_packages(),
-    py_modules=['logger'],
-    install_requires=[
-        'alerta-server'
-    ],
+    py_modules=['alerta_logger'],
     include_package_data=True,
-    zip_safe=False,
+    zip_safe=True,
     entry_points={
         'alerta.plugins': [
-            'syslog = logger:Syslog'
+            'syslog = alerta_logger:Syslog'
         ]
     }
 )
