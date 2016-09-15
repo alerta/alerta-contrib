@@ -1,4 +1,5 @@
 import os
+import logging
 
 import boto.sns
 import boto.exception
@@ -6,7 +7,7 @@ import boto.exception
 from alerta.app import app
 from alerta.plugins import PluginBase
 
-LOG = app.logger
+LOG = logging.getLogger('alerta.plugins.sns')
 
 DEFAULT_AWS_REGION = 'eu-west-1'
 DEFAULT_AWS_SNS_TOPIC = 'notify'

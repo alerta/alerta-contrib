@@ -1,4 +1,5 @@
 import os
+import logging
 
 from kombu import BrokerConnection, Exchange, Producer
 from kombu.utils.debug import setup_logging
@@ -6,7 +7,7 @@ from kombu.utils.debug import setup_logging
 from alerta.app import app
 from alerta.plugins import PluginBase
 
-LOG = app.logger
+LOG = logging.getLogger('alerta.plugins.amqp')
 
 DEFAULT_AMQP_URL = 'mongodb://localhost:27017/kombu'
 DEFAULT_AMQP_TOPIC = 'notify'

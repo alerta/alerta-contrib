@@ -1,12 +1,12 @@
 
 import datetime
 import requests
+import logging
 
 from alerta.app import app
 from alerta.plugins import PluginBase
 
-LOG = app.logger
-
+LOG = logging.getLogger('alerta.plugins.prometheus')
 
 ALERTMANAGER_API_URL = 'http://localhost:9093'
 ALERTMANAGER_API_KEY = ''  # not used
