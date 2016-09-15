@@ -9,9 +9,9 @@ import Queue
 import re
 import logging
 
-from alerta.api import ApiClient
-from alerta.alert import Alert
-from alerta.heartbeat import Heartbeat
+from alertaclient.api import ApiClient
+from alertaclient.alert import Alert
+from alertaclient.heartbeat import Heartbeat
 
 from BaseHTTPServer import BaseHTTPRequestHandler as BHRH
 

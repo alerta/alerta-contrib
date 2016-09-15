@@ -10,9 +10,9 @@ import boto.sqs
 from boto.sqs.message import RawMessage
 from boto import exception
 
-from alerta.api import ApiClient
-from alerta.alert import Alert
-from alerta.heartbeat import Heartbeat
+from alertaclient.api import ApiClient
+from alertaclient.alert import Alert
+from alertaclient.heartbeat import Heartbeat
 
 __version__ = '3.3.0'
 

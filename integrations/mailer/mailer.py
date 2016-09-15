@@ -15,9 +15,9 @@ from email.mime.text import MIMEText
 
 import jinja2
 
-from alerta.alert import AlertDocument
-from alerta.api import ApiClient
-from alerta.heartbeat import Heartbeat
+from alertaclient.alert import AlertDocument
+from alertaclient.api import ApiClient
+from alertaclient.heartbeat import Heartbeat
 from kombu import Connection, Exchange, Queue
 from kombu.mixins import ConsumerMixin
 
