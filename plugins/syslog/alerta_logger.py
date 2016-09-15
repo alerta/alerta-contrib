@@ -5,8 +5,8 @@ import logging
 
 from logging.handlers import SysLogHandler
 
-from alerta.app import app
-from alerta.plugins import PluginBase
+from alertaclient.app import app
+from alertaclient.plugins import PluginBase
 
 LOGGER_SYSLOG_FORMAT = os.environ.get('LOGGER_SYSLOG_FORMAT') or app.config.get('SYSLOG_FORMAT','%(name)s[%(process)d]: %(levelname)s - %(message)s')
 LOGGER_SYSLOG_DATE_FORMAT = os.environ.get('LOGGER_SYSLOG_DATE_FORMAT') or app.config.get('SYSLOG_DATE_FORMAT', '%Y-%m-%d %H:%M:%S')
