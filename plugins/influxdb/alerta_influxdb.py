@@ -2,11 +2,12 @@
 import os
 import json
 import requests
+import logging
 
 from alerta.app import app
 from alerta.plugins import PluginBase
 
-LOG = app.logger
+LOG = logging.getLogger('alerta.plugins.influxdb')
 
 INFLUXDB_URL = os.environ.get('INFLUXDB_URL') or app.config['INFLUXDB_URL']
 INFLUXDB_USER = os.environ.get('INFLUXDB_USER') or app.config['INFLUXDB_USER']

@@ -1,12 +1,12 @@
 
 import os
-import json
 import requests
+import logging
 
 from alerta.app import app
 from alerta.plugins import PluginBase
 
-LOG = app.logger
+LOG = logging.getLogger('alerta.plugins.pagerduty')
 
 PAGERDUTY_EVENTS_URL = 'https://events.pagerduty.com/generic/2010-04-15/create_event.json'
 PAGERDUTY_SERVICE_KEY = os.environ.get('PAGERDUTY_SERVICE_KEY') or app.config['PAGERDUTY_SERVICE_KEY']

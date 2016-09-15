@@ -1,11 +1,12 @@
 
 import os
 import requests
+import logging
 
 from alerta.app import app
 from alerta.plugins import PluginBase
 
-LOG = app.logger
+LOG = logging.getLogger('alerta.plugins.pushover')
 
 PUSHOVER_URL = 'https://api.pushover.net/1/messages.json'
 

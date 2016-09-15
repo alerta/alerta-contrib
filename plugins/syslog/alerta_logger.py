@@ -8,15 +8,18 @@ from logging.handlers import SysLogHandler
 from alerta.app import app
 from alerta.plugins import PluginBase
 
+LOG = logging.getLogger('alerta.plugins.logger')
+
 LOGGER_SYSLOG_FORMAT = os.environ.get('LOGGER_SYSLOG_FORMAT') or app.config.get('SYSLOG_FORMAT','%(name)s[%(process)d]: %(levelname)s - %(message)s')
 LOGGER_SYSLOG_DATE_FORMAT = os.environ.get('LOGGER_SYSLOG_DATE_FORMAT') or app.config.get('SYSLOG_DATE_FORMAT', '%Y-%m-%d %H:%M:%S')
 LOGGER_SYSLOG_FACILITY = os.environ.get('LOGGER_SYSLOG_FACILITY') or app.config.get('SYSLOG_FACILITY', 'local7')
+
 
 class Syslog(PluginBase):
 
     def __init__(self, name=None):
 
-        self.logger = logging.getLogger('alerta')
+        self.logger = logging.getLogger(name)
 
         if sys.platform == "darwin":
             socket = '/var/run/syslog'
@@ -25,8 +28,7 @@ class Syslog(PluginBase):
         facility = LOGGER_SYSLOG_FACILITY
 
         syslog = SysLogHandler(address=socket, facility=facility)
-        formatter = logging.Formatter(fmt=LOGGER_SYSLOG_FORMAT, datefmt=LOGGER_SYSLOG_DATE_FORMAT)
-        syslog.setFormatter(formatter)
+        syslog.setFormatter(logging.Formatter(fmt=LOGGER_SYSLOG_FORMAT, datefmt=LOGGER_SYSLOG_DATE_FORMAT))
         self.logger.addHandler(syslog)
 
         super(Syslog, self).__init__(name)

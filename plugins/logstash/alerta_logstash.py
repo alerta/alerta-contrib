@@ -1,10 +1,12 @@
 import os
 import socket
+import logging
 
 from alerta.app import app
 from alerta.plugins import PluginBase
 
-LOG = app.logger
+
+LOG = logging.getLogger('alerta.plugins.logstash')
 
 DEFAULT_LOGSTASH_HOST = 'localhost'
 DEFAULT_LOGSTASH_PORT = 6379
