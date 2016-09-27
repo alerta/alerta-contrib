@@ -1,10 +1,16 @@
+import logging
 
 from alerta.plugins import PluginBase
+
+LOG = logging.getLogger('alerta.plugins.enhance')
 
 
 class EnhanceAlert(PluginBase):
 
     def pre_receive(self, alert):
+
+        LOG.info("Enhancing alert...")
+
         if 'TPS reports' in alert.text:
             alert.attributes['customer'] = 'Initech'
         elif 'nexus' in alert.text:

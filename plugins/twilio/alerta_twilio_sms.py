@@ -1,12 +1,13 @@
 
 import os
+import logging
 
 from twilio.rest import TwilioRestClient
 
 from alerta.app import app
 from alerta.plugins import PluginBase
 
-LOG = app.logger
+LOG = logging.getLogger('alerta.plugins.twilio')
 
 TWILIO_ACCOUNT_SID = os.environ.get('TWILIO_ACCOUNT_SID') or app.config['TWILIO_ACCOUNT_SID']
 TWILIO_AUTH_TOKEN = os.environ.get('TWILIO_AUTH_TOKEN') or app.config['TWILIO_AUTH_TOKEN']
