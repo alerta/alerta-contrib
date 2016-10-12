@@ -47,6 +47,7 @@ mail_from = your.email@gmail.com
 amqp_url = redis://localhost:6379/
 dashboard_url = http://localhost:8000
 smtp_password = okvqhitqomebufyv
+smtp_use_ssl = False
 debug = True
 skip_mta = False
 email_type = text
