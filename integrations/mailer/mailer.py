@@ -182,7 +182,11 @@ class MailSender(threading.Thread):
 
             if keep_alive >= 10:
                 tag = OPTIONS['smtp_host'] or 'alerta-mailer'
-                api.send(Heartbeat(tags=[tag]))
+                try:
+                    api.send(Heartbeat(tags=[tag]))
+                except Exception as e:
+                    time.sleep(5)
+                    continue
                 keep_alive = 0
             keep_alive += 1
             time.sleep(2)
