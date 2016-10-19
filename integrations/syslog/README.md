@@ -41,6 +41,8 @@ To generate example syslog messages on a Mac follow the steps below:
     $ sudo launchctl unload /System/Library/LaunchDaemons/com.apple.syslogd.plist
     $ sudo launchctl load /System/Library/LaunchDaemons/com.apple.syslogd.plist
 
+    $ sudo ALERTA_ENDPOINT=https://alerta.example.com ALERTA_API_KEY=demo-key alerta-syslog
+
     $ logger -i -s -p mail.err -t TEST "mail server is down"
     $ logger -p local0.notice -t HOSTIDM
 

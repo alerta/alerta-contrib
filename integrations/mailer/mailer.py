@@ -50,6 +50,9 @@ DEFAULT_OPTIONS = {
     'smtp_port':     587,
     'smtp_password': '',  # application-specific password if gmail used
     'smtp_starttls': True,  # use the STARTTLS SMTP extension
+    'smtp_use_ssl': False,  # whether or not SSL is being used for the SMTP connection
+    'ssl_key_file': None, # a PEM formatted private key file for the SSL connection
+    'ssl_cert_file': None, # a certificate chain file for the SSL connection
     'mail_from':     '',  # alerta@example.com
     'mail_to':       [],  # devops@example.com, support@example.com
     'mail_localhost': None,  # fqdn to use in the HELO/EHLO command
@@ -314,9 +317,16 @@ class MailSender(threading.Thread):
 
                     mxhost = reduce(lambda x, y: x if x.preference >= y.preference else y, dns_answers).exchange.to_text()  # nopep8
                     msg['To'] = dest
-                    mx = smtplib.SMTP(mxhost,
-                                      OPTIONS['smtp_port'],
-                                      local_hostname=OPTIONS['mail_localhost'])
+                    if OPTIONS['smtp_use_ssl']:
+                        mx = smtplib.SMTP_SSL(mxhost,
+                                          OPTIONS['smtp_port'],
+                                          local_hostname=OPTIONS['mail_localhost'],
+                                          keyfile=OPTIONS['ssl_key_file'],
+                                          certfile=OPTIONS['ssl_cert_file'])
+                    else:
+                        mx = smtplib.SMTP(mxhost,
+                                          OPTIONS['smtp_port'],
+                                          local_hostname=OPTIONS['mail_localhost'])
                     if OPTIONS['debug']:
                         mx.set_debuglevel(True)
                     mx.sendmail(OPTIONS['mail_from'], dest, msg.as_string())
@@ -326,9 +336,16 @@ class MailSender(threading.Thread):
                     LOG.error('Failed to send email to address {} (mta={}): {}'.format(dest, mxhost, str(e)))  # nopep8
 
         else:
-            mx = smtplib.SMTP(OPTIONS['smtp_host'],
-                              OPTIONS['smtp_port'],
-                              local_hostname=OPTIONS['mail_localhost'])
+            if OPTIONS['smtp_use_ssl']:
+                mx = smtplib.SMTP_SSL(OPTIONS['smtp_host'],
+                                  OPTIONS['smtp_port'],
+                                  local_hostname=OPTIONS['mail_localhost'],
+                                  keyfile=OPTIONS['ssl_key_file'],
+                                  certfile=OPTIONS['ssl_cert_file'])
+            else:
+                mx = smtplib.SMTP(OPTIONS['smtp_host'],
+                                  OPTIONS['smtp_port'],
+                                  local_hostname=OPTIONS['mail_localhost'])
             if OPTIONS['debug']:
                 mx.set_debuglevel(True)
 
