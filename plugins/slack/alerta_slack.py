@@ -32,6 +32,8 @@ class ServiceIntegration(PluginBase):
             alert.id, alert.get_id(short=True)
         )
 
+        if alert.severity == 'security':
+            color = "#000000"  # black
         if alert.severity == 'critical':
             color = "#FF0000"  # red
         elif alert.severity == 'major':
@@ -40,8 +42,12 @@ class ServiceIntegration(PluginBase):
             color = "#FFFF00"  # yellow
         elif alert.severity == 'warning':
             color = "#1E90FF"  # blue
-        elif alert.severity == 'information':
-            color = "#808080"  # blue
+        elif alert.severity == 'informational':
+            color = "#808080"  # gray
+        elif alert.severity == 'debug':
+            color = "#808080"  # gray
+        elif alert.severity == 'trace':
+            color = "#808080"  # gray
         else:
             color = "#00CC00"  # green
 
