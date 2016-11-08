@@ -12,6 +12,7 @@ import time
 client = consul.Consul(host='127.0.0.1', port=8500, token=None, scheme='http', consistency='default', dc=None, verify=True)
 
 j = json.load(sys.stdin)
+print "Request:" 
 print j
 
 url = client.kv.get('alerta/apiurl')[1]['Value']
@@ -40,9 +41,10 @@ def createalert( data ):
         environment = client.kv.get('alerta/env/{0}'.format(data['Node']))[1]['Value']
     except:
         environment = client.kv.get('alerta/defaultenv')[1]['Value']
-    alert = Alert(resource=data['Node'], event=data['CheckId'], environment=environment, service=[data['CheckId']], severity=SEVERITY_MAP[data['Status']], text=data['Output'], value=value, timeout=timeout, origin=origin, type=alerttype)
+    alert = Alert(resource=data['Node'], event=data['Status'], environment=environment, service=[data['CheckId']], severity=SEVERITY_MAP[data['Status']], text=data['Output'], value=value, timeout=timeout, origin=origin, type=alerttype)
     for i in range(max_retries):
         try:
+            print("Response:")
             print(api.send(alert))
         except Exception as e:
             print("HTTP Error: {}".format(e))
