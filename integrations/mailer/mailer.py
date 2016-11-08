@@ -10,6 +10,7 @@ import socket
 import sys
 import threading
 import time
+from email.header import Header
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
@@ -275,10 +276,10 @@ class MailSender(threading.Thread):
             html = None
 
         msg = MIMEMultipart('alternative')
-        msg['Subject'] = subject
+        msg['Subject'] = Header(subject, 'utf-8').encode()
         msg['From'] = OPTIONS['mail_from']
         msg['To'] = ", ".join(contacts)
-        msg.preamble = subject
+        msg.preamble = msg['Subject']
 
         # by default we are going to assume that the email is going to be text
         msg_text = MIMEText(text, 'plain', 'utf-8')
