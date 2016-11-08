@@ -23,6 +23,11 @@ for your Slack channel and adding the following configuration settings to `alert
 ```
 SLACK_WEBHOOK_URL = 'https://hooks.slack.com/services/T00000000/B00000000/XXXXXXXXXXXXXXXXXXXXXXXX'
 SLACK_ATTACHMENTS = True  # default=False
+SLACK_CHANNEL = '' # if empty then uses channel from incoming webhook configuration
+ALERTA_UI_URL = 'http://your.alerta.ui.url'
+ICON_EMOJI = '' # default :rocket:
+ALERTA_USERNAME = '' # default alerta
+
 ```
 
 Lastly, add `slack` to the list of enabled plugins:
