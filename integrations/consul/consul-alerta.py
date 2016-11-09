@@ -38,7 +38,7 @@ def createalert( data ):
         environment = client.kv.get('alerta/env/{0}'.format(data['Node']))[1]['Value']
     except:
         environment = client.kv.get('alerta/defaultenv')[1]['Value']
-    alert = Alert(resource=data['Node'], event=data['Status'], correlate=SEVERITY_MAP.keys(), environment=environment, service=[data['CheckId']], severity=SEVERITY_MAP[data['Status']], text=data['Output'], timeout=timeout, origin=origin, type=alerttype)
+    alert = Alert(resource=data['Node'], event=data['CheckId'], value=data['Status'], correlate=SEVERITY_MAP.keys(), environment=environment, service=[data['CheckId']], severity=SEVERITY_MAP[data['Status']], text=data['Output'], timeout=timeout, origin=origin, type=alerttype)
     for i in range(max_retries):
         try:
             print("Response:")
