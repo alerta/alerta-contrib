@@ -24,12 +24,13 @@ Configuration
 -------------
 
 Add `amqp` to the list of enabled `PLUGINS` in `alertad.conf` server
-configuration file and set plugin-specific variables.
+configuration file and set plugin-specific variables either in the
+server configuration file or as environment variables.
 
 ```python
-PLUGINS=['amqp']
-AMQP_URL='mongodb://localhost:27017/kombu'
-AMQP_TOPIC='notify'
+PLUGINS = ['amqp']
+AMQP_URL = 'mongodb://localhost:27017/kombu'
+AMQP_TOPIC = 'notify'
 ```
 
 Note: By default the AMQP plugin is configured to use MongoDB as the
@@ -39,9 +40,9 @@ messaging backbone to make use of this plugin.
 **RabbitMQ Example**
 
 ```python
-PLUGINS=['reject','amqp']
-AMQP_URL='amqp://login:password@server:port//'  # => default RabbitMQ port=5762
-AMQP_TOPIC='alerta.notify'
+PLUGINS = ['reject','amqp']
+AMQP_URL = 'amqp://login:password@server:port//'  # => default RabbitMQ port=5762
+AMQP_TOPIC = 'alerta.notify'
 ```
 
 Troubleshooting

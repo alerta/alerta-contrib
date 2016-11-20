@@ -32,12 +32,17 @@ discover them.
 Configuration
 -------------
 
+Add `enhance` to the list of enabled `PLUGINS` in `alertad.conf` server
+configuration file and set plugin-specific variables either in the
+server configuration file or as environment variables.
+
 If the "run book" attribute is used the `RUNBOOK_URL` should be changed
 to a valid intranet URL.
 
 **Example**
 
 ```python
+PLUGINS = ['enhance', 'reject']
 RUNBOOK_URL = 'http://www.example.com/wiki/RunBook'
 ```
 
