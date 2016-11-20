@@ -12,15 +12,13 @@ LOG = logging.getLogger('alerta.plugins.hipchat')
 HIPCHAT_URL = 'https://api.hipchat.com/v2'
 HIPCHAT_ROOM = os.environ.get('HIPCHAT_ROOM') or app.config['HIPCHAT_ROOM']  # Room Name or Room API ID
 HIPCHAT_API_KEY = os.environ.get('HIPCHAT_API_KEY') or app.config['HIPCHAT_API_KEY']  # Room Notification Token
-
-HIPCHAT_SUMMARY_TEMPLATE = None
 HIPCHAT_SUMMARY_FMT = os.environ.get('HIPCHAT_SUMMARY_FMT') or app.config.get('HIPCHAT_SUMMARY_FMT', None)  # Message summary format
-if HIPCHAT_SUMMARY_FMT:
-    try:
-        from jinja2 import Template
-        HIPCHAT_SUMMARY_TEMPLATE = Template(HIPCHAT_SUMMARY_FMT)
-    except Exception as e:
-        LOG.error('Jinja template error: {}, template functionality will be unavailable'.format(e))
+DASHBOARD_URL = os.environ.get('DASHBOARD_URL') or app.config.get('DASHBOARD_URL', '')
+
+try:
+    from jinja2 import Template
+except Exception as e:
+    LOG.error('HipChat: ERROR - Jinja template error: %s, template functionality will be unavailable', e)
 
 
 class SendRoomNotification(PluginBase):
@@ -33,23 +31,33 @@ class SendRoomNotification(PluginBase):
         if alert.repeat:
             return
 
-        url = '%s/room/%s/notification' % (HIPCHAT_URL, HIPCHAT_ROOM)
+        if HIPCHAT_SUMMARY_FMT:
+            try:
+                template = Template(HIPCHAT_SUMMARY_FMT)
+            except Exception as e:
+                LOG.error('HipChat: ERROR - Template init failed: %s', e)
+                return
 
-        summary = None
-        if HIPCHAT_SUMMARY_TEMPLATE:
             try:
                 template_vars = {
                     'alert': alert,
                     'config': app.config
                 }
-                summary = HIPCHAT_SUMMARY_TEMPLATE.render(**template_vars)
+                summary = template.render(**template_vars)
             except Exception as e:
-                LOG.error('Summary template rendering error: {}'.format(e))
-
-        if not summary:
-            summary = "<b>[%s] %s %s - <i>%s on %s</i></b> <a href=\"http://try.alerta.io/#/alert/%s\">%s</a>" % (
-                alert.status.capitalize(), alert.environment, alert.severity.capitalize(), alert.event, alert.resource,
-                alert.id, alert.get_id(short=True)
+                LOG.error('HipChat: ERROR - Template render failed: %s', e)
+                return
+        else:
+            summary = ('<b>[{status}] {environment} {service} {severity} - <i>{event} on {resource}</i></b> <a href="{dashboard}/#/alert/{alert_id}">{short_id}</a>').format(
+                status=alert.status.capitalize(),
+                environment=alert.environment.upper(),
+                service=','.join(alert.service),
+                severity=alert.severity.capitalize(),
+                event=alert.event,
+                resource=alert.resource,
+                alert_id=alert.id,
+                short_id=alert.get_id(short=True),
+                dashboard=DASHBOARD_URL
             )
 
         if alert.severity == 'critical':
@@ -69,21 +77,21 @@ class SendRoomNotification(PluginBase):
             "notify": True,
             "message_format": "html"
         }
-
         LOG.debug('HipChat payload: %s', payload)
 
+        url = '%s/room/%s/notification' % (HIPCHAT_URL, HIPCHAT_ROOM)
         headers = {
             'Authorization': 'Bearer ' + HIPCHAT_API_KEY,
             'Content-type': 'application/json'
         }
 
-        LOG.debug('HipChat sending notification to %s', url)
+        LOG.debug('HipChat: Notification sent to %s', url)
         try:
             r = requests.post(url, data=json.dumps(payload), headers=headers, timeout=2)
         except Exception as e:
-            raise RuntimeError("HipChat connection error: %s", e)
+            raise RuntimeError("HipChat: ERROR - %s", e)
 
-        LOG.debug('HipChat response: %s - %s', r.status_code, r.text)
+        LOG.debug('HipChat: %s - %s', r.status_code, r.text)
 
     def status_change(self, alert, status, text):
         return
