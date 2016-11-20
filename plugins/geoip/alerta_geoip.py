@@ -15,15 +15,18 @@ class GeoLocation(PluginBase):
 
     def pre_receive(self, alert):
 
+        ip_addr = alert.attributes['ip'].split(', ')[0]
+        LOG.debug("GeoIP lookup for IP: %s", ip_addr)
+
         if 'ip' in alert.attributes:
-            url = '%s/%s' % (GEOIP_URL, alert.attributes['ip'])
+            url = '%s/%s' % (GEOIP_URL, ip_addr)
         else:
             LOG.warning("IP address must be included as an alert attribute.")
             raise RuntimeWarning("IP address must be included as an alert attribute.")
 
         r = requests.get(url, headers={'Content-type': 'application/json'}, timeout=2)
         try:
-            alert.attributes.update(r.json())
+            alert.attributes['geoip'] = r.json()
         except Exception as e:
             LOG.error("GeoIP lookup failed: %s" % str(e))
             raise RuntimeError("GeoIP lookup failed: %s" % str(e))
