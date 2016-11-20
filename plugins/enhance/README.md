@@ -50,8 +50,8 @@ Set `DEBUG=True` in the `alertad.conf` configuration file and look for log
 entries similar to below:
 
 ```
-2016-11-20 19:46:15,492 - alerta.plugins[4297]: DEBUG - Server plug-in 'enhance' found. [in /Users/nsatterl/.virtualenvs/alerta-prometheus/lib/python2.7/site-packages/alerta_server-4.8.11-py2.7.egg/alerta/plugins/__init__.py:50]
-2016-11-20 19:46:15,493 - alerta.plugins[4297]: INFO - Server plug-in 'enhance' enabled. [in /Users/nsatterl/.virtualenvs/alerta-prometheus/lib/python2.7/site-packages/alerta_server-4.8.11-py2.7.egg/alerta/plugins/__init__.py:57]
+2016-11-20 19:46:15,492 - alerta.plugins[4297]: DEBUG - Server plug-in 'enhance' found. [in /var/lib/.virtualenvs/alerta/lib/python2.7/site-packages/alerta_server-4.8.11-py2.7.egg/alerta/plugins/__init__.py:50]
+2016-11-20 19:46:15,493 - alerta.plugins[4297]: INFO - Server plug-in 'enhance' enabled. [in /var/lib/.virtualenvs/alerta/lib/python2.7/site-packages/alerta_server-4.8.11-py2.7.egg/alerta/plugins/__init__.py:57]
 ```
 
 References
