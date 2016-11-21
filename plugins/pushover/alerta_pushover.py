@@ -62,14 +62,14 @@ class PushMessage(PluginBase):
             payload['retry'] = 299  # retry every seconds
             payload['expire'] = 900  # stop after seconds
 
-        LOG.debug('Pushover.net payload: %s', payload)
+        LOG.debug('Pushover.net: %s', payload)
 
         try:
             r = requests.post(PUSHOVER_URL, data=payload, timeout=2)
         except Exception as e:
-            raise RuntimeError("Pushover.net connection error: %s" % e)
+            raise RuntimeError("Pushover.net: ERROR - %s" % e)
 
-        LOG.debug('Pushover.net response: %s - %s', r.status_code, r.text)
+        LOG.debug('Pushover.net: %s - %s', r.status_code, r.text)
 
     def status_change(self, alert, status, text):
         return
