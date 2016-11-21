@@ -1,14 +1,14 @@
 
 from setuptools import setup, find_packages
 
-version = '0.3.1'
+version = '0.3.2'
 
 setup(
     name="alerta-logger",
     version=version,
     description='Alerta plugin for syslog logging',
     url='https://github.com/alerta/alerta-contrib',
-    license='Apache License 2.0',
+    license='MIT',
     author='Nick Satterly',
     author_email='nick.satterly@theguardian.com',
     packages=find_packages(),
