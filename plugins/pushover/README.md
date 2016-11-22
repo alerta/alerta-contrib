@@ -33,7 +33,7 @@ PUSHOVER_TOKEN = ''  # default="not set"
 PUSHOVER_USER = ''  # default="not set"
 ```
 
-The below setting should be configured to link pushover messages to
+The `DASHBOARD_URL` setting should be configured to link pushover messages to
 the Alerta console:
 
 ```python

@@ -49,9 +49,6 @@ PLUGINS = ['reject','logger']
 SYSLOG_FACILITY = 'local0'
 ```
 
-Example
--------
-
 ```
 Nov 21 20:42:37 c9b52479 root[17771]: WARNING - {"origin": "alerta/c9b52479.local", "text": "Instance was terminated unexpectedly", "lastReceiveTime": "2016-11-21T20:42:37.449Z", "receiveTime": "2016-11-21T20:42:37.449Z", "trendIndication": "lessSevere", "rawData": "", "previousSeverity": "major", "event": "InstanceTerminated", "group": "Misc", "severity": "warning", "service": ["AWS"], "id": "2359f60d-4e78-4dfa-b1d8-cb07853ca10a", "environment": "Production", "type": "exceptionAlert", "status": "open", "repeat": false, "tags": [], "createTime": "2016-11-21T20:42:37.383Z", "lastReceiveId": "5fd153a4-6d4c-4d18-9774-5414b8ebe96c", "customer": null, "resource": "i-0000101", "duplicateCount": 0, "correlate": [], "value": "n/a", "timeout": 86400, "attributes": {"ip": "127.0.0.1"}, "history": []}
 Nov 21 20:42:42 --- last message repeated 1 time ---
