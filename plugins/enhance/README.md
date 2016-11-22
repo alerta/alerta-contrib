@@ -36,8 +36,12 @@ Add `enhance` to the list of enabled `PLUGINS` in `alertad.conf` server
 configuration file and set plugin-specific variables either in the
 server configuration file or as environment variables.
 
+```python
+PLUGINS = ['enhance']
+```
+
 If the "run book" attribute is used the `RUNBOOK_URL` should be changed
-to a valid intranet URL.
+to a valid URL.
 
 **Example**
 
