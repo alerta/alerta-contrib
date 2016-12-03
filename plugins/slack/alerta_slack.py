@@ -11,11 +11,11 @@ LOG = logging.getLogger('alerta.plugins.slack')
 
 SLACK_WEBHOOK_URL = os.environ.get('SLACK_WEBHOOK_URL') or app.config['SLACK_WEBHOOK_URL']
 SLACK_ATTACHMENTS = True if os.environ.get('SLACK_ATTACHMENTS', 'False') == 'True' else app.config.get('SLACK_ATTACHMENTS', False)
-SLACK_CHANNEL = os.environ.get('SLACK_CHANNEL', '') or app.config.get['SLACK_CHANNEL', '']
-ALERTA_UI_URL = os.environ.get('ALERTA_UI_URL', 'http://try.alerta.io') or app.config.get['ALERTA_UI_URL', 'http://try.alerta.io']
-ICON_EMOJI = os.environ.get('ICON_EMOJI', ':rocket:') or app.config.get['ICON_EMOJI', ':rocket:']
-ALERTA_USERNAME = os.environ.get('ALERTA_USERNAME', 'alerta') or app.config.get['ALERTA_USERNAME', 'alerta']
+SLACK_CHANNEL = os.environ.get('SLACK_CHANNEL') or app.config.get('SLACK_CHANNEL', '')
+ALERTA_USERNAME = os.environ.get('ALERTA_USERNAME') or app.config.get('ALERTA_USERNAME', 'alerta')
 
+ICON_EMOJI = os.environ.get('ICON_EMOJI') or app.config.get('ICON_EMOJI', ':rocket:')
+DASHBOARD_URL = os.environ.get('DASHBOARD_URL') or app.config.get('DASHBOARD_URL', '')
 
 class ServiceIntegration(PluginBase):
 
