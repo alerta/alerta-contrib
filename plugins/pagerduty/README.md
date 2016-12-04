@@ -39,6 +39,14 @@ the Alerta console:
 DASHBOARD_URL = ''  # default="not set"
 ```
 
+**Example**
+
+```python
+PLUGINS = ['reject', 'pagerduty']
+PAGERDUTY_SERVICE_KEY = '2a675ee0f6a640098ee05ac9378e4eba'
+DASHBOARD_URL = 'https://try.alerta.io'
+```
+
 References
 ----------
 
