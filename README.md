@@ -7,35 +7,35 @@ which are grouped together as "integrations" or "plugins".
 Integrations
 ------------
 
-  * Cloudwatch
-  * Consul
-  * Mailer
-  * OpsWeekly
-  * PagerDuty
-  * Pinger
-  * SNMPTrap
-  * Amazon SQS
-  * Supervisor
-  * Syslog
-  * URLmon
+  * [Cloudwatch](integrations/cloudwatch)
+  * [Consul](integrations/consul)
+  * [Mailer](integrations/mailer)
+  * [OpsWeekly](integrations/opsweekly)
+  * [PagerDuty](integrations/pagerduty)
+  * [Pinger](integrations/pinger)
+  * [SNMPTrap](integrations/snmptrap)
+  * [Amazon SQS](integrations/sqs)
+  * [Supervisor](integrations/supervisor)
+  * [Syslog](integrations/syslog)
+  * [URLmon](integrations/urlmon)
 
 Plugins
 -------
 
-  * AMQP
-  * Enhance
-  * GeoIP
-  * HipChat
-  * InfluxDB
-  * Logstash
-  * Normalise
-  * PagerDuty
-  * Prometheus
-  * Pushover.net
-  * Slack
-  * Amazon SNS
-  * Syslog
-  * Twilio SMS
+  * [AMQP](plugins/amqp)
+  * [Enhance](plugins/enhance)
+  * [GeoIP](plugins/geoip)
+  * [HipChat](plugins/hipchat)
+  * [InfluxDB](plugins/influxdb)
+  * [Logstash](plugins/logstash)
+  * [Normalise](plugins/normalise)
+  * [PagerDuty](plugins/pagerduty)
+  * [Prometheus](plugins/prometheus)
+  * [Pushover.net](plugins/pushover)
+  * [Slack](plugins/slack)
+  * [Amazon SNS](plugins/sns)
+  * [Syslog](plugins/syslog)
+  * [Twilio SMS](plugins/twilio)
 
 License
 -------
