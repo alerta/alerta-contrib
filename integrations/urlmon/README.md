@@ -20,23 +20,7 @@ Or, to install remotely from GitHub run:
 Configuration
 -------------
 
-Add URLs to check to `settings.py`:
-
-url = check['url']
-post = check.get('post', None)
-count = check.get('count', 1)
-headers = check.get('headers', {})
-username = check.get('username', None)
-password = check.get('password', None)
-realm = check.get('realm', None)
-uri = check.get('uri', None)
-proxy = check.get('proxy', False)
-
-status_regex = check.get('status_regex', None)
-search_string = check.get('search', None)
-rule = check.get('rule', None)
-warn_thold = check.get('warning', SLOW_WARNING_THRESHOLD)
-crit_thold = check.get('critical', SLOW_CRITICAL_THRESHOLD)
+Add URLs to check to `settings.py` in the following format:
 
 ```
 checks = [
@@ -58,10 +42,13 @@ checks = [
 
 **Regex Matches**
 
-
+Add the `search` setting and `URLmon` will search the response body for the
+text and generate a `HttpContentError` if it is not found.
 
 References
 ----------
+
+  * RFC2616 HTTP: https://tools.ietf.org/html/rfc2616
 
 License
 -------
