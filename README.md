@@ -10,7 +10,6 @@ Integrations
   * [Consul](integrations/consul)
   * [Mailer](integrations/mailer)
   * [OpsWeekly](integrations/opsweekly)
-  * [PagerDuty](integrations/pagerduty)
   * [Pinger](integrations/pinger)
   * [SNMPTrap](integrations/snmptrap)
   * [Amazon SQS](integrations/sqs)
