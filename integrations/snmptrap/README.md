@@ -1,26 +1,35 @@
-Alert on SNMP Traps
--------------------
+SNMP Trap Integration
+=====================
 
-Usage
------
+SNMP trap listener sends alerts to Alerta.
 
-Runs as a trap handler by Net-SNMP snmptrapd.
+For help, join [![Gitter chat](https://badges.gitter.im/alerta/chat.png)](https://gitter.im/alerta/chat)
 
-Requires
---------
+Prerequisites
+-------------
 
-* Net-SNMP snmptrapd package.
+* Net-SNMP snmptrapd package - integration runs as a trap handler by Net-SNMP snmptrapd
+
+To install `net-snmp` on RedHat/Centos Linux:
+
+    $ yum -y install net-snmp net-snmp-utils
 
 Installation
 ------------
 
-    $ git clone ...
-    $ sudo python setup.py install
+Clone the GitHub repo and run:
 
-    $ yum -y install net-snmp net-snmp-utils
+    $ python setup.py install
+
+Or, to install remotely from GitHub run:
+
+    $ pip install git+https://github.com/alerta/alerta-contrib.git#subdirectory=integrations/snmptrap
 
 Configuration
 -------------
+
+Configure `snmptrapd` to execute `alerta-snmptrap` when an SNMP trap is
+received:
 
     $ vi /etc/snmp/snmptrapd.conf
 
@@ -34,9 +43,8 @@ Configuration
 
     $ service snmptrapd start
 
-
-Trouble Shooting
-----------------
+Troubleshooting
+---------------
 
 1. Stop `snmptrapd` and run it in the foreground:
 
@@ -50,3 +58,13 @@ Trouble Shooting
 3. Send test trap:
 
     $ snmptrap -v2c -c public localhost "" .1.3.6.1.6.3.1.1.5.3.0 0 s "This is a test linkDown trap"
+
+References
+----------
+
+  * Configuring SNMP Trapd: http://net-snmp.sourceforge.net/wiki/index.php/TUT:Configuring_snmptrapd
+
+License
+-------
+
+Copyright (c) 2014-2016 Nick Satterly. Available under the MIT License.

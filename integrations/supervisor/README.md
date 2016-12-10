@@ -1,33 +1,43 @@
-Supervisor
-==========
+Supervisor Integration
+======================
 
-Trigger alerts and heartbeats based on `supervisor` [events][1].
+Trigger alerts and heartbeats based on process `supervisor` [events][1].
+
+For help, join [![Gitter chat](https://badges.gitter.im/alerta/chat.png)](https://gitter.im/alerta/chat)
 
 Installation
 ------------
 
-Install supervisor and alerta python SDK:
+Clone the GitHub repo and run:
 
-    $ sudo pip install supervisor alerta
+    $ python setup.py install
+
+Or, to install remotely from GitHub run:
+
+    $ pip install git+https://github.com/alerta/alerta-contrib.git#subdirectory=integrations/supervisor
 
 Configuration
 -------------
 
-Copy the example configuration file `supervisord.conf.example` to /etc and modify for your environment:
+Copy the example configuration file `supervisord.conf.example` to `/etc`
+and modify for your environment:
 
     $ sudo cp supervisord.conf.example /etc/supervisord.conf
     $ sudo vi /etc/supervisord.conf
-
-Usage
------
-
     $ sudo supervisord
 
 
-Trouble Shooting
-----------------
+Troubleshooting
+---------------
 
     $ sudo supervisord -c supervisord.conf.example -n
 
+References
+----------
 
-[1]: <http://supervisord.org/events.html> "Supervisor Events"
+  * supervisord Events: http://supervisord.org/events.html
+
+License
+-------
+
+Copyright (c) 2015-2016 Nick Satterly. Available under the MIT License.
