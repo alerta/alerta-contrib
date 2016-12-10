@@ -46,16 +46,16 @@ received:
 Troubleshooting
 ---------------
 
-1. Stop `snmptrapd` and run it in the foreground:
+Stop `snmptrapd` and run it in the foreground:
 
     $ sudo service snmptrapd stop
     $ sudo ALERTA_ENDPOINT="http://10.0.2.2:8080" snmptrapd -Lsd -p /var/run/snmptrapd.pid -f
 
-2. Tail syslog file:
+Tail syslog file:
 
     $ tail -f /var/log/messages
 
-3. Send test trap:
+Send test trap:
 
     $ snmptrap -v2c -c public localhost "" .1.3.6.1.6.3.1.1.5.3.0 0 s "This is a test linkDown trap"
 
