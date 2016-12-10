@@ -11,7 +11,7 @@ setup(
     license='MIT',
     author='Marco Supino',
     author_email='marco@supino.org',
-    py_modules=['consul-alerta','consul-heartbeat'],
+    py_modules=['consulalerta','consulheartbeat'],
     install_requires=[
         'alerta',
         'python-consul'
@@ -20,8 +20,8 @@ setup(
     zip_safe=False,
     entry_points={
         'console_scripts': [
-            'consul-alerta = consul-alerta:main',
-            'consul-heartbeat = consul-heartbeat:main',
+            'consul-alerta = consulalerta:main',
+            'consul-heartbeat = consulheartbeat:main'
         ]
     },
     keywords="alerta monitoring consul",
