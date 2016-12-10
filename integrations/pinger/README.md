@@ -19,16 +19,24 @@ Or, to install remotely from GitHub run:
 Configuration
 -------------
 
-Add "ping targets" to `/etc/alerta/alert-pinger.targets`:
+Add "ping targets" to `alerta-pinger.targets` in the following format:
 
 ```yaml
-
+---
+- environment: Production
+  service: [Web]
+  targets:
+    - search.twitter.com
+    - www.nytimes.com
+    - www.google.com
+    - www.nyc.gov
+    - newyork.yankees.mlb.com
 ```
 
 References
 ----------
 
-
+  * RFC792 Internet Control Message Protocol: https://tools.ietf.org/html/rfc792
 
 License
 -------

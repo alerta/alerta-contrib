@@ -5,25 +5,26 @@ import subprocess
 import threading
 import Queue
 import re
-
+import logging
 import yaml
 
-from alertaclient.common import log as logging
-from alertaclient.common import config
-from alertaclient.common.alert import Alert
-from alertaclient.common.heartbeat import Heartbeat
-from alertaclient.common import severity_code
-from alertaclient.common.api import ApiClient
-from alertaclient.common.daemon import Daemon
-from alertaclient.common.transform import Transformers
-from alertaclient.common.dedup import DeDup
-from alertaclient.common.graphite import Carbon
+from alertaclient.api import ApiClient
+from alertaclient.alert import Alert
+from alertaclient.heartbeat import Heartbeat
 
 __version__ = '3.2.0'
 
 LOG = logging.getLogger('alerta.pinger')
-CONF = config.CONF
+LOG.setLevel(logging.DEBUG)
+LOG.addHandler(logging.StreamHandler())
 
+PING_FILE = 'alert-pinger.targets'
+PING_MAX_TIMEOUT = 15  # seconds
+PING_MAX_RETRIES = 2
+PING_SLOW_WARNING = 200  # ms
+PING_SLOW_CRITICAL = 500  # ms
+SERVER_THREAD_COUNT = 20
+LOOP_EVERY = 30
 
 _PING_ALERTS = [
     'PingFailed',
@@ -43,7 +44,7 @@ def init_targets():
     targets = list()
     LOG.info('Loading Ping targets...')
     try:
-        targets = yaml.load(open(CONF.ping_file))
+        targets = yaml.load(open(PING_FILE))
     except Exception, e:
         LOG.error('Failed to load Ping targets: %s', e)
     LOG.info('Loaded %d Ping targets OK', len(targets))
@@ -53,7 +54,7 @@ def init_targets():
 
 class WorkerThread(threading.Thread):
 
-    def __init__(self, api, queue, dedup, carbon):
+    def __init__(self, api, queue):
 
         threading.Thread.__init__(self)
         LOG.debug('Initialising %s...', self.getName())
@@ -61,8 +62,6 @@ class WorkerThread(threading.Thread):
         self.last_event = {}
         self.queue = queue   # internal queue
         self.api = api               # message broker
-        self.dedup = dedup
-        self.carbon = carbon  # graphite metrics
 
     def run(self):
 
@@ -76,7 +75,7 @@ class WorkerThread(threading.Thread):
 
             environment, service, resource, retries, queue_time = item
 
-            if time.time() - queue_time > CONF.loop_every:
+            if time.time() - queue_time > LOOP_EVERY:
                 LOG.warning('Ping request to %s expired after %d seconds.', resource, int(time.time() - queue_time))
                 self.queue.task_done()
                 continue
@@ -85,7 +84,7 @@ class WorkerThread(threading.Thread):
             if retries > 1:
                 rc, rtt, loss, stdout = self.pinger(resource, count=2, timeout=5)
             else:
-                rc, rtt, loss, stdout = self.pinger(resource, count=5, timeout=CONF.ping_max_timeout)
+                rc, rtt, loss, stdout = self.pinger(resource, count=5, timeout=PING_MAX_TIMEOUT)
 
             if rc != PING_OK and retries:
                 LOG.info('Retrying ping %s %s more times', resource, retries)
@@ -95,34 +94,29 @@ class WorkerThread(threading.Thread):
 
             if rc == PING_OK:
                 avg, max = rtt
-                self.carbon.metric_send('alert.pinger.%s.avgRoundTrip' % resource, avg)
-                self.carbon.metric_send('alert.pinger.%s.maxRoundTrip' % resource, max)
-                self.carbon.metric_send('alert.pinger.%s.availability' % resource, 100.0)
-                if avg > CONF.ping_slow_critical:
+                if avg > PING_SLOW_CRITICAL:
                     event = 'PingSlow'
-                    severity = severity_code.CRITICAL
-                    text = 'Node responded to ping in %s ms avg (> %s ms)' % (avg, CONF.ping_slow_critical)
-                elif avg > CONF.ping_slow_warning:
+                    severity = 'critical'
+                    text = 'Node responded to ping in %s ms avg (> %s ms)' % (avg, PING_SLOW_CRITICAL)
+                elif avg > PING_SLOW_WARNING:
                     event = 'PingSlow'
-                    severity = severity_code.WARNING
-                    text = 'Node responded to ping in %s ms avg (> %s ms)' % (avg, CONF.ping_slow_warning)
+                    severity = 'warning'
+                    text = 'Node responded to ping in %s ms avg (> %s ms)' % (avg, PING_SLOW_WARNING)
                 else:
                     event = 'PingOK'
-                    severity = severity_code.NORMAL
+                    severity = 'normal'
                     text = 'Node responding to ping avg/max %s/%s ms.' % tuple(rtt)
                 value = '%s/%s ms' % tuple(rtt)
             elif rc == PING_FAILED:
                 event = 'PingFailed'
-                severity = severity_code.MAJOR
-                text = 'Node did not respond to ping or timed out within %s seconds' % CONF.ping_max_timeout
+                severity = 'major'
+                text = 'Node did not respond to ping or timed out within %s seconds' % PING_MAX_TIMEOUT
                 value = '%s%% packet loss' % loss
-                self.carbon.metric_send('alert.pinger.%s.availability' % resource, 100.0 - float(loss))
             elif rc == PING_ERROR:
                 event = 'PingError'
-                severity = severity_code.WARNING
+                severity = 'warning'
                 text = 'Could not ping node %s.' % resource
                 value = stdout
-                self.carbon.metric_send('alert.pinger.%s.availability' % resource, 0.0)
             else:
                 LOG.warning('Unknown ping return code: %s', rc)
                 continue
@@ -131,7 +125,6 @@ class WorkerThread(threading.Thread):
             resource += ':icmp'
             group = 'Ping'
             correlate = _PING_ALERTS
-            timeout = None
             raw_data = stdout
 
             pingAlert = Alert(
@@ -146,20 +139,14 @@ class WorkerThread(threading.Thread):
                 text=text,
                 event_type='serviceAlert',
                 tags=None,
-                timeout=timeout,
                 raw_data=raw_data,
             )
 
-            suppress = Transformers.normalise_alert(pingAlert)
-            if suppress:
-                LOG.info('Suppressing %s alert', pingAlert.event)
-                LOG.debug('%s', pingAlert)
-
-            elif self.dedup.is_send(pingAlert):
-                try:
-                    self.api.send(pingAlert)
-                except Exception, e:
-                    LOG.warning('Failed to send alert: %s', e)
+            try:
+                r = self.api.send(pingAlert)
+                LOG.debug(r)
+            except Exception, e:
+                LOG.warning('Failed to send alert: %s', e)
 
             self.queue.task_done()
             LOG.info('%s ping %s complete.', self.getName(), resource)
@@ -171,8 +158,8 @@ class WorkerThread(threading.Thread):
 
         if timeout <= count * interval:
             timeout = count * interval + 1
-        if timeout > CONF.ping_max_timeout:
-            timeout = CONF.ping_max_timeout
+        if timeout > PING_MAX_TIMEOUT:
+            timeout = PING_MAX_TIMEOUT
 
         if sys.platform == "darwin":
             cmd = "ping -q -c %s -i %s -t %s %s" % (count, interval, timeout, node)
@@ -203,22 +190,11 @@ class WorkerThread(threading.Thread):
         return rc, rtt, loss, stdout
 
 
-class PingerDaemon(Daemon):
+class PingerDaemon(object):
 
-    pinger_opts = {
-        'ping_file': '/etc/alerta/alert-pinger.targets',
-        'ping_max_timeout': 15,  # seconds
-        'ping_max_retries': 2,
-        'ping_slow_warning': 5,    # ms
-        'ping_slow_critical': 10,  # ms
-        'server_threads': 20,
-    }
+    def __init__(self):
 
-    def __init__(self, prog, **kwargs):
-
-        config.register_opts(PingerDaemon.pinger_opts)
-
-        Daemon.__init__(self, prog, kwargs)
+        self.shuttingdown = False
 
     def run(self):
 
@@ -229,17 +205,13 @@ class PingerDaemon(Daemon):
 
         self.api = ApiClient()
 
-        self.dedup = DeDup()
-
-        self.carbon = Carbon()  # graphite metrics
-
         # Initialiase ping targets
         ping_list = init_targets()
 
         # Start worker threads
-        LOG.debug('Starting %s worker threads...', CONF.server_threads)
-        for i in range(CONF.server_threads):
-            w = WorkerThread(self.api, self.queue, self.dedup, self.carbon)
+        LOG.debug('Starting %s worker threads...', SERVER_THREAD_COUNT)
+        for i in range(SERVER_THREAD_COUNT):
+            w = WorkerThread(self.api, self.queue)
             try:
                 w.start()
             except Exception, e:
@@ -254,7 +226,7 @@ class PingerDaemon(Daemon):
                         for target in p['targets']:
                             environment = p['environment']
                             service = p['service']
-                            retries = p.get('retries', CONF.ping_max_retries)
+                            retries = p.get('retries', PING_MAX_RETRIES)
                             self.queue.put((environment, service, target, retries, time.time()))
 
                 LOG.debug('Send heartbeat...')
@@ -264,9 +236,8 @@ class PingerDaemon(Daemon):
                 except Exception, e:
                     LOG.warning('Failed to send heartbeat: %s', e)
 
-                time.sleep(CONF.loop_every)
+                time.sleep(LOOP_EVERY)
                 LOG.info('Ping queue length is %d', self.queue.qsize())
-                self.carbon.metric_send('alert.pinger.queueLength', self.queue.qsize())
 
             except (KeyboardInterrupt, SystemExit):
                 self.shuttingdown = True
@@ -274,17 +245,15 @@ class PingerDaemon(Daemon):
         LOG.info('Shutdown request received...')
         self.running = False
 
-        for i in range(CONF.server_threads):
+        for i in range(SERVER_THREAD_COUNT):
             self.queue.put(None)
         w.join()
 
 
 def main():
 
-    config.parse_args(version=__version__)
-    logging.setup('alerta')
-    pinger = PingerDaemon('alert-pinger')
-    pinger.start()
+    pinger = PingerDaemon()
+    pinger.run()
 
 if __name__ == '__main__':
     main()
