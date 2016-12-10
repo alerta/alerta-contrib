@@ -7,7 +7,6 @@ which are grouped together as "integrations" or "plugins".
 Integrations
 ------------
 
-  * [Cloudwatch](integrations/cloudwatch)
   * [Consul](integrations/consul)
   * [Mailer](integrations/mailer)
   * [OpsWeekly](integrations/opsweekly)
