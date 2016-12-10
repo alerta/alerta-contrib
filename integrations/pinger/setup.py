@@ -12,6 +12,7 @@ setup(
     py_modules=['pinger'],
     install_requires=[
         'alerta',
+        'PyYaml'
     ],
     entry_points={
         'console_scripts': [
