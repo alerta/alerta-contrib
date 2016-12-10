@@ -3,6 +3,14 @@ Opsweekly Integration
 
 [Opsweekly](https://codeascraft.com/2014/06/19/opsweekly-measuring-on-call-experience-with-alert-classification/) is a tool developed by Etsy to generate weekly oncall support reports.
 
+For help, join [![Gitter chat](https://badges.gitter.im/alerta/chat.png)](https://gitter.im/alerta/chat)
+
+Installation
+------------
+
+Copy the ``alerta.php`` file to ``providers/oncall`` or another path in
+the PHP include path and follow the configuration steps below.
+
 Configuration
 -------------
 
@@ -69,5 +77,17 @@ Returns 0 or more notifications as array()
 Testing
 -------
 
+To test, run:
+
     $ php -f test.php
 
+References
+----------
+
+  * https://github.com/etsy/opsweekly
+  * https://github.com/etsy/opsweekly/tree/master/providers/oncall#writing-an-on-call-provider
+
+License
+-------
+
+Copyright (c) 2015 Nick Satterly. Available under the MIT License.
