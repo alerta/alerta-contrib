@@ -30,7 +30,7 @@ class ServiceIntegration(PluginBase):
         url = SLACK_WEBHOOK_URL
 
         summary = "*[%s] %s %s - _%s on %s_* <%s/#/alert/%s|%s>" % (
-            alert.status.capitalize(), alert.environment, alert.severity.capitalize(), alert.event, alert.resource, ALERTA_UI_URL,
+            alert.status.capitalize(), alert.environment, alert.severity.capitalize(), alert.event, alert.resource, DASHBOARD_URL,
             alert.id, alert.get_id(short=True)
         )
 
@@ -53,7 +53,7 @@ class ServiceIntegration(PluginBase):
         else:
             color = "#00CC00"  # green
 
-        text = "<%s/#/alert/%s|%s> %s - %s" % (ALERTA_UI_URL, alert.get_id(), alert.get_id(short=True), alert.event, alert.text)
+        text = "<%s/#/alert/%s|%s> %s - %s" % (DASHBOARD_URL, alert.get_id(), alert.get_id(short=True), alert.event, alert.text)
 
         if not SLACK_ATTACHMENTS:
 
