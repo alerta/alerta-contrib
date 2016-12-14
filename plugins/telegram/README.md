@@ -66,6 +66,7 @@ References
 ----------
 
   * Telegram Bots Intro: https://core.telegram.org/bots
+  * Telepot Python Client: http://telepot.readthedocs.io/en/latest/
 
 License
 -------
