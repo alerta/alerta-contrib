@@ -14,7 +14,7 @@ setup(
     packages=find_packages(),
     py_modules=['alerta_telegram'],
     install_requires=[
-        'telebot'
+        'telepot'
     ],
     include_package_data=True,
     zip_safe=True,
