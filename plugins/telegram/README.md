@@ -39,6 +39,14 @@ Create a new Telegram Bot using a Telegram client.
 
 See https://core.telegram.org/bots#creating-a-new-bot
 
+To `ack`, `close` or `blackout` an alert from the Telegram client set
+the webhook URL to your Alerta API Telegram endpoint (must be HTTPS):
+
+```python
+TELEGRAM_WEBHOOK_URL = 'https://alerta.example.com/webhooks/telegram'
+BLACKOUT_DURATION = 86400   # default=3600 ie. 1 hour
+```
+
 Troubleshooting
 ---------------
 
