@@ -1,12 +1,13 @@
 
 import os
+import logging
 
 from alerta.app import app
 from alerta.plugins import PluginBase
 
 import telepot
 
-LOG = app.logger
+LOG = logging.getLogger('alerta.plugins.telegram')
 
 TELEGRAM_TOKEN = os.environ.get('TELEGRAM_TOKEN') or app.config['TELEGRAM_TOKEN']
 TELEGRAM_CHAT_ID = os.environ.get('TELEGRAM_CHAT_ID') or app.config['TELEGRAM_CHAT_ID']
