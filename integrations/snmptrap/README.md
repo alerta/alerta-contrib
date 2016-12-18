@@ -12,7 +12,11 @@ Prerequisites
 
 To install `net-snmp` on RedHat/Centos Linux:
 
-    $ yum -y install net-snmp net-snmp-utils
+    $ sudo yum -y install net-snmp net-snmp-utils
+
+To install `net-snmp` on Ubuntu Xenial:
+
+    $ sudo apt install -y snmptrapd snmp
 
 Installation
 ------------
@@ -37,11 +41,21 @@ received:
     format execute $a %a\n$A %A\n$s %s\n$b %b\n$B %B\n$x %#y-%#02m-%#02l\n$X %#02.2h:%#02.2j:%#02.2k\n$N %N\n$q %q\n$P %P\n$t %t\n$T %T\n$w %w\n$W %W\n%V~\%~%v\n
     traphandle default alerta-snmptrap
 
+Set Alerta API endpoint in the start-up script on `RedHat/Centos`:
+
     $ vi /etc/sysconfig/snmptrapd
 
-    export ALERTA_ENDPOINT="http://10.0.2.2:8080"
+    export ALERTA_ENDPOINT="http://localhost:8080"
 
-    $ service snmptrapd start
+Set Alerta API endpoint in the start-up script on Debian/Ubuntu:
+
+    $ vi /etc/default/snmptrapd
+
+    export ALERTA_ENDPOINT="http://localhost:8080"
+
+Restart the `snmptrapd` service:
+
+    $ sudo service snmptrapd restart
 
 Troubleshooting
 ---------------
