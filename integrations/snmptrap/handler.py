@@ -65,14 +65,14 @@ class SnmpTrapHandler(object):
 
         if '$s' in trapvars:
             if trapvars['$s'] == '0':
-                version = 'SNMPv1'
+                trap_version = 'SNMPv1'
             elif trapvars['$s'] == '1':
-                version = 'SNMPv2c'
+                trap_version = 'SNMPv2c'
             elif trapvars['$s'] == '2':
-                version = 'SNMPv2u'  # not supported
+                trap_version = 'SNMPv2u'  # not supported
             else:
-                version = 'SNMPv3'
-            trapvars['$s'] = version
+                trap_version = 'SNMPv3'
+            trapvars['$s'] = trap_version
         else:
             LOG.warning('Failed to parse unknown trap type.')
             return
@@ -98,11 +98,9 @@ class SnmpTrapHandler(object):
 
         LOG.debug('varbinds = %s', varbinds)
 
-        LOG.debug('version = %s', version)
-
         correlate = list()
 
-        if version == 'SNMPv1':
+        if trap_version == 'SNMPv1':
             if trapvars['$w'] == '0':
                 trapvars['$O'] = 'coldStart'
                 correlate = ['coldStart', 'warmStart']
@@ -125,7 +123,7 @@ class SnmpTrapHandler(object):
                 else:
                     trapvars['$O'] = trapvars['$q']
 
-        elif version == 'SNMPv2c':
+        elif trap_version == 'SNMPv2c':
             if 'coldStart' in trapvars['$2']:
                 trapvars['$w'] = '0'
                 trapvars['$W'] = 'Cold Start'
@@ -148,10 +146,9 @@ class SnmpTrapHandler(object):
                 trapvars['$w'] = '6'
                 trapvars['$W'] = 'Enterprise Specific'
             trapvars['$O'] = trapvars['$2']  # SNMPv2-MIB::snmpTrapOID.0
-
         LOG.debug('trapvars = %s', trapvars)
 
-        LOG.info('%s-Trap-PDU %s from %s at %s %s', version, trapvars['$O'], trapvars['$B'], trapvars['$x'], trapvars['$X'])
+        LOG.info('%s-Trap-PDU %s from %s at %s %s', trap_version, trapvars['$O'], trapvars['$B'], trapvars['$x'], trapvars['$X'])
 
         if trapvars['$B'] != '<UNKNOWN>':
             resource = trapvars['$B']
@@ -164,76 +161,31 @@ class SnmpTrapHandler(object):
             else:
                 resource = '<NONE>'
 
-        # Defaults
-        event = trapvars['$O']
-        severity = 'indeterminate'
-        group = 'SNMP'
-        value = trapvars['$w']
-        text = trapvars['$W']
-        environment = 'Production'
-        service = ['Network']
-        attributes = {'source': trapvars['$B']}
-        tags = [version]
-        create_time = datetime.datetime.strptime('%sT%s.000Z' % (trapvars['$x'], trapvars['$X']), '%Y-%m-%dT%H:%M:%S.%fZ')
-
         snmptrapAlert = Alert(
             resource=resource,
-            event=event,
+            event=trapvars['$O'],
             correlate=correlate,
-            group=group,
-            value=value,
-            severity=severity,
-            environment=environment,
-            service=service,
-            text=text,
+            group='SNMP',
+            value=trapvars['$w'],
+            severity='indeterminate',
+            environment='Production',
+            service=['Network'],
+            text=trapvars['$W'],
             event_type='snmptrapAlert',
-            attributes=attributes,
-            tags=tags,
-            create_time=create_time,
-            raw_data=data,
+            attributes={'trapvars': {k.replace('$','_'):v for k,v in trapvars.iteritems()}},
+            tags=[trap_version],
+            create_time=datetime.datetime.strptime('%sT%s.000Z' % (trapvars['$x'], trapvars['$X']), '%Y-%m-%dT%H:%M:%S.%fZ'),
+            raw_data=data
         )
-
-        SnmpTrapHandler.translate_alert(snmptrapAlert, trapvars)
 
         if snmptrapAlert.get_type() == 'Heartbeat':
             snmptrapAlert = Heartbeat(origin=snmptrapAlert.origin, tags=[__version__])
 
         return snmptrapAlert
 
-    @staticmethod
-    def translate_alert(alert, mappings):
-        """
-        Take list of mappings and apply them to alert. Used by SNMP trap handler to
-        translate trap variable binding like $B to actual values if they are referred
-        to in any alert attribute.
-        """
-        LOG.debug('Translate alert using mappings: %s', mappings)
-
-        for k, v in mappings.iteritems():
-            LOG.debug('translate %s -> %s', k, v)
-            alert.resource = alert.resource.replace(k, v)
-            alert.event = alert.event.replace(k, v)
-            alert.environment = alert.environment.replace(k, v)
-            alert.severity = alert.severity.replace(k, v)
-            if alert.correlate is not None:
-                alert.correlate[:] = [c.replace(k, v) for c in alert.correlate]
-            alert.service[:] = [s.replace(k, v) for s in alert.service]
-            alert.group = alert.group.replace(k, v)
-            alert.value = alert.value.replace(k, v)
-            alert.text = alert.text.replace(k, v)
-            if alert.tags is not None:
-                alert.tags[:] = [tag.replace(k, v) for tag in alert.tags]
-            if alert.attributes is not None:
-                alert.attributes = dict([(attrib[0], attrib[1].replace(k, v)) for attrib in alert.attributes.iteritems()])
-
-
 def main():
 
     LOG = logging.getLogger("alerta.snmptrap")
-
-    # if os.path.exists(settings.DISABLE_FLAG):
-    #     LOG.debug('Disable flag %s exists. Exiting.', settings.DISABLE_FLAG)
-    #     sys.exit(0)
 
     try:
         SnmpTrapHandler().run()

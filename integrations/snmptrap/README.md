@@ -57,6 +57,75 @@ Restart the `snmptrapd` service:
 
     $ sudo service snmptrapd restart
 
+Configuration
+-------------
+
+By default, SNMP traps are assigned reasonable values for each alert
+attribute. However, to make SNMP traps useful sources of events it may
+be necessary to do additional processing and assign relevant values
+for `resource`, `event`, `severity` and others.
+
+To achieve this is a scalable way, it is recommended to use a plugin
+that uses the original "trapvar" values stored as attributes in the
+submitted SNMP trap alert and set values like `severity` at receive
+time based on trap values.
+
+**Example Trapvars**
+
+```json
+  "alert": {
+    "attributes": {
+      "trapvars": {
+        "_#": "3",
+        "_1": "0:1:41:43.19",
+        "_2": "iso.3.6.1.6.3.1.1.5.3.0",
+        "_3": "\"This is a test linkDown trap\"",
+        "_A": "0.0.0.0",
+        "_B": "localhost",
+        "_N": ".",
+        "_O": "iso.3.6.1.6.3.1.1.5.3.0",
+        "_P": "TRAP2, SNMP v2c, community public",
+        "_T": "0",
+        "_W": "Enterprise Specific",
+        "_X": "15:05:45",
+        "_a": "0.0.0.0",
+        "_b": "UDP: [127.0.0.1]:48476->[127.0.0.1]:162",
+        "_q": "0",
+        "_s": "SNMPv2c",
+        "_t": "1482073545",
+        "_w": "6",
+        "_x": "2016-12-18"
+      }
+    },
+    ...
+```
+
+**Example Transform Plugin for Oracle EM Traps**
+
+```python
+class OracleTrapTransformer(PluginBase):
+
+    def pre_receive(self, alert):
+
+        alert.resource = alert.attributes['trapvars']['_3'].split('.',1)[0]
+
+        if alert.attributes['trapvars']['_10'] in ['Serious', 'Critical']:
+            alert.severity = 'critical'
+        elif alert.attributes['trapvars']['_10'] == 'Error'
+            alert.severity = 'major'
+        else:
+            alert.severity = 'normal'
+
+        alert.event = alert.attributes['trapvars']['_6'].replace(' ','')
+        alert.value = alert.attributes['trapvars']['_14']
+        alert.text = alert.attributes['trapvars']['_11']
+
+        return alert
+
+    def post_receive(self, alert):
+        ...
+```
+
 Troubleshooting
 ---------------
 
