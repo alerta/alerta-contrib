@@ -10,7 +10,7 @@ from alertaclient.api import ApiClient
 from alertaclient.alert import Alert
 from alertaclient.heartbeat import Heartbeat
 
-__version__ = '3.3.0'
+__version__ = '3.3.1'
 
 
 LOG = logging.getLogger("alerta.snmptrap")
@@ -174,7 +174,6 @@ class SnmpTrapHandler(object):
         service = ['Network']
         attributes = {'source': trapvars['$B']}
         tags = [version]
-        timeout = None
         create_time = datetime.datetime.strptime('%sT%s.000Z' % (trapvars['$x'], trapvars['$X']), '%Y-%m-%dT%H:%M:%S.%fZ')
 
         snmptrapAlert = Alert(
@@ -190,7 +189,6 @@ class SnmpTrapHandler(object):
             event_type='snmptrapAlert',
             attributes=attributes,
             tags=tags,
-            timeout=timeout,
             create_time=create_time,
             raw_data=data,
         )
@@ -198,7 +196,7 @@ class SnmpTrapHandler(object):
         SnmpTrapHandler.translate_alert(snmptrapAlert, trapvars)
 
         if snmptrapAlert.get_type() == 'Heartbeat':
-            snmptrapAlert = Heartbeat(origin=snmptrapAlert.origin, tags=[__version__], timeout=snmptrapAlert.timeout)
+            snmptrapAlert = Heartbeat(origin=snmptrapAlert.origin, tags=[__version__])
 
         return snmptrapAlert
 
