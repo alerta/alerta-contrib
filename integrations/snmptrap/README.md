@@ -57,18 +57,18 @@ Restart the `snmptrapd` service:
 
     $ sudo service snmptrapd restart
 
-Configuration
--------------
+Transform Plugin
+----------------
 
 By default, SNMP traps are assigned reasonable values for each alert
 attribute. However, to make SNMP traps useful sources of events it may
 be necessary to do additional processing and assign relevant values
 for `resource`, `event`, `severity` and others.
 
-To achieve this is a scalable way, it is recommended to use a plugin
-that uses the original "trapvar" values stored as attributes in the
-submitted SNMP trap alert and set values like `severity` at receive
-time based on trap values.
+To achieve this in an extensible way, it is recommended to use a plugin
+that transforms the original "trapvar" values stored as attributes in the
+submitted SNMP trap alert to values like `severity` in the "pre-receive"
+hook.
 
 **Example Trapvars**
 
@@ -109,16 +109,16 @@ class OracleTrapTransformer(PluginBase):
 
         alert.resource = alert.attributes['trapvars']['_3'].split('.',1)[0]
 
-        if alert.attributes['trapvars']['_10'] in ['Serious', 'Critical']:
+        if alert.attributes['trapvars']['_10'] in ['Serious', 'Critical']: # oraEM4AlertSeverity
             alert.severity = 'critical'
         elif alert.attributes['trapvars']['_10'] == 'Error'
             alert.severity = 'major'
         else:
             alert.severity = 'normal'
 
-        alert.event = alert.attributes['trapvars']['_6'].replace(' ','')
-        alert.value = alert.attributes['trapvars']['_14']
-        alert.text = alert.attributes['trapvars']['_11']
+        alert.event = alert.attributes['trapvars']['_6'].replace(' ','')   # oraEM4AlertMetricName
+        alert.value = alert.attributes['trapvars']['_14']                  # oraEM4AlertMetricValue
+        alert.text = alert.attributes['trapvars']['_11']                   # oraEM4AlertMessage
 
         return alert
 
