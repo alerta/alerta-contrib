@@ -166,7 +166,7 @@ class SnmpTrapHandler(object):
 
         # Defaults
         event = trapvars['$O']
-        severity = 'normal'
+        severity = 'indeterminate'
         group = 'SNMP'
         value = trapvars['$w']
         text = trapvars['$W']
