@@ -57,6 +57,75 @@ Restart the `snmptrapd` service:
 
     $ sudo service snmptrapd restart
 
+Transform Plugin
+----------------
+
+By default, SNMP traps are assigned reasonable values for each alert
+attribute. However, to make SNMP traps useful sources of events it may
+be necessary to do additional processing and assign relevant values
+for `resource`, `event`, `severity` and others.
+
+To achieve this in an extensible way, it is recommended to use a plugin
+that transforms the original "trapvar" values stored as attributes in the
+submitted SNMP trap alert to values like `severity` in the "pre-receive"
+hook.
+
+**Example Trapvars**
+
+```json
+  "alert": {
+    "attributes": {
+      "trapvars": {
+        "_#": "3",
+        "_1": "0:1:41:43.19",
+        "_2": "iso.3.6.1.6.3.1.1.5.3.0",
+        "_3": "\"This is a test linkDown trap\"",
+        "_A": "0.0.0.0",
+        "_B": "localhost",
+        "_N": ".",
+        "_O": "iso.3.6.1.6.3.1.1.5.3.0",
+        "_P": "TRAP2, SNMP v2c, community public",
+        "_T": "0",
+        "_W": "Enterprise Specific",
+        "_X": "15:05:45",
+        "_a": "0.0.0.0",
+        "_b": "UDP: [127.0.0.1]:48476->[127.0.0.1]:162",
+        "_q": "0",
+        "_s": "SNMPv2c",
+        "_t": "1482073545",
+        "_w": "6",
+        "_x": "2016-12-18"
+      }
+    },
+    ...
+```
+
+**Example Transform Plugin for Oracle EM Traps**
+
+```python
+class OracleTrapTransformer(PluginBase):
+
+    def pre_receive(self, alert):
+
+        alert.resource = alert.attributes['trapvars']['_3'].split('.',1)[0]
+
+        if alert.attributes['trapvars']['_10'] in ['Serious', 'Critical']: # oraEM4AlertSeverity
+            alert.severity = 'critical'
+        elif alert.attributes['trapvars']['_10'] == 'Error'
+            alert.severity = 'major'
+        else:
+            alert.severity = 'normal'
+
+        alert.event = alert.attributes['trapvars']['_6'].replace(' ','')   # oraEM4AlertMetricName
+        alert.value = alert.attributes['trapvars']['_14']                  # oraEM4AlertMetricValue
+        alert.text = alert.attributes['trapvars']['_11']                   # oraEM4AlertMessage
+
+        return alert
+
+    def post_receive(self, alert):
+        ...
+```
+
 Troubleshooting
 ---------------
 
