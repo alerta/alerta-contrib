@@ -51,7 +51,8 @@ class AlertmanagerSilence(PluginBase):
                 "comment": text if text != '' else "silenced by alerta"
             }
 
-            url = ALERTMANAGER_API_URL + '/api/v1/silences'
+            base_url = alert.attributes.get('externalUrl', None) or ALERTMANAGER_API_URL
+            url = base_url + '/api/v1/silences'
             try:
                 r = requests.post(url, json=data, timeout=2)
             except Exception as e:
@@ -71,7 +72,8 @@ class AlertmanagerSilence(PluginBase):
 
             silenceId = alert.attributes.get('silenceId', None)
             if silenceId:
-                url = ALERTMANAGER_API_URL + '/api/v1/silence/%s' % silenceId
+                base_url = alert.attributes.get('externalUrl', None) or ALERTMANAGER_API_URL
+                url = base_url + '/api/v1/silence/%s' % silenceId
                 try:
                     r = requests.delete(url, timeout=2)
                 except Exception as e:
