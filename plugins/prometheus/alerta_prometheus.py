@@ -10,7 +10,9 @@ from alerta.plugins import PluginBase
 
 LOG = logging.getLogger('alerta.plugins.prometheus')
 
-ALERTMANAGER_API_URL = os.environ.get('ALERTMANAGER_API_URL') or app.config.get('ALERTMANAGER_API_URL', 'http://localhost:9093')
+DEFAULT_ALERTMANAGER_API_URL = 'http://localhost:9093'
+
+ALERTMANAGER_API_URL = os.environ.get('ALERTMANAGER_API_URL') or app.config.get('ALERTMANAGER_API_URL', None)
 ALERTMANAGER_API_KEY = os.environ.get('ALERTMANAGER_API_KEY') or app.config.get('ALERTMANAGER_API_KEY', '')  # not used
 ALERTMANAGER_SILENCE_DAYS = os.environ.get('ALERTMANAGER_SILENCE_DAYS') or app.config.get('ALERTMANAGER_SILENCE_DAYS', 1)
 
@@ -51,7 +53,7 @@ class AlertmanagerSilence(PluginBase):
                 "comment": text if text != '' else "silenced by alerta"
             }
 
-            base_url = alert.attributes.get('externalUrl', None) or ALERTMANAGER_API_URL
+            base_url = ALERTMANAGER_API_URL or alert.attributes.get('externalUrl', DEFAULT_ALERTMANAGER_API_URL)
             url = base_url + '/api/v1/silences'
             try:
                 r = requests.post(url, json=data, timeout=2)
@@ -72,7 +74,7 @@ class AlertmanagerSilence(PluginBase):
 
             silenceId = alert.attributes.get('silenceId', None)
             if silenceId:
-                base_url = alert.attributes.get('externalUrl', None) or ALERTMANAGER_API_URL
+                base_url = ALERTMANAGER_API_URL or alert.attributes.get('externalUrl', DEFAULT_ALERTMANAGER_API_URL)
                 url = base_url + '/api/v1/silence/%s' % silenceId
                 try:
                     r = requests.delete(url, timeout=2)
