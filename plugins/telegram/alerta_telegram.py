@@ -23,7 +23,7 @@ class TelegramBot(PluginBase):
         self.bot = telepot.Bot(TELEGRAM_TOKEN)
         LOG.debug('Telegram: %s', self.bot.getMe())
 
-        if TELEGRAM_WEBHOOK_URL:
+        if TELEGRAM_WEBHOOK_URL and TELEGRAM_WEBHOOK_URL != self.bot.getWebhookInfo()['url']:
             self.bot.setWebhook(TELEGRAM_WEBHOOK_URL)
             LOG.debug('Telegram: %s', self.bot.getWebhookInfo())
 
