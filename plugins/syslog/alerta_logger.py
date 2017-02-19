@@ -10,9 +10,13 @@ from alerta.plugins import PluginBase
 
 LOG = logging.getLogger('alerta.plugins.logger')
 
-LOGGER_SYSLOG_FORMAT = os.environ.get('LOGGER_SYSLOG_FORMAT') or app.config.get('SYSLOG_FORMAT','%(name)s[%(process)d]: %(levelname)s - %(message)s')
-LOGGER_SYSLOG_DATE_FORMAT = os.environ.get('LOGGER_SYSLOG_DATE_FORMAT') or app.config.get('SYSLOG_DATE_FORMAT', '%Y-%m-%d %H:%M:%S')
-LOGGER_SYSLOG_FACILITY = os.environ.get('LOGGER_SYSLOG_FACILITY') or app.config.get('SYSLOG_FACILITY', 'local7')
+DEFAULT_SYSLOG_FORMAT = '%(name)s[%(process)d]: %(levelname)s - %(message)s'
+DEFAULT_SYSLOG_DATE_FORMAT = '%Y-%m-%d %H:%M:%S'
+DEFAULT_SYSLOG_FACILITY = 'local7'
+
+LOGGER_SYSLOG_FORMAT = os.environ.get('LOGGER_SYSLOG_FORMAT') or app.config.get('SYSLOG_FORMAT', DEFAULT_SYSLOG_FORMAT)
+LOGGER_SYSLOG_DATE_FORMAT = os.environ.get('LOGGER_SYSLOG_DATE_FORMAT') or app.config.get('SYSLOG_DATE_FORMAT', DEFAULT_SYSLOG_DATE_FORMAT)
+LOGGER_SYSLOG_FACILITY = os.environ.get('LOGGER_SYSLOG_FACILITY') or app.config.get('SYSLOG_FACILITY', DEFAULT_SYSLOG_FACILITY)
 
 
 class Syslog(PluginBase):

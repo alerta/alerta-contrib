@@ -1,7 +1,7 @@
 
 from setuptools import setup, find_packages
 
-version = '0.3.1'
+version = '0.3.2'
 
 setup(
     name="alerta-hipchat",
@@ -14,7 +14,8 @@ setup(
     packages=find_packages(),
     py_modules=['alerta_hipchat'],
     install_requires=[
-        'requests'
+        'requests',
+        'jinja2'
     ],
     include_package_data=True,
     zip_safe=True,

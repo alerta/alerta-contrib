@@ -5,14 +5,14 @@ import setuptools
 version = '3.3.0'
 
 setuptools.setup(
-    name="alerta-cloudwatch",
+    name="alerta-sqs",
     version=version,
-    description='Alerta integration for AWS CloudWatch alarms',
+    description='Alerta integration for AWS SQS',
     url='https://github.com/alerta/alerta-contrib',
     license='Apache License 2.0',
     author='Nick Satterly',
     author_email='nick.satterly@theguardian.com',
-    py_modules=['cloudwatch'],
+    py_modules=['alerta_sqs'],
     install_requires=[
         'alerta',
         'boto'
@@ -21,10 +21,10 @@ setuptools.setup(
     zip_safe=False,
     entry_points={
         'console_scripts': [
-            'alerta-cloudwatch = cloudwatch:main'
+            'alerta-sqs = alerta_sqs:main'
         ]
     },
-    keywords="alerta cloudwatch monitoring",
+    keywords="alerta monitoring amazon sqs",
     classifiers=[
         'Topic :: System :: Monitoring',
     ]

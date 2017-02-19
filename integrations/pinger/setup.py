@@ -1,12 +1,5 @@
-#!/usr/bin/env python
 
-import os
-import sys
-
-try:
-    from setuptools import setup
-except ImportError:
-    from distutils.core import setup
+from setuptools import setup, find_packages
 
 setup(
     name="alerta-pinger",
@@ -18,7 +11,8 @@ setup(
     url="http://github.com/alerta/alerta-contrib",
     py_modules=['pinger'],
     install_requires=[
-        'alerta-server',
+        'alerta',
+        'PyYaml'
     ],
     entry_points={
         'console_scripts': [
@@ -35,4 +29,3 @@ setup(
         'Topic :: System :: Monitoring',
     ]
 )
-

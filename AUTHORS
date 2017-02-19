@@ -1,0 +1,18 @@
+Aivars Šterns <asterns@evolutiongaming.com>
+Angel Velasquez <avelasquez@sangoma.com>
+Angel Velásquez <angvp@archlinux.org>
+Angel Velásquez <avelasquez@sangoma.com>
+int32bit <krystism@gmail.com>
+Jacek Grzechnik <jacek.grzechnik@mbank.pl>
+Joao Mesquita <jmesquita@sangoma.com>
+Marco <marco@supino.org>
+Minh Danh <minhdanh@hoiio.com>
+Moises Silva <msilva@sangoma.com>
+Nick Satterly <nick.satterly@theguardian.com>
+Rafael Matias <rafael.matias@centralway.com>
+root <root@ubu001.pod01.secdo.net>
+SK <skobolo@gmail.com>
+Карамышев Степан <karamyshev@corp.sputnik.ru>
+
+
+$ git log --format='%aN <%aE>' | sort -f | uniq

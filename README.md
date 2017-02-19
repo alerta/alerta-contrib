@@ -1,59 +1,56 @@
 Alerta Contrib
 ==============
 
-Useful but non-essential additions to the alerta monitoring system which are grouped together as follows:
+Useful but non-essential additions to the alerta monitoring system.
 
-  * integrations - use Alerta API to generate alerts sources eg. ping script, SNMP traps, Syslog, URL monitor
+Integrations are specific to the monitoring tool or service
+being integrated whereas plugins are standard extensions that are
+triggered before or after alert reception or by an external alert
+status change.
 
-  * plug-ins - pre-receive and post-receive server hooks
+Some of the integrations listed below redirect to a dedicated
+Github repository.
 
 Integrations
-============
-
-Installation
 ------------
 
-Integration installation steps are specific to the system being integrated. See individual README.md in the relevant sub-directory.
+  * [Consul](integrations/consul)
+  * [Kibana](https://github.com/alerta/kibana-alerta)
+  * [Mailer](integrations/mailer)
+  * [Nagios](https://github.com/alerta/nagios-alerta)
+  * [OpsWeekly](integrations/opsweekly)
+  * [Pinger](integrations/pinger)
+  * [Prometheus](https://github.com/alerta/prometheus-config)
+  * [Riemann](https://github.com/alerta/riemann-alerta)
+  * [SNMPTrap](integrations/snmptrap)
+  * [Sensu](https://github.com/alerta/sensu-alerta)
+  * [Amazon SQS](integrations/sqs)
+  * [Supervisor](integrations/supervisor)
+  * [Syslog](integrations/syslog)
+  * [URLmon](integrations/urlmon)
+  * [Zabbix](https://github.com/alerta/zabbix-alerta)
 
-Configuration
--------------
+Plugins
+-------
 
-
-
-
-Plug-ins
-========
-
-Installation
-------------
-
-Plugins are written in python and can be installed using pip
-
-    $ git clone ...
-    $ cd alerta-contrib/plugins/<plugin>
-    $ python setup.py install
-
-Configuration
--------------
-
-
-
-
+  * [AMQP](plugins/amqp)
+  * [Cachet](plugins/cachet)
+  * [Enhance](plugins/enhance)
+  * [GeoIP](plugins/geoip)
+  * [HipChat](plugins/hipchat)
+  * [InfluxDB](plugins/influxdb)
+  * [Logstash](plugins/logstash)
+  * [Normalise](plugins/normalise)
+  * [PagerDuty](plugins/pagerduty)
+  * [Prometheus](plugins/prometheus)
+  * [Pushover.net](plugins/pushover)
+  * [Slack](plugins/slack)
+  * [Amazon SNS](plugins/sns)
+  * [Syslog](plugins/syslog)
+  * [Telegram](plugins/telegram)
+  * [Twilio SMS](plugins/twilio)
 
 License
 -------
 
-    Alerta monitoring system and console
-    Copyright 2015 Nick Satterly
-
-    Licensed under the Apache License, Version 2.0 (the "License");
-    you may not use this file except in compliance with the License.
-    You may obtain a copy of the License at
-
-        http://www.apache.org/licenses/LICENSE-2.0
-
-    Unless required by applicable law or agreed to in writing, software
-    distributed under the License is distributed on an "AS IS" BASIS,
-    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-    See the License for the specific language governing permissions and
-    limitations under the License.
+Copyright (c) 2014-2016 Nick Satterly. Available under the MIT License.

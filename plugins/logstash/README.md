@@ -1,7 +1,7 @@
-Twilio SMS Plugin
-=================
+Logstash Plugin
+===============
 
-Send SMS messages for new alerts using Twilio.
+Log alerts to Kibana using Logstash.
 
 For help, join [![Gitter chat](https://badges.gitter.im/alerta/chat.png)](https://gitter.im/alerta/chat)
 
@@ -14,7 +14,7 @@ Clone the GitHub repo and run:
 
 Or, to install remotely from GitHub run:
 
-    $ pip install git+https://github.com/alerta/alerta-contrib.git#subdirectory=plugins/twilio
+    $ pip install git+https://github.com/alerta/alerta-contrib.git#subdirectory=plugins/logstash
 
 Note: If Alerta is installed in a python virtual environment then plugins
 need to be installed into the same environment for Alerta to dynamically
@@ -23,28 +23,33 @@ discover them.
 Configuration
 -------------
 
-Add `twilio_sms` to the list of enabled `PLUGINS` in `alertad.conf` server
+Add `logstash` to the list of enabled `PLUGINS` in `alertad.conf` server
 configuration file and set plugin-specific variables either in the
 server configuration file or as environment variables.
 
 ```python
-PLUGINS = ['twilio_sms']
-TWILIO_ACCOUNT_SID = 'ACxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'
-TWILIO_AUTH_TOKEN = ''
-
-TWILIO_TO_NUMBER = ''
-TWILIO_FROM_NUMBER = ''
+PLUGINS = ['logstash']
 ```
 
-Troubleshooting
----------------
+**Default Configuration**
 
-Restart Alerta API and confirm that the plugin has been loaded and enabled.
+```python
+LOGSTASH_HOST = 'localhost'
+LOGSTASH_PORT = 6379
+```
+
+**Example**
+
+```python
+PLUGINS = ['logstash', 'reject']
+LOGSTASH_HOST = 'logger.example.com'
+```
 
 References
 ----------
 
-  * Twilio Sending Messages: https://www.twilio.com/docs/api/rest/sending-messages
+  * Logstash: https://www.elastic.co/products/logstash
+  * Kibana: https://www.elastic.co/products/kibana
 
 License
 -------
