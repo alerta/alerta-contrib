@@ -11,11 +11,11 @@ LOG = logging.getLogger('alerta.plugins.slack')
 
 SLACK_WEBHOOK_URL = os.environ.get('SLACK_WEBHOOK_URL') or app.config['SLACK_WEBHOOK_URL']
 SLACK_ATTACHMENTS = True if os.environ.get('SLACK_ATTACHMENTS', 'False') == 'True' else app.config.get('SLACK_ATTACHMENTS', False)
-SLACK_CHANNEL = os.environ.get('SLACK_CHANNEL', '') or app.config.get['SLACK_CHANNEL', '']
-ALERTA_UI_URL = os.environ.get('ALERTA_UI_URL', 'http://try.alerta.io') or app.config.get['ALERTA_UI_URL', 'http://try.alerta.io']
-ICON_EMOJI = os.environ.get('ICON_EMOJI', ':rocket:') or app.config.get['ICON_EMOJI', ':rocket:']
-ALERTA_USERNAME = os.environ.get('ALERTA_USERNAME', 'alerta') or app.config.get['ALERTA_USERNAME', 'alerta']
+SLACK_CHANNEL = os.environ.get('SLACK_CHANNEL') or app.config.get('SLACK_CHANNEL', '')
+ALERTA_USERNAME = os.environ.get('ALERTA_USERNAME') or app.config.get('ALERTA_USERNAME', 'alerta')
 
+ICON_EMOJI = os.environ.get('ICON_EMOJI') or app.config.get('ICON_EMOJI', ':rocket:')
+DASHBOARD_URL = os.environ.get('DASHBOARD_URL') or app.config.get('DASHBOARD_URL', '')
 
 class ServiceIntegration(PluginBase):
 
@@ -30,7 +30,7 @@ class ServiceIntegration(PluginBase):
         url = SLACK_WEBHOOK_URL
 
         summary = "*[%s] %s %s - _%s on %s_* <%s/#/alert/%s|%s>" % (
-            alert.status.capitalize(), alert.environment, alert.severity.capitalize(), alert.event, alert.resource, ALERTA_UI_URL,
+            alert.status.capitalize(), alert.environment, alert.severity.capitalize(), alert.event, alert.resource, DASHBOARD_URL,
             alert.id, alert.get_id(short=True)
         )
 
@@ -53,7 +53,7 @@ class ServiceIntegration(PluginBase):
         else:
             color = "#00CC00"  # green
 
-        text = "<%s/#/alert/%s|%s> %s - %s" % (ALERTA_UI_URL, alert.get_id(), alert.get_id(short=True), alert.event, alert.text)
+        text = "<%s/#/alert/%s|%s> %s - %s" % (DASHBOARD_URL, alert.get_id(), alert.get_id(short=True), alert.event, alert.text)
 
         if not SLACK_ATTACHMENTS:
 

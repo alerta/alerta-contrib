@@ -1,26 +1,26 @@
 
 from setuptools import setup, find_packages
 
-version = '0.3.2'
+version = '0.0.1'
 
 setup(
-    name="alerta-influxdb",
+    name="alerta-cachet",
     version=version,
-    description='Alerta plugin for InfluxDB v1.1',
+    description='Alerta plugin for Cachet status page',
     url='https://github.com/alerta/alerta-contrib',
     license='Apache License 2.0',
     author='Nick Satterly',
     author_email='nick.satterly@theguardian.com',
     packages=find_packages(),
-    py_modules=['alerta_influxdb'],
+    py_modules=['alerta_cachet'],
     install_requires=[
-        'influxdb'
+        'python-cachetclient'
     ],
     include_package_data=True,
     zip_safe=True,
     entry_points={
         'alerta.plugins': [
-            'influxdb = alerta_influxdb:InfluxDBWrite'
+            'cachet = alerta_cachet:CachetIncident'
         ]
     }
 )

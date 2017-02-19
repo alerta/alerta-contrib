@@ -4,6 +4,7 @@ from alerta.plugins import PluginBase
 
 LOG = logging.getLogger('alerta.plugins.enhance')
 
+RUNBOOK_URL = 'http://www.example.com/wiki/RunBook'   # example only
 
 class EnhanceAlert(PluginBase):
 
@@ -11,18 +12,16 @@ class EnhanceAlert(PluginBase):
 
         LOG.info("Enhancing alert...")
 
-        if 'TPS reports' in alert.text:
-            alert.attributes['customer'] = 'Initech'
-        elif 'nexus' in alert.text:
-            alert.attributes['customer'] = 'Tyrell Corp.'
-        elif 'green wafer' in alert.text:
-            alert.attributes['customer'] = 'Soylent Corp.'
-        elif 'Skynet' in alert.text:
-            alert.attributes['customer'] = 'Cyberdyne Systems'
+        # Set "isOutOfHours" flag for later use by notification plugins
+        dayOfWeek = alert.create_time.strftime('%a')
+        hourOfDay = alert.create_time.hour
+        if dayOfWeek in ['Sat', 'Sun'] or 8 > hourOfDay > 18:
+            alert.attributes['isOutOfHours'] = True
         else:
-            alert.attributes['customer'] = 'ACME Corp.'
+            alert.attributes['isOutOfHours'] = False
 
-        alert.attributes['runBookUrl'] = 'http://www.mywiki.org/RunBook/%s' % alert.event.replace(' ', '-')
+        # Add link to Run Book based on event name
+        alert.attributes['runBookUrl'] = '%s/%s' % (RUNBOOK_URL, alert.event.replace(' ', '-'))
 
         return alert
 

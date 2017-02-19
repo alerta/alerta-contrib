@@ -1,44 +1,67 @@
 
 import os
-import json
-import requests
 import logging
 
 from alerta.app import app
 from alerta.plugins import PluginBase
 
+from influxdb import InfluxDBClient
+
 LOG = logging.getLogger('alerta.plugins.influxdb')
 
-INFLUXDB_URL = os.environ.get('INFLUXDB_URL') or app.config['INFLUXDB_URL']
-INFLUXDB_USER = os.environ.get('INFLUXDB_USER') or app.config['INFLUXDB_USER']
-INFLUXDB_PASSWORD = os.environ.get('INFLUXDB_PASSWORD') or app.config['INFLUXDB_PASSWORD']
+DEFAULT_INFLUXDB_DSN = 'influxdb://user:pass@localhost:8086/alerta' # 'influxdb://username:password@localhost:8086/databasename'
+
+INFLUXDB_DSN = os.environ.get('INFLUXDB_DSN') or app.config.get('INFLUXDB_DSN', DEFAULT_INFLUXDB_DSN)
+INFLUXDB_DATABASE = os.environ.get('INFLUXDB_DATABASE') or app.config.get('INFLUXDB_DATABASE', None)
 
 
 class InfluxDBWrite(PluginBase):
+
+    def __init__(self, name=None):
+
+        self.client = InfluxDBClient.from_DSN(INFLUXDB_DSN, timeout=2)
+
+        dbname = INFLUXDB_DATABASE or self.client._database
+        try:
+            if dbname:
+                self.client.switch_database(dbname)
+                self.client.create_database(dbname)
+        except Exception as e:
+            LOG.error('InfluxDB: ERROR - %s' % e)
+
+        super(InfluxDBWrite, self).__init__(name)
 
     def pre_receive(self, alert):
         return alert
 
     def post_receive(self, alert):
 
-        url = INFLUXDB_URL + '/db/alerta/series'
+        # event data
+        points = [
+            {
+                "measurement": alert.event,
+                "tags": {
+                    "resource": alert.resource,
+                    "environment": alert.environment
+                },
+                "time": alert.last_receive_time,
+                "fields": {
+                    "value": alert.value
+                }
+            }
+        ]
 
-        data = [{
-            "name": alert.event,
-            "columns": ["value", "environment", "resource"],
-            "points": [
-                [alert.value, alert.environment, alert.resource]
-            ]
-        }]
+        # common tags
+        tags = {"service": ','.join(alert.service)}
+        if alert.customer:
+            tags.update(customer=alert.customer)
 
-        LOG.debug('InfluxDB data: %s', data)
+        LOG.debug('InfluxDB: points=%s, tags=%s', points, tags)
 
         try:
-            response = requests.post(url=url, data=json.dumps(data), auth=(INFLUXDB_USER, INFLUXDB_PASSWORD))
+            self.client.write_points(points, time_precision='ms', tags=tags)
         except Exception as e:
-            raise RuntimeError("InfluxDB connection error: %s", e)
-
-        LOG.debug('InfluxDB response: %s', response)
+            raise RuntimeError("InfluxDB: ERROR - %s" % e)
 
     def status_change(self, alert, status, text):
         return

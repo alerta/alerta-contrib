@@ -4,7 +4,7 @@ import setuptools
 
 setuptools.setup(
     name="alerta-snmptrap",
-    version='3.3.0',
+    version='3.3.2',
     description='Alerta script for SNMP traps',
     url='https://github.com/alerta/alerta-contrib',
     license='Apache License 2.0',
