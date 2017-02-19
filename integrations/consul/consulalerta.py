@@ -12,18 +12,52 @@ import time
 client = consul.Consul(host='127.0.0.1', port=8500, token=None, scheme='http', consistency='default', dc=None, verify=True)
 
 j = json.load(sys.stdin)
-print "Request:" 
+print "Request:"
 print j
 
-url = client.kv.get('alerta/apiurl')[1]['Value']
-key = client.kv.get('alerta/apikey')[1]['Value']
+try:
+    url = client.kv.get('alerta/apiurl')[1]['Value']
+except:
+    print "No URL defined, exiting"
+    sys.exit(1)
 
-max_retries = int(client.kv.get('alerta/max_retries')[1]['Value'])
-sleep = int(client.kv.get('alerta/sleep')[1]['Value'])
-timeout = int(client.kv.get('alerta/timeout')[1]['Value'])
+try:
+    key = client.kv.get('alerta/apikey')[1]['Value']
+except:
+    print "No key defined, exiting"
+    sys.exit(1)
 
-origin = client.kv.get('alerta/origin')[1]['Value']
-alerttype = client.kv.get('alerta/alerttype')[1]['Value']
+
+try:
+    max_retries = int(client.kv.get('alerta/max_retries')[1]['Value'])
+except TypeError:
+    print "No value defined, using default"
+    max_retries = 3
+
+try:
+    sleep = int(client.kv.get('alerta/sleep')[1]['Value'])
+except TypeError:
+    print "No value defined, using default"
+    sleep = 2
+
+try:
+    timeout = int(client.kv.get('alerta/timeout')[1]['Value'])
+except TypeError:
+    print "No value defined, using default"
+    timeout = 900
+
+try:
+    origin = client.kv.get('alerta/origin')[1]['Value']
+except TypeError:
+    print "No value defined, using default"
+    origin = "consul"
+
+try:
+    alerttype = client.kv.get('alerta/alerttype')[1]['Value']
+except TypeError:
+    print "No value defined, using default"
+    alerttype = "ConsulAlert"
+
 
 api = ApiClient(endpoint=url, key=key)
 
@@ -37,7 +71,11 @@ def createalert( data ):
     try:
         environment = client.kv.get('alerta/env/{0}'.format(data['Node']))[1]['Value']
     except:
-        environment = client.kv.get('alerta/defaultenv')[1]['Value']
+        try:
+             environment = client.kv.get('alerta/defaultenv')[1]['Value']
+        except:
+             environment = "Production"
+
     alert = Alert(resource=data['Node'], event=data['CheckId'], value=data['Status'], correlate=SEVERITY_MAP.keys(), environment=environment, service=[data['CheckId']], severity=SEVERITY_MAP[data['Status']], text=data['Output'], timeout=timeout, origin=origin, type=alerttype)
     for i in range(max_retries):
         try:
@@ -46,7 +84,7 @@ def createalert( data ):
         except Exception as e:
             print("HTTP Error: {}".format(e))
             time.sleep(sleep)
-            continue  
+            continue
         else:
             break
     else:
