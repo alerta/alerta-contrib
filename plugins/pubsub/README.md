@@ -45,4 +45,4 @@ References
 License
 -------
 
-Copyright (c) 2016 Arindam Choudhury. Available under the MIT License.
+Copyright (c) 2017 Arindam Choudhury. Available under the MIT License.
