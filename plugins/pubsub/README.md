@@ -37,6 +37,11 @@ server configuration file or as environment variables.
 PLUGINS = ['pubsub']
 ```
 
+References
+----------
+
+  * What is Google Cloud Pub/Sub? https://cloud.google.com/pubsub/docs/overview
+
 License
 -------
 
