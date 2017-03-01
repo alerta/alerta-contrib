@@ -1,4 +1,4 @@
-HipChat Plugin
+PubSub Plugin
 ==============
 
 Send alerts to pubsub.
