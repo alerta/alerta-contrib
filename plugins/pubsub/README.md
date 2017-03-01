@@ -1,7 +1,7 @@
-PubSub Plugin
-==============
+Google Cloud Pub/Sub Plugin
+===========================
 
-Send alerts to pubsub.
+Send alerts to Google Cloud Pub/Sub.
 
 For help, join [![Gitter chat](https://badges.gitter.im/alerta/chat.png)](https://gitter.im/alerta/chat)
 
