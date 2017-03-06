@@ -4,6 +4,7 @@ import json
 import datetime
 import logging
 import os
+import platform
 import re
 import smtplib
 import socket
@@ -258,7 +259,7 @@ class MailSender(threading.Thread):
             'mail_to': contacts,
             'dashboard_url': OPTIONS['dashboard_url'],
             'program': os.path.basename(sys.argv[0]),
-            'hostname': os.uname()[1],
+            'hostname': platform.uname()[1],
             'now': datetime.datetime.utcnow()
         }
 
