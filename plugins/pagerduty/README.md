@@ -30,9 +30,14 @@ Add `pagerduty` to the list of enabled `PLUGINS` in `alertad.conf` server
 configuration file and set plugin-specific variables either in the
 server configuration file or as environment variables.
 
+SERVICE_KEY_MATCHERS takes an array of dictionary objects, mapping a regular
+expression to a PagerDuty API integration key.  This allows sending alerts to
+multiple PagerDuty service integrations, based on 'alert.resource'.
+
 ```python
 PLUGINS = ['pagerduty']
 PAGERDUTY_SERVICE_KEY = ''  # default="not set"
+SERVICE_KEY_MATCHERS = []  # default="not set"
 ```
 
 The `DASHBOARD_URL` setting should be configured to link pushover messages to
@@ -47,6 +52,7 @@ DASHBOARD_URL = ''  # default="not set"
 ```python
 PLUGINS = ['reject', 'pagerduty']
 PAGERDUTY_SERVICE_KEY = '2a675ee0f6a640098ee05ac9378e4eba'
+SERVICE_KEY_MATCHERS = [ {"regex":"proxy[\\d+]","api_key":"6b982ii3l8p834566oo13zx9477p1zxd"} ]
 DASHBOARD_URL = 'https://try.alerta.io'
 ```
 
