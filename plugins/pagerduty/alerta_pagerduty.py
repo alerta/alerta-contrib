@@ -1,5 +1,6 @@
 
 import os
+import re
 import requests
 import logging
 
@@ -10,10 +11,24 @@ LOG = logging.getLogger('alerta.plugins.pagerduty')
 
 PAGERDUTY_EVENTS_URL = 'https://events.pagerduty.com/generic/2010-04-15/create_event.json'
 PAGERDUTY_SERVICE_KEY = os.environ.get('PAGERDUTY_SERVICE_KEY') or app.config['PAGERDUTY_SERVICE_KEY']
+SERVICE_KEY_MATCHERS = os.environ.get('SERVICE_KEY_MATCHERS') or app.config['SERVICE_KEY_MATCHERS']
 DASHBOARD_URL = os.environ.get('DASHBOARD_URL') or app.config.get('DASHBOARD_URL', '')
 
 
 class TriggerEvent(PluginBase):
+
+    def pagerduty_service_key(self, resource):
+        if not SERVICE_KEY_MATCHERS:
+            LOG.debug('No matchers defined! Default service key: %s' % (PAGERDUTY_SERVICE_KEY))
+            return PAGERDUTY_SERVICE_KEY
+
+        for mapping in SERVICE_KEY_MATCHERS:
+            if re.match(mapping['regex'], resource):
+                LOG.debug('Matched regex: %s, service key: %s' % (mapping['regex'], mapping['api_key']))
+                return mapping['api_key']
+
+        LOG.debug('No regex match! Default service key: %s' % (PAGERDUTY_SERVICE_KEY))
+        return PAGERDUTY_SERVICE_KEY
 
     def pre_receive(self, alert):
         return alert
@@ -34,7 +49,7 @@ class TriggerEvent(PluginBase):
             event_type = "trigger"
 
         payload = {
-            "service_key": PAGERDUTY_SERVICE_KEY,
+            "service_key": self.pagerduty_service_key(alert.resource),
             "incident_key": alert.id,
             "event_type": event_type,
             "description": message,
@@ -58,7 +73,7 @@ class TriggerEvent(PluginBase):
             return
 
         payload = {
-            "service_key": PAGERDUTY_SERVICE_KEY,
+            "service_key": self.pagerduty_service_key(alert.resource),
             "incident_key": alert.id,
             "event_type": "acknowledge",
             "description": text,
