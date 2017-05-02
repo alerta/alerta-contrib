@@ -42,7 +42,8 @@ class InfluxDBWrite(PluginBase):
                 "measurement": alert.event,
                 "tags": {
                     "resource": alert.resource,
-                    "environment": alert.environment
+                    "environment": alert.environment,
+                    "severity": alert.severity
                 },
                 "time": alert.last_receive_time,
                 "fields": {
