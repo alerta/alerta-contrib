@@ -43,6 +43,7 @@ Plugins
   * [Normalise](plugins/normalise)
   * [PagerDuty](plugins/pagerduty)
   * [Prometheus](plugins/prometheus)
+  * [Google Cloud Pub/Sub](plugins/pubsub)
   * [Pushover.net](plugins/pushover)
   * [Slack](plugins/slack)
   * [Amazon SNS](plugins/sns)
@@ -53,4 +54,5 @@ Plugins
 License
 -------
 
-Copyright (c) 2014-2016 Nick Satterly. Available under the MIT License.
+Copyright (c) 2014-2017 Nick Satterly. Available under the MIT License.
+
