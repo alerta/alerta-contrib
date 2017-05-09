@@ -3,7 +3,7 @@ Google Cloud Pub/Sub Plugin
 
 Send alerts to Google Cloud Pub/Sub.
 
-For help, join [![Gitter chat]](https://gitter.im/alerta/chat)
+For help, join [Gitter chat](https://gitter.im/alerta/chat)
 
 Installation
 ------------
@@ -13,7 +13,7 @@ You need to install following python packages:
     $ sudo pip install --upgrade google-cloud
     $ sudo pip install --upgrade oauth2client
 
-Follow this to configure [![authentication]](https://googlecloudplatform.github.io/google-cloud-python/stable/pubsub-usage.html#authentication-configuration)
+Follow this to configure [authentication](https://googlecloudplatform.github.io/google-cloud-python/stable/pubsub-usage.html#authentication-configuration)
 
 Clone the GitHub repo and run:
 
