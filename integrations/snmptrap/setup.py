@@ -7,7 +7,7 @@ setuptools.setup(
     version='3.3.2',
     description='Alerta script for SNMP traps',
     url='https://github.com/alerta/alerta-contrib',
-    license='Apache License 2.0',
+    license='MIT',
     author='Nick Satterly',
     author_email='nick.satterly@theguardian.com',
     py_modules=['handler'],

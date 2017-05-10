@@ -54,5 +54,5 @@ Plugins
 License
 -------
 
-Copyright (c) 2014-2017 Nick Satterly. Available under the MIT License.
+Copyright (c) 2014-2017 Nick Satterly and [AUTHORS](AUTHORS). Available under the MIT License.
 

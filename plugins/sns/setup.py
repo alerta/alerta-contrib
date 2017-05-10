@@ -8,7 +8,7 @@ setup(
     version=version,
     description='Alerta plugin for AWS SNS',
     url='https://github.com/alerta/alerta-contrib',
-    license='Apache License 2.0',
+    license='MIT',
     author='Nick Satterly',
     author_email='nick.satterly@theguardian.com',
     packages=find_packages(),
