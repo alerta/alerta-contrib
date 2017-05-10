@@ -1,7 +1,7 @@
 
 from setuptools import setup, find_packages
 
-version = '0.1.0'
+version = '0.2.0'
 
 setup(
     name="alerta-pubsub",
@@ -13,6 +13,10 @@ setup(
     author_email='arindam@live.com',
     packages=find_packages(),
     py_modules=['alerta_pubsub'],
+    install_requires=[
+        'google-cloud',
+        'oauth2client'
+    ],
     include_package_data=True,
     zip_safe=True,
     entry_points={
