@@ -161,4 +161,4 @@ To execute unit-tests run:
 License
 -------
 
-Copyright (c) 2015-2016 Nick Satterly and [AUTHORS](AUTHORS). Available under the MIT License.
+Copyright (c) 2015-2016 Nick Satterly and [AUTHORS](/AUTHORS). Available under the MIT License.

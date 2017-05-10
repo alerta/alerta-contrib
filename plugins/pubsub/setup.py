@@ -8,7 +8,7 @@ setup(
     version=version,
     description='Alerta plugin for sending alerts to pubsub',
     url='https://github.com/alerta/alerta-contrib',
-    license='Apache License 2.0',
+    license='MIT',
     author='Arindam Choudhury',
     author_email='arindam@live.com',
     packages=find_packages(),
