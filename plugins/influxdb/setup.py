@@ -1,12 +1,12 @@
 
 from setuptools import setup, find_packages
 
-version = '0.3.3-combined2'
+version = '0.4.0'
 
 setup(
     name="alerta-influxdb",
     version=version,
-    description='Alerta plugin for InfluxDB v1.1',
+    description='Alerta plugin for InfluxDB',
     url='https://github.com/alerta/alerta-contrib',
     license='MIT',
     author='Nick Satterly',

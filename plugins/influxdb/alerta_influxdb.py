@@ -14,11 +14,8 @@ DEFAULT_INFLUXDB_DSN = 'influxdb://user:pass@localhost:8086/alerta'  # 'influxdb
 INFLUXDB_DSN = os.environ.get('INFLUXDB_DSN') or app.config.get('INFLUXDB_DSN', DEFAULT_INFLUXDB_DSN)
 INFLUXDB_DATABASE = os.environ.get('INFLUXDB_DATABASE') or app.config.get('INFLUXDB_DATABASE', None)
 
-# Specify the name of a combined measurement to which all alerts will be logged
-INFLUXDB_SINGLE_MEASUREMENT = os.environ.get('INFLUXDB_SINGLE_MEASUREMENT') or app.config.get('INFLUXDB_SINGLE_MEASUREMENT', False)
-
-# Specify True or False to log alerts to individual measurements (defaults to True)
-INFLUXDB_SEPARATE_MEASUREMENT = True if os.environ.get('INFLUXDB_SEPARATE_MEASUREMENT', 'False') == 'True' else app.config.get('INFLUXDB_SEPARATE_MEASUREMENT', True)
+# Specify the name of a measurement to which all alerts will be logged
+INFLUXDB_MEASUREMENT = os.environ.get('INFLUXDB_MEASUREMENT') or app.config.get('INFLUXDB_MEASUREMENT', 'event')
 
 
 class InfluxDBWrite(PluginBase):
@@ -43,38 +40,21 @@ class InfluxDBWrite(PluginBase):
     def post_receive(self, alert):
 
         # event data
-        points = []
-        if INFLUXDB_SEPARATE_MEASUREMENT:
-            points += [
-                {
-                    "measurement": alert.event,
-                    "tags": {
-                        "resource": alert.resource,
-                        "environment": alert.environment,
-                        "severity": alert.severity
-                    },
-                    "time": alert.last_receive_time,
-                    "fields": {
-                        "value": str(alert.value)
-                    }
+        points = [
+            {
+                "measurement": INFLUXDB_MEASUREMENT,
+                "tags": {
+                    "event": alert.event,
+                    "resource": alert.resource,
+                    "environment": alert.environment,
+                    "severity": alert.severity
+                },
+                "time": alert.last_receive_time,
+                "fields": {
+                    "value": str(alert.value)
                 }
-            ]
-        if INFLUXDB_SINGLE_MEASUREMENT:
-            points += [
-                {
-                    "measurement": INFLUXDB_SINGLE_MEASUREMENT,
-                    "tags": {
-                        "event": alert.event,
-                        "resource": alert.resource,
-                        "environment": alert.environment,
-                        "severity": alert.severity
-                    },
-                    "time": alert.last_receive_time,
-                    "fields": {
-                        "value": str(alert.value)
-                    }
-                }
-            ]
+            }
+        ]
 
         # common tags
         tags = {"service": ','.join(alert.service)}
@@ -84,8 +64,7 @@ class InfluxDBWrite(PluginBase):
         LOG.debug('InfluxDB: points=%s, tags=%s', points, tags)
 
         try:
-            if points:
-                self.client.write_points(points, time_precision='ms', tags=tags)
+            self.client.write_points(points, time_precision='ms', tags=tags)
         except Exception as e:
             raise RuntimeError("InfluxDB: ERROR - %s" % e)
 
