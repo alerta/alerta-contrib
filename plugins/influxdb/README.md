@@ -35,6 +35,7 @@ PLUGINS = ['influxdb']
 
 ```python
 INFLUXDB_DSN = 'influxdb://user:pass@localhost:8086/alerta'
+INFLUXDB_MEASUREMENT = 'event'
 ```
 
 **Examples**
@@ -56,18 +57,17 @@ INFLUXDB_DATABASE = 'monitoring'
 Find diskUtil values for all "Web" services:
 
 ```SQL
-$ influx
-Visit https://enterprise.influxdata.com to register for updates, InfluxDB server management, and monitoring.
-Connected to http://localhost:8086 version v1.1.0
-InfluxDB shell version: v1.1.0
+$ influx -precision rfc3339
+Connected to http://localhost:8086 version 1.2.2
+InfluxDB shell version: 1.2.2
 > use alerta
 Using database alerta
-> select * from diskUtil where service =~ /Web/
-name: diskUtil
-time                        customer      environment   resource       service        value
-----                        --------      -----------   --------       -------        -----
-2016-12-04T15:56:05.116Z    ACME Corp.    Production    host01:/tmp    Web,Frontend   87.8
-2016-12-04T16:11:44.032Z    ACME Corp.    Production    host02:/tmp    Web,API        66.1
+> select * from event where service =~ /Frontend/;
+name: event
+time                     environment event    resource    service      severity value
+----                     ----------- -----    --------    -------      -------- -----
+2017-05-19T21:13:41.494Z Production  diskUtil host01:/tmp Web,Frontend major    98.01
+2017-05-19T21:14:31.92Z  Production  diskUtil host02:/var Web,Frontend minor    79.54
 ```
 
 Troubleshooting
@@ -83,4 +83,4 @@ References
 License
 -------
 
-Copyright (c) 2016 Nick Satterly. Available under the MIT License.
+Copyright (c) 2016-2017 Nick Satterly and [AUTHORS](/AUTHORS). Available under the MIT License.
