@@ -44,7 +44,7 @@ class ServiceIntegration(PluginBase):
             color = "#FFFF00"  # yellow
         elif alert.severity == 'warning':
             color = "#1E90FF"  # blue
-        elif alert.severity == 'informational':
+        elif alert.severity == 'information':
             color = "#808080"  # gray
         elif alert.severity == 'debug':
             color = "#808080"  # gray
