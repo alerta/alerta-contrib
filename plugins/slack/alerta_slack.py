@@ -12,6 +12,7 @@ LOG = logging.getLogger('alerta.plugins.slack')
 SLACK_WEBHOOK_URL = os.environ.get('SLACK_WEBHOOK_URL') or app.config['SLACK_WEBHOOK_URL']
 SLACK_ATTACHMENTS = True if os.environ.get('SLACK_ATTACHMENTS', 'False') == 'True' else app.config.get('SLACK_ATTACHMENTS', False)
 SLACK_CHANNEL = os.environ.get('SLACK_CHANNEL') or app.config.get('SLACK_CHANNEL', '')
+SLACK_CHANNEL_ENV_MAP = os.environ.get('SLACK_CHANNEL_ENV_MAP') or app.config.get('SLACK_CHANNEL_ENV_MAP', None)
 ALERTA_USERNAME = os.environ.get('ALERTA_USERNAME') or app.config.get('ALERTA_USERNAME', 'alerta')
 
 ICON_EMOJI = os.environ.get('ICON_EMOJI') or app.config.get('ICON_EMOJI', ':rocket:')
@@ -53,13 +54,17 @@ class ServiceIntegration(PluginBase):
         else:
             color = "#00CC00"  # green
 
+        channel = SLACK_CHANNEL
+        if not SLACK_CHANNEL_ENV_MAP is None:
+            channel = SLACK_CHANNEL_ENV_MAP.get(alert.environment, SLACK_CHANNEL)
+
         text = "<%s/#/alert/%s|%s> %s - %s" % (DASHBOARD_URL, alert.get_id(), alert.get_id(short=True), alert.event, alert.text)
 
         if not SLACK_ATTACHMENTS:
 
             payload = {
                 "username": ALERTA_USERNAME,
-                "channel": SLACK_CHANNEL,
+                "channel": channel,
                 "text": summary,
                 "icon_emoji": ICON_EMOJI
             }
@@ -67,7 +72,7 @@ class ServiceIntegration(PluginBase):
         else:
             payload = {
                 "username": ALERTA_USERNAME,
-                "channel": SLACK_CHANNEL,
+                "channel": channel,
                 "icon_emoji": ICON_EMOJI,
                 "attachments": [{
                     "fallback": summary,
