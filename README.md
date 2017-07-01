@@ -41,6 +41,8 @@ Plugins
   * [InfluxDB](plugins/influxdb)
   * [Logstash](plugins/logstash)
   * [Normalise](plugins/normalise)
+  * [OP5](plugins/op5)
+  * [OpsGenie](plugins/opsgenie)
   * [PagerDuty](plugins/pagerduty)
   * [Prometheus](plugins/prometheus)
   * [Google Cloud Pub/Sub](plugins/pubsub)
