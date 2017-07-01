@@ -39,23 +39,53 @@ received:
 
     authCommunity log,execute,net public
     format execute $a %a\n$A %A\n$s %s\n$b %b\n$B %B\n$x %#y-%#02m-%#02l\n$X %#02.2h:%#02.2j:%#02.2k\n$N %N\n$q %q\n$P %P\n$t %t\n$T %T\n$w %w\n$W %W\n%V~\%~%v\n
-    traphandle default alerta-snmptrap
+    traphandle default /path/to/alerta-snmptrap
 
-Set Alerta API endpoint in the start-up script on `RedHat/Centos`:
+**NOTE**: Use the full path to the `alerta-snmptrap` script because
+`snmpstrapd` only searches a few paths. Use `which alerta-snmptrap` to
+get the full path for your installation.
+
+Set Alerta API endpoint and load all MIBs in the start-up script on
+`RedHat/Centos`:
 
     $ vi /etc/sysconfig/snmptrapd
 
+    export MIBS=+ALL
+    TRAPDRUN=yes
     export ALERTA_ENDPOINT="http://localhost:8080"
 
-Set Alerta API endpoint in the start-up script on Debian/Ubuntu:
+Set Alerta API endpoint and load all MIBs in the start-up script on
+Debian/Ubuntu:
 
     $ vi /etc/default/snmptrapd
 
+    export MIBS=+ALL
+    TRAPDRUN=yes
     export ALERTA_ENDPOINT="http://localhost:8080"
 
 Restart the `snmptrapd` service:
 
     $ sudo service snmptrapd restart
+
+SNMP MIBs
+---------
+
+Download all base SNMP MIBs and any MIBs required for the specific
+environment eg. Cisco, NetApp, Dell.
+
+On Ubuntu, use `snmp-mibs-downloader` to download MIBs and install
+them in the correct directory:
+
+    $ apt-get install snmp-mibs-downloader
+
+To test that the downloaded SNMP MIBs are used to translate any received
+traps translate a "coldStart" trap with and without the "-m +ALL" option, like so:
+
+    $ snmptranslate .1.3.6.1.6.3.1.1.5.1
+    iso.3.6.1.6.3.1.1.5.1
+
+    $ snmptranslate -m +ALL .1.3.6.1.6.3.1.1.5.1
+    SNMPv2-MIB::coldStart
 
 Transform Plugin
 ----------------
@@ -132,7 +162,7 @@ Troubleshooting
 Stop `snmptrapd` and run it in the foreground:
 
     $ sudo service snmptrapd stop
-    $ sudo ALERTA_ENDPOINT="http://10.0.2.2:8080" snmptrapd -Lsd -p /var/run/snmptrapd.pid -f
+    $ sudo ALERTA_ENDPOINT="http://10.0.2.2:8080" snmptrapd -m +ALL -Lsd -p /var/run/snmptrapd.pid -f
 
 Tail syslog file:
 
@@ -142,10 +172,36 @@ Send test trap:
 
     $ snmptrap -v2c -c public localhost "" .1.3.6.1.6.3.1.1.5.3.0 0 s "This is a test linkDown trap"
 
+If the trap is not processed and nothing appears in the logs use `strace`
+to generate system-level tracing of the daemon:
+
+    $ ps -ef | grep snmp
+    $ strace -ff -p <pid>
+
+**Example strace Output**
+
+```
+[pid 23125] rt_sigaction(SIGTERM, NULL, {SIG_DFL, [], 0}, 8) = 0
+[pid 23125] rt_sigaction(SIGTERM, {SIG_DFL, ~[RTMIN RT_1], SA_RESTORER, 0x7f3dc8225cb0}, NULL, 8) = 0
+[pid 23125] stat("/sbin/alerta-snmptrap", 0x7fffc9511a70) = -1 ENOENT (No such file or directory)
+[pid 23125] stat("/usr/sbin/alerta-snmptrap", 0x7fffc9511a70) = -1 ENOENT (No such file or directory)
+[pid 23125] stat("/bin/alerta-snmptrap", 0x7fffc9511a70) = -1 ENOENT (No such file or directory)
+[pid 23125] stat("/usr/bin/alerta-snmptrap", 0x7fffc9511a70) = -1 ENOENT (No such file or directory)
+[pid 23125] write(2, "sh: 1: ", 7)      = 7
+[pid 23125] write(2, "alerta-snmptrap: not found", 26) = 26
+[pid 23125] write(2, "\n", 1)           = 1
+[pid 23125] exit_group(127)             = ?
+[pid 23125] +++ exited with 127 +++
+```
+
+From the above error it can be seen that is this example the `alerta-snmptrap`
+script can't be found by `snmptrapd` which is why the trap isn't being processed.
+
 References
 ----------
 
   * Configuring SNMP Trapd: http://net-snmp.sourceforge.net/wiki/index.php/TUT:Configuring_snmptrapd
+  * Net SNMP command-line tool options: http://www.net-snmp.org/docs/man/snmpcmd.html
 
 License
 -------
