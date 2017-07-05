@@ -45,7 +45,7 @@ class TriggerEvent(PluginBase):
             r = requests.post(OPSGENIE_EVENTS_CLOSE_URL, json=payload, timeout=2)
         except Exception as e:
             raise RuntimeError("OpsGenie connection error: %s" % e)
-        return alert
+        return r
 
     def pre_receive(self, alert):
         return alert
