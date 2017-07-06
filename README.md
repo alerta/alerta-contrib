@@ -35,6 +35,7 @@ Plugins
 
   * [AMQP](plugins/amqp)
   * [Cachet](plugins/cachet)
+  * [Custom Timeout](plugins/customtimeout)
   * [Enhance](plugins/enhance)
   * [GeoIP](plugins/geoip)
   * [HipChat](plugins/hipchat)
