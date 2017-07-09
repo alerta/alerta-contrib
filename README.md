@@ -51,6 +51,7 @@ Plugins
   * [Amazon SNS](plugins/sns)
   * [Syslog](plugins/syslog)
   * [Telegram](plugins/telegram)
+  * [Timeout](plugins/timeout)
   * [Twilio SMS](plugins/twilio)
 
 License
