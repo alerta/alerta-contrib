@@ -35,7 +35,6 @@ Plugins
 
   * [AMQP](plugins/amqp)
   * [Cachet](plugins/cachet)
-  * [Custom Timeout](plugins/customtimeout)
   * [Enhance](plugins/enhance)
   * [GeoIP](plugins/geoip)
   * [HipChat](plugins/hipchat)
@@ -52,6 +51,7 @@ Plugins
   * [Amazon SNS](plugins/sns)
   * [Syslog](plugins/syslog)
   * [Telegram](plugins/telegram)
+  * [Timeout](plugins/timeout)
   * [Twilio SMS](plugins/twilio)
 
 License

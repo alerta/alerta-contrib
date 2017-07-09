@@ -1,12 +1,11 @@
 Customise Global Alert Timeout Plugin
 ==========================
 
-This plugin provides the capabilijty to set the global alert timeout via ALerta configuration or an environment variable. 
+This plugin provides the capabilijty to set the global alert timeout via Alerta configuration or an environment variable named `ALERT_TIMEOUT`. 
 This plugin is useful in scenarios where the source of an alert (e.g. Prometheus AlertManager) does not specifically include an explict timeout setting and the default global timeout value may not be too large. 
 
 
-Customtimeout actions:
-
+Timeout actions:
  
   * The alert 'timeout' attribute is (re)set for each alert to the value specified
 
@@ -18,17 +17,24 @@ Clone the GitHub repo and run:
 
     $ python setup.py install
 
+Or, to install remotely from GitHub run:
+
+    $ pip install git+https://github.com/alerta alerta-contrib.git#subdirectory=plugins/timeout
+
+Note: If Alerta is installed in a python virtual environment then plugins
+need to be installed into the same environment for Alerta to dynamically
+discover them.
 
 Configuration
 -------------
 
-Add `customtimeout` to the list of enabled `PLUGINS` in the `alertad.conf` server configuration file and set plugin-specific variables either in the server configuration file or as environment variables.
+Add `timeout` to the list of enabled `PLUGINS` in the `alertad.conf` server configuration file and set plugin-specific variables either in the server configuration file or as environment variables.
 
 **Example**
 
 ```python
-PLUGINS = ['customtimeout']
-CUSTOM_TIMEOUT = 2400
+PLUGINS = ['timeout']
+ALERT_TIMEOUT = 2400
 
 ```
 
