@@ -468,12 +468,8 @@ def main():
 
     OPTIONS['endpoint'] = os.environ.get('ALERTA_ENDPOINT') or OPTIONS['endpoint']  # nopep8
     OPTIONS['key'] = os.environ.get('ALERTA_API_KEY') or OPTIONS['key']
+    OPTIONS['smtp_username'] = os.environ.get('SMTP_USERNAME') or OPTIONS['smtp_username'] or OPTIONS['mail_from']
     OPTIONS['smtp_password'] = os.environ.get('SMTP_PASSWORD') or OPTIONS['smtp_password']  # nopep8
-
-    if os.environ.get('SMTP_USERNAME'):
-        OPTIONS['smtp_username'] = os.environ.get('SMTP_USERNAME')
-    elif not OPTIONS['smtp_username']:
-        OPTIONS['smtp_username'] = OPTIONS['mail_from']
 
     if os.environ.get('DEBUG'):
         OPTIONS['debug'] = True
