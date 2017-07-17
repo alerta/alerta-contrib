@@ -46,6 +46,7 @@ mail_to = john.doe@gmail.com,jane.doe@gmail.com
 mail_from = your.email@gmail.com
 amqp_url = redis://localhost:6379/
 dashboard_url = http://localhost:8000
+smtp_username = alt.email@gmail.com
 smtp_password = okvqhitqomebufyv
 smtp_use_ssl = False
 debug = True
@@ -70,8 +71,13 @@ You can also use IP-authentication in your own SMTP server (by only
 white-listing the alerta server IP), in such cases you should not
 set the 'smtp_password' option to skip authentication altogether.
 
+You can also set an alternate SMTP username for authenticating against
+the email server if it differs from the 'mail_from' address. This is
+required when using an email delivery service like sendgrid.
+
 Application-specific passwords
 https://support.google.com/accounts/answer/185833?hl=en
+
 
 Rules File
 ----------
@@ -113,6 +119,8 @@ replaced with only the contacts of the current matched rule.
 Environment Variables
 ---------------------
 
+``SMTP_USERNAME`` - can be used instead of smtp_username in the configuration file,
+    defaults to the value set for the mail_from field.
 ``SMTP_PASSWORD`` - can be used instead of smtp_password in the configuration file.
 
 Email Format

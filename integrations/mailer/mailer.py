@@ -50,6 +50,7 @@ DEFAULT_OPTIONS = {
     'amqp_topic':    'notify',
     'smtp_host':     'smtp.gmail.com',
     'smtp_port':     587,
+    'smtp_username': '', # application-specific username if it differs from the specified 'mail_from' user
     'smtp_password': '',  # application-specific password if gmail used
     'smtp_starttls': True,  # use the STARTTLS SMTP extension
     'smtp_use_ssl': False,  # whether or not SSL is being used for the SMTP connection
@@ -357,7 +358,7 @@ class MailSender(threading.Thread):
                 mx.starttls()
 
             if OPTIONS['smtp_password']:
-                mx.login(OPTIONS['mail_from'], OPTIONS['smtp_password'])
+                mx.login(OPTIONS['smtp_username'], OPTIONS['smtp_password'])
 
             mx.sendmail(OPTIONS['mail_from'],
                         contacts,
@@ -467,7 +468,9 @@ def main():
 
     OPTIONS['endpoint'] = os.environ.get('ALERTA_ENDPOINT') or OPTIONS['endpoint']  # nopep8
     OPTIONS['key'] = os.environ.get('ALERTA_API_KEY') or OPTIONS['key']
+    OPTIONS['smtp_username'] = os.environ.get('SMTP_USERNAME') or OPTIONS['smtp_username'] or OPTIONS['mail_from']
     OPTIONS['smtp_password'] = os.environ.get('SMTP_PASSWORD') or OPTIONS['smtp_password']  # nopep8
+
     if os.environ.get('DEBUG'):
         OPTIONS['debug'] = True
 
