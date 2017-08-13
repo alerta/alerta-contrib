@@ -64,7 +64,8 @@ class AlertmanagerSilence(PluginBase):
             # example r={"status":"success","data":{"silenceId":8}}
             try:
                 silenceId = r.json()['data']['silenceId']
-                db.update_attributes(alert.id, {'silenceId': silenceId})
+                alert.attributes['silenceId'] = silenceId
+                text = text + ' (silenced in Alertmanager)'
             except Exception as e:
                 raise RuntimeError("Alertmanager: ERROR - %s", e)
             LOG.debug('Alertmanager: Added silenceId %s to attributes', silenceId)
@@ -83,7 +84,9 @@ class AlertmanagerSilence(PluginBase):
                 LOG.debug('Alertmanager: %s - %s', r.status_code, r.text)
 
                 try:
-                    db.update_attributes(alert.id, {'silenceId': None})
+                    alert.attributes['silenceId'] = None
                 except Exception as e:
                     raise RuntimeError("Alertmanager: ERROR - %s", e)
                 LOG.debug('Alertmanager: Removed silenceId %s from attributes', silenceId)
+
+        return alert, status, text
