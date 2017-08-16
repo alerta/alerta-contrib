@@ -53,6 +53,7 @@ Plugins
   * [Telegram](plugins/telegram)
   * [Timeout](plugins/timeout)
   * [Twilio SMS](plugins/twilio)
+  * [Zabbix](plugins/zabbix)
 
 License
 -------

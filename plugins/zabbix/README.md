@@ -49,11 +49,15 @@ Set `DEBUG=True` in the `alertad.conf` configuration file and look for log
 entries similar to below:
 
 ```
-2016-11-20 23:02:40,623 - alerta.plugins[7394]: DEBUG - Server plug-in 'prometheus' found. [in /var/lib/.virtualenvs/alerta/lib/python2.7/site-packages/alerta_server-4.8.11-py2.7.egg/alerta/plugins/__init__.py:50]
-2016-11-20 23:02:40,623 - alerta.plugins[7394]: DEBUG - Server plug-in 'prometheus' not enabled in 'PLUGINS'. [in /var/lib/.virtualenvs/alerta/lib/python2.7/site-packages/alerta_server-4.8.11-py2.7.egg/alerta/plugins/__init__.py:59]
+DEBUG in __init__ [/usr/local/lib/python2.7/dist-packages/alerta/plugins/__init__.py:48]: Server plugin 'zabbix' installed.
+INFO in __init__ [/usr/local/lib/python2.7/dist-packages/alerta/plugins/__init__.py:56]: Server plugin 'zabbix' enabled.
+INFO in __init__ [/usr/local/lib/python2.7/dist-packages/alerta/plugins/__init__.py:59]: All server plugins enabled: reject, zabbix
 ```
 ```
-...
+DEBUG in alerta_zabbix [/usr/local/lib/python2.7/dist-packages/alerta_zabbix.py:49]: Zabbix: acknowledge (ack) event=test.alerta, resource=Zabbix server (eventId=39)
+DEBUG in alerta_zabbix [/usr/local/lib/python2.7/dist-packages/alerta_zabbix.py:57]: Zabbix: event.acknowledge() => {u'eventids': [u'39']}
+DEBUG in alerta_zabbix [/usr/local/lib/python2.7/dist-packages/alerta_zabbix.py:49]: Zabbix: acknowledge (closed) event=test.alerta, resource=Zabbix server (eventId=39)
+DEBUG in alerta_zabbix [/usr/local/lib/python2.7/dist-packages/alerta_zabbix.py:66]: Zabbix: event.acknowledge() => {u'eventids': [u'39']}
 ```
 
 References
