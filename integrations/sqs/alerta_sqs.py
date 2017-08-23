@@ -59,8 +59,11 @@ class Worker(object):
                 continue
 
             if message:
-                LOG.info('SQS: Received message - %s' % message.get_body())
-                self.sqs.delete_message(message)
+                self.process_message(message)
+
+    def process_message(self, message):
+        LOG.info('SQS: Received message - %s' % message.get_body())
+        self.sqs.delete_message(message)
 
 
 def main():
