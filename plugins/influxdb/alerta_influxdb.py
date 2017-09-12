@@ -9,13 +9,17 @@ from influxdb import InfluxDBClient
 
 LOG = logging.getLogger('alerta.plugins.influxdb')
 
-DEFAULT_INFLUXDB_DSN = 'influxdb://user:pass@localhost:8086/alerta'  # 'influxdb://username:password@localhost:8086/databasename'
+# 'influxdb://username:password@localhost:8086/databasename'
+DEFAULT_INFLUXDB_DSN = 'influxdb://user:pass@localhost:8086/alerta'
 
-INFLUXDB_DSN = os.environ.get('INFLUXDB_DSN') or app.config.get('INFLUXDB_DSN', DEFAULT_INFLUXDB_DSN)
-INFLUXDB_DATABASE = os.environ.get('INFLUXDB_DATABASE') or app.config.get('INFLUXDB_DATABASE', None)
+INFLUXDB_DSN = os.environ.get('INFLUXDB_DSN') or app.config.get(
+    'INFLUXDB_DSN', DEFAULT_INFLUXDB_DSN)
+INFLUXDB_DATABASE = os.environ.get(
+    'INFLUXDB_DATABASE') or app.config.get('INFLUXDB_DATABASE', None)
 
 # Specify the name of a measurement to which all alerts will be logged
-INFLUXDB_MEASUREMENT = os.environ.get('INFLUXDB_MEASUREMENT') or app.config.get('INFLUXDB_MEASUREMENT', 'event')
+INFLUXDB_MEASUREMENT = os.environ.get(
+    'INFLUXDB_MEASUREMENT') or app.config.get('INFLUXDB_MEASUREMENT', 'event')
 
 
 class InfluxDBWrite(PluginBase):
@@ -37,36 +41,57 @@ class InfluxDBWrite(PluginBase):
     def pre_receive(self, alert):
         return alert
 
-    def post_receive(self, alert):
+    def _influxdb_prepare_point(self, alert, status=None, text=None):
+        tags = {}
 
-        # event data
-        points = [
-            {
-                "measurement": INFLUXDB_MEASUREMENT,
-                "tags": {
-                    "event": alert.event,
-                    "resource": alert.resource,
-                    "environment": alert.environment,
-                    "severity": alert.severity
-                },
-                "time": alert.last_receive_time,
-                "fields": {
-                    "value": str(alert.value)
-                }
-            }
-        ]
+        for tag in alert.tags:
+            try:
+                k, v = tag.split('=', 1)
+                tags[k] = v
+            except ValueError:
+                pass
 
-        # common tags
-        tags = {"service": ','.join(alert.service)}
+        tags.update(event=alert.event, resource=alert.resource, environment=alert.environment,
+                    severity=alert.severity, status=status if status else alert.status, service=','.join(alert.service))
         if alert.customer:
             tags.update(customer=alert.customer)
 
-        LOG.debug('InfluxDB: points=%s, tags=%s', points, tags)
+        # event data
+        point = {
+            'measurement': INFLUXDB_MEASUREMENT,
+            'time': alert.last_receive_time,
+            'tags': tags,
+            'fields': {}
+        }
+
+        # make sure we store the value in its original format
+        if isinstance(alert.value, float) or isinstance(alert.value, int):
+            point['fields']['value'] = alert.value
+        else:
+            point['fields']['value'] = str(alert.value)
+
+        if text:
+            point['fields']['text'] = text
+
+        return point
+
+    def post_receive(self, alert):
+        point = self._influxdb_prepare_point(alert)
+        LOG.debug('InfluxDB: point=%s', point)
 
         try:
-            self.client.write_points(points, time_precision='ms', tags=tags)
+            self.client.write_points([point], time_precision='ms')
         except Exception as e:
             raise RuntimeError("InfluxDB: ERROR - %s" % e)
 
     def status_change(self, alert, status, text):
-        return
+        if status not in ['ack', 'assign']:
+            return
+
+        point = self._influxdb_prepare_point(alert, status, text)
+        LOG.debug('InfluxDB: point=%s', point)
+
+        try:
+            self.client.write_points([point], time_precision='ms')
+        except Exception as e:
+            raise RuntimeError("InfluxDB: ERROR - %s" % e)
