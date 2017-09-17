@@ -1,10 +1,13 @@
 
-import os
 import datetime
-from op5 import OP5
 import logging
+import os
+from op5 import OP5
 
-from alerta.app import app
+try:
+    from alerta.plugins import app  # alerta >= 5.0
+except ImportError:
+    from alerta.app import app  # alerta < 5.0
 from alerta.app import db
 from alerta.plugins import PluginBase
 

@@ -1,11 +1,13 @@
 
-import os
 import datetime
-import requests
 import logging
+import os
+import requests
 
-from alerta.app import app
-from alerta.app import db
+try:
+    from alerta.plugins import app  # alerta >= 5.0
+except ImportError:
+    from alerta.app import app  # alerta < 5.0
 from alerta.plugins import PluginBase
 
 LOG = logging.getLogger('alerta.plugins.prometheus')
