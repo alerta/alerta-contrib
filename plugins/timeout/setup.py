@@ -1,6 +1,6 @@
 from setuptools import setup, find_packages
 
-version = '0.0.3'
+version = '4.0.3'
 
 setup(
     name="alerta-timeout",

@@ -1,7 +1,7 @@
 
 from setuptools import setup, find_packages
 
-version = '0.0.2'
+version = '5.0.2'
 
 setup(
     name="alerta-op5",

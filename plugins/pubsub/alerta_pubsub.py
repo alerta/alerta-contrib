@@ -1,7 +1,11 @@
-import os
-import logging
 
-from alerta.app import app
+import logging
+import os
+
+try:
+    from alerta.plugins import app  # alerta >= 5.0
+except ImportError:
+    from alerta.app import app  # alerta < 5.0
 from alerta.plugins import PluginBase
 
 from google.cloud import pubsub
