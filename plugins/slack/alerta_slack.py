@@ -43,11 +43,13 @@ DASHBOARD_URL = os.environ.get(
 
 
 class ServiceIntegration(PluginBase):
-    def __init__(self):
-        # override user-defined severities
-        self._severities = dict(SLACK_SEVERITY_MAP.items() +
-                          SLACK_DEFAULT_SEVERITY_MAP.items())
 
+    def __init__(self, name=None):
+        # override user-defined severities
+        self._severities = SLACK_DEFAULT_SEVERITY_MAP
+        self._severities.update(SLACK_SEVERITY_MAP)
+
+        super(ServiceIntegration, self).__init__(name)
 
     def pre_receive(self, alert):
         return alert
