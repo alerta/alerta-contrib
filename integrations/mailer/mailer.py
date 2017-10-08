@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
-import json
 import datetime
+import json
 import logging
 import os
 import platform
@@ -16,10 +16,8 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
 import jinja2
-
-from alertaclient.alert import AlertDocument
-from alertaclient.api import ApiClient
-from alertaclient.heartbeat import Heartbeat
+from alertaclient.api import Client
+from alertaclient.models.alert import Alert
 from kombu import Connection, Exchange, Queue
 from kombu.mixins import ConsumerMixin
 
@@ -112,7 +110,7 @@ class FanoutConsumer(ConsumerMixin):
     def on_message(self, body, message):
 
         try:
-            alert = AlertDocument.parse_alert(body)
+            alert = Alert.parse(body)
             alertid = alert.get_id()
         except Exception as e:
             LOG.warn(e)
@@ -170,7 +168,7 @@ class MailSender(threading.Thread):
 
     def run(self):
 
-        api = ApiClient(endpoint=OPTIONS['endpoint'], key=OPTIONS['key'])
+        api = Client(endpoint=OPTIONS['endpoint'], key=OPTIONS['key'])
         keep_alive = 0
 
         while not self.should_stop:
@@ -189,7 +187,7 @@ class MailSender(threading.Thread):
             if keep_alive >= 10:
                 tag = OPTIONS['smtp_host'] or 'alerta-mailer'
                 try:
-                    api.send(Heartbeat(tags=[tag]))
+                    api.heartbeat(tags=[tag])
                 except Exception as e:
                     time.sleep(5)
                     continue
@@ -296,10 +294,10 @@ class MailSender(threading.Thread):
             LOG.debug('%s : Email sent to %s' % (alert.get_id(),
                                                  ','.join(contacts)))
             return (msg, contacts)
-        except (socket.error, socket.herror, socket.gaierror), e:
+        except (socket.error, socket.herror, socket.gaierror) as e:
             LOG.error('Mail server connection error: %s', e)
             return None
-        except smtplib.SMTPException, e:
+        except smtplib.SMTPException as e:
             LOG.error('Failed to send mail to %s on %s:%s : %s',
                       ", ".join(contacts),
                       OPTIONS['smtp_host'], OPTIONS['smtp_port'], e)
@@ -430,7 +428,7 @@ def main():
     config_file = os.environ.get('ALERTA_CONF_FILE') or DEFAULT_OPTIONS['config_file']  # nopep8
 
     # Convert default booleans to its string type, otherwise config.getboolean fails  # nopep8
-    defopts = {k: str(v) if type(v) is bool else v for k, v in DEFAULT_OPTIONS.iteritems()}  # nopep8
+    defopts = {k: str(v) if type(v) is bool else v for k, v in DEFAULT_OPTIONS.items()}  # nopep8
     config = configparser.RawConfigParser(defaults=defopts)
 
     if os.path.exists("{}.d".format(config_file)):
@@ -484,7 +482,7 @@ def main():
     except (SystemExit, KeyboardInterrupt):
         sys.exit(0)
     except Exception as e:
-        print str(e)
+        print(str(e))
         sys.exit(1)
 
     from kombu.utils.debug import setup_logging
@@ -500,7 +498,7 @@ def main():
             mailer.join()
             sys.exit(0)
         except Exception as e:
-            print str(e)
+            print(str(e))
             sys.exit(1)
 
 if __name__ == '__main__':
