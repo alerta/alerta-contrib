@@ -2,7 +2,7 @@
 
 import setuptools
 
-version = '3.5.0'
+version = '5.0.1'
 
 setuptools.setup(
     name="alerta-mailer",
@@ -17,7 +17,7 @@ setuptools.setup(
     setup_requires=['pytest-runner'],
     tests_require=['pytest', 'mock', 'pytest-capturelog'],
     install_requires=[
-        'alerta',
+        'alerta>=5.0.2',
         'kombu',
         'redis',
         'jinja2'
