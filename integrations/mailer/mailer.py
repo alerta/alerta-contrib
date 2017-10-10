@@ -442,13 +442,13 @@ def main():
         config_file = config_list
 
     try:
-        config.read(config_file)
+        config.read(os.path.expanduser(config_file))
     except Exception as e:
         LOG.warning("Problem reading configuration file %s - is this an ini file?", config_file)  # nopep8
         sys.exit(1)
 
     if config.has_section(CONFIG_SECTION):
-        from types import NoneType
+        NoneType = type(None)
         config_getters = {
             NoneType: config.get,
             str: config.get,
