@@ -35,9 +35,21 @@ PLUGINS = ['zabbix']
 The below settings are configured with reasonable defaults:
 
 ```python
-ZABBIX_API_URL = 'http://localhost'
+ZABBIX_API_URL = 'http://localhost:10080'
 ZABBIX_USER = 'Admin'
 ZABBIX_PASSWORD = 'zabbix'
+```
+
+Multiple Zabbix Servers
+-----------------------
+
+If Alerta is aggregating alerts from multiple Zabbix servers then leave
+the `ZABBIX_API_URL` configuration setting undefined and instead, pass
+the base URL to the Zabbix Web frontend as an attribute to the alert,
+like so:
+
+```python
+attributes.zabbixUrl=http://x.x.x.x
 ```
 
 Troubleshooting

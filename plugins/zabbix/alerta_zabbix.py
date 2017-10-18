@@ -12,7 +12,9 @@ from pyzabbix import ZabbixAPI, ZabbixAPIException
 
 LOG = logging.getLogger('alerta.plugins.zabbix')
 
-ZABBIX_API_URL = os.environ.get('ZABBIX_API_URL') or app.config['ZABBIX_API_URL']
+DEFAULT_ZABBIX_API_URL = 'http://localhost:10080'
+
+ZABBIX_API_URL = os.environ.get('ZABBIX_API_URL') or app.config.get('ZABBIX_API_URL', None)
 ZABBIX_USER = os.environ.get('ZABBIX_USER') or app.config['ZABBIX_USER']
 ZABBIX_PASSWORD = os.environ.get('ZABBIX_PASSWORD') or app.config['ZABBIX_PASSWORD']
 
@@ -22,12 +24,6 @@ ACTION_CLOSE = 1
 
 class ZabbixEventAck(PluginBase):
 
-    def __init__(self, name=None):
-
-        self.zapi = ZabbixAPI(ZABBIX_API_URL)
-
-        super(ZabbixEventAck, self).__init__(name)
-
     def pre_receive(self, alert):
         return alert
 
@@ -36,6 +32,8 @@ class ZabbixEventAck(PluginBase):
 
     def status_change(self, alert, status, text):
 
+        zabbix_api_url = ZABBIX_API_URL or alert.attributes.get('zabbixUrl', DEFAULT_ZABBIX_API_URL)
+        self.zapi = ZabbixAPI(zabbix_api_url)
         self.zapi.login(ZABBIX_USER, ZABBIX_PASSWORD)
 
         if alert.event_type != 'zabbixAlert':
