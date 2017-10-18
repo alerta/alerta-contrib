@@ -1,7 +1,7 @@
 
 from setuptools import setup, find_packages
 
-version = '5.0.2'
+version = '5.0.3'
 
 setup(
     name="alerta-zabbix",
