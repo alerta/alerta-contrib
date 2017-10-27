@@ -1,7 +1,7 @@
 
 from setuptools import setup, find_packages
 
-version = '5.4.0'
+version = '5.4.1'
 
 setup(
     name="alerta-amqp",
@@ -14,7 +14,8 @@ setup(
     packages=find_packages(),
     py_modules=['alerta_amqp'],
     install_requires=[
-        'kombu'
+        'kombu',
+        'pytz'
     ],
     include_package_data=True,
     zip_safe=True,
