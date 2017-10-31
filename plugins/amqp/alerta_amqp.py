@@ -1,6 +1,4 @@
 
-import datetime
-import json
 import logging
 import os
 
@@ -20,14 +18,6 @@ DEFAULT_AMQP_TOPIC = 'notify'
 
 AMQP_URL = os.environ.get('REDIS_URL') or os.environ.get('AMQP_URL') or app.config.get('AMQP_URL', DEFAULT_AMQP_URL)
 AMQP_TOPIC = os.environ.get('AMQP_TOPIC') or app.config.get('AMQP_TOPIC', DEFAULT_AMQP_TOPIC)
-
-
-class DateEncoder(json.JSONEncoder):
-    def default(self, o):
-        if isinstance(o, (datetime.date, datetime.datetime)):
-            return o.replace(microsecond=0).strftime('%Y-%m-%dT%H:%M:%S') + ".%03dZ" % (o.microsecond // 1000)
-        else:
-            return json.JSONEncoder.default(self, o)
 
 
 class FanoutPublisher(PluginBase):
@@ -60,7 +50,7 @@ class FanoutPublisher(PluginBase):
         LOG.info('Sending message %s to AMQP topic "%s"', alert.get_id(), AMQP_TOPIC)
 
         try:
-            body = json.dumps(alert.serialize, cls=DateEncoder)  # alerta >= 5.0
+            body = alert.serialize  # alerta >= 5.0
         except Exception:
             body = alert.get_body()  # alerta < 5.0
 
