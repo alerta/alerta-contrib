@@ -1,6 +1,7 @@
 
 import logging
 import os
+import pytz
 
 from kombu import BrokerConnection, Exchange, Producer
 from kombu.utils.debug import setup_logging
@@ -51,6 +52,9 @@ class FanoutPublisher(PluginBase):
 
         try:
             body = alert.serialize  # alerta >= 5.0
+
+            # update body's datetime-related fields  with utc-aware values
+            body.update({key: body[key].replace(tzinfo=pytz.utc) for key in ['createTime', 'lastReceiveTime', 'receiveTime']})
         except Exception:
             body = alert.get_body()  # alerta < 5.0
 
