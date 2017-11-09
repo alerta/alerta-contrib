@@ -8,7 +8,10 @@ import json
 import consul
 import time
 
-client = consul.Consul(host='127.0.0.1', port=8500, token=None, scheme='http', consistency='default', dc=None, verify=True)
+CONSUL_HOST = os.environ.get('CONSUL_HOST', '127.0.0.1')
+CONSUL_PORT = int(os.environ.get('CONSUL_PORT', 8500))
+
+client = consul.Consul(host=CONSUL_HOST, port=CONSUL_PORT, token=None, scheme='http', consistency='default', dc=None, verify=True)
 
 j = json.load(sys.stdin)
 print "Request:"
