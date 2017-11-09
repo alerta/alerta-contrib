@@ -57,7 +57,7 @@ class PushMessage(PluginBase):
             "url": '%s/#/alert/%s' % (DASHBOARD_URL, alert.id),
             "url_title": "View alert",
             "priority": priority,
-            "timestamp": int(alert.get_date('create_time', fmt='epoch')),
+            "timestamp": alert.create_time,
             "sound": "tugboat"
         }
 
