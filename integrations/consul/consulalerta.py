@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 
-from alertaclient.api import ApiClient
-from alertaclient.alert import Alert
+from alertaclient.api import Client
 import sys
 import os
 import time
@@ -59,7 +58,7 @@ except TypeError:
     alerttype = "ConsulAlert"
 
 
-api = ApiClient(endpoint=url, key=key)
+api = Client(endpoint=url, key=key)
 
 SEVERITY_MAP = {
     'critical':   'critical',
@@ -76,11 +75,23 @@ def createalert( data ):
         except:
              environment = "Production"
 
-    alert = Alert(resource=data['Node'], event=data['CheckId'], value=data['Status'], correlate=SEVERITY_MAP.keys(), environment=environment, service=[data['CheckId']], severity=SEVERITY_MAP[data['Status']], text=data['Output'], timeout=timeout, origin=origin, type=alerttype)
     for i in range(max_retries):
         try:
             print("Response:")
-            print(api.send(alert))
+            response = api.send_alert(
+              resource=data['Node'],
+              event=data['CheckId'],
+              value=data['Status'],
+              correlate=SEVERITY_MAP.keys(),
+              environment=environment,
+              service=[data['CheckId']],
+              severity=SEVERITY_MAP[data['Status']],
+              text=data['Output'],
+              timeout=timeout,
+              origin=origin,
+              type=alerttype
+            )
+            print(response)
         except Exception as e:
             print("HTTP Error: {}".format(e))
             time.sleep(sleep)
