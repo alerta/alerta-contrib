@@ -36,6 +36,7 @@ server configuration file or as environment variables.
 
 ```python
 PLUGINS = ['pubsub']
+PROJECT_ID='google project id'
 ```
 
 if you want to use google service account for pubsub. You need to set it in `alertad.conf`:
