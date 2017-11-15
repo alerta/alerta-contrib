@@ -18,7 +18,6 @@ LOG = logging.getLogger('alerta.plugins.pubsub')
 PROJECT_ID = os.environ.get('PROJECT_ID') or app.config.get('PROJECT_ID')
 TOPIC_NAME = os.environ.get('TOPIC_NAME') or app.config.get('TOPIC_NAME')
 
-SERVICE_ACCOUNT_JSON = None
 SERVICE_ACCOUNT_JSON = os.environ.get('SERVICE_ACCOUNT_JSON') or app.config.get('SERVICE_ACCOUNT_JSON', None)
 
 PUBSUB_SCOPES = ["https://www.googleapis.com/auth/pubsub"]
@@ -46,20 +45,11 @@ class SendToPubsub(PluginBase):
         return alert
 
     def post_receive(self, alert):
-        try:
-            body = alert.serialize  # alerta >= 5.0
-            # Convert datetime to string
-            body.update({key: body[key].strftime("%Y-%m-%d %H:%M:%S") for key in ['createTime', 'lastReceiveTime', 'receiveTime']})
-            # Remove history
-            body['history'] = []
-        except Exception:
-            body = alert.get_body()  # alerta < 5.0
-
+        body = alert.get_body()
         try:
             encoded_message = base64.b64encode(json.dumps(body))
             future = self.publisher.publish(self.topic, str(encoded_message))
             future.result()
-
         except Exception as excp:
             LOG.exception(excp)
             raise RuntimeError("pubsub exception: %s - %s" % (excp, body))
