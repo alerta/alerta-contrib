@@ -49,15 +49,7 @@ class FanoutPublisher(PluginBase):
 
     def post_receive(self, alert):
         LOG.info('Sending message %s to AMQP topic "%s"', alert.get_id(), AMQP_TOPIC)
-
-        try:
-            body = alert.serialize  # alerta >= 5.0
-
-            # update body's datetime-related fields  with utc-aware values
-            body.update({key: body[key].replace(tzinfo=pytz.utc) for key in ['createTime', 'lastReceiveTime', 'receiveTime']})
-        except Exception:
-            body = alert.get_body()  # alerta < 5.0
-
+        body = alert.get_body()
         LOG.debug('Message: %s', body)
         self.producer.publish(body, declare=[self.exchange], retry=True)
 
