@@ -14,50 +14,50 @@ CONSUL_PORT = int(os.environ.get('CONSUL_PORT', 8500))
 client = consul.Consul(host=CONSUL_HOST, port=CONSUL_PORT, token=None, scheme='http', consistency='default', dc=None, verify=True)
 
 j = json.load(sys.stdin)
-print "Request:"
-print j
+print("Request:")
+print(j)
 
 try:
     url = client.kv.get('alerta/apiurl')[1]['Value']
 except:
-    print "No URL defined, exiting"
+    print("No URL defined, exiting")
     sys.exit(1)
 
 try:
     key = client.kv.get('alerta/apikey')[1]['Value']
 except:
-    print "No key defined, exiting"
+    print("No key defined, exiting")
     sys.exit(1)
 
 
 try:
     max_retries = int(client.kv.get('alerta/max_retries')[1]['Value'])
 except TypeError:
-    print "No value defined, using default"
+    print("No value defined, using default")
     max_retries = 3
 
 try:
     sleep = int(client.kv.get('alerta/sleep')[1]['Value'])
 except TypeError:
-    print "No value defined, using default"
+    print("No value defined, using default")
     sleep = 2
 
 try:
     timeout = int(client.kv.get('alerta/timeout')[1]['Value'])
 except TypeError:
-    print "No value defined, using default"
+    print("No value defined, using default")
     timeout = 900
 
 try:
     origin = client.kv.get('alerta/origin')[1]['Value']
 except TypeError:
-    print "No value defined, using default"
+    print("No value defined, using default")
     origin = "consul"
 
 try:
     alerttype = client.kv.get('alerta/alerttype')[1]['Value']
 except TypeError:
-    print "No value defined, using default"
+    print("No value defined, using default")
     alerttype = "ConsulAlert"
 
 
