@@ -1,16 +1,15 @@
 
 import os
 import sys
+import platform
 import datetime
 import logging
 import re
 
 
-from alertaclient.api import ApiClient
-from alertaclient.alert import Alert
-from alertaclient.heartbeat import Heartbeat
+from alertaclient.api import Client
 
-__version__ = '3.3.1'
+__version__ = '3.4.0'
 
 
 LOG = logging.getLogger("alerta.snmptrap")
@@ -28,7 +27,7 @@ class SnmpTrapHandler(object):
         endpoint = os.environ.get('ALERTA_ENDPOINT', 'http://localhost:8080')
         key = os.environ.get('ALERTA_API_KEY', None)
 
-        self.api = ApiClient(endpoint=endpoint, key=key)
+        self.api = Client(endpoint=endpoint, key=key)
 
         data = sys.stdin.read()
         LOG.info('snmptrapd -> %r', data)
@@ -40,14 +39,14 @@ class SnmpTrapHandler(object):
         if snmptrapAlert:
             try:
                 self.api.send(snmptrapAlert)
-            except Exception, e:
+            except Exception as e:
                 LOG.warning('Failed to send alert: %s', e)
 
         LOG.debug('Send heartbeat...')
-        heartbeat = Heartbeat(tags=[__version__])
         try:
-            self.api.send(heartbeat)
-        except Exception, e:
+            origin = '{}/{}'.format('snmptrap', platform.uname()[1])
+            self.api.heartbeat(origin, tags=[__version__])
+        except Exception as e:
             LOG.warning('Failed to send heartbeat: %s', e)
 
     @staticmethod
