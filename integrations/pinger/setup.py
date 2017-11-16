@@ -3,7 +3,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="alerta-pinger",
-    version='3.2.0',
+    version='3.3.0',
     description="Alerta Pinger daemon",
     license="MIT",
     author="Nick Satterly",
