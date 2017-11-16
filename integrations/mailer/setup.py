@@ -2,7 +2,7 @@
 
 import setuptools
 
-version = '5.0.3'
+version = '5.1.0'
 
 setuptools.setup(
     name="alerta-mailer",

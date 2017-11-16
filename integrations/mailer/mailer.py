@@ -21,6 +21,8 @@ from alertaclient.models.alert import Alert
 from kombu import Connection, Exchange, Queue
 from kombu.mixins import ConsumerMixin
 
+__version__ = '5.1.0'
+
 DNS_RESOLVER_AVAILABLE = False
 
 try:
@@ -185,9 +187,9 @@ class MailSender(threading.Thread):
                         continue
 
             if keep_alive >= 10:
-                tag = OPTIONS['smtp_host'] or 'alerta-mailer'
                 try:
-                    api.heartbeat(tags=[tag])
+                    origin = '{}/{}'.format('alerta-mailer', OPTIONS['smtp_host'])
+                    api.heartbeat(origin, tags=[__version__])
                 except Exception as e:
                     time.sleep(5)
                     continue
