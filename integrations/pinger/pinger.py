@@ -127,7 +127,7 @@ class WorkerThread(threading.Thread):
             raw_data = stdout
 
             try:
-                r = self.api.send_alert(
+                self.api.send_alert(
                     resource=resource,
                     event=event,
                     correlate=correlate,
@@ -140,7 +140,6 @@ class WorkerThread(threading.Thread):
                     event_type='serviceAlert',
                     raw_data=raw_data,
                 )
-                LOG.debug(r)
             except Exception as e:
                 LOG.warning('Failed to send alert: %s', e)
 
