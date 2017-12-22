@@ -156,21 +156,49 @@ class OracleTrapTransformer(PluginBase):
         ...
 ```
 
+Snmptrap Format
+---------------
+
+| trapvar | Description                                                                                  |
+----------|-----------------------------------------------------------------------------------------------
+| $a      | the contents of the agent-addr field of the PDU (v1 TRAPs only)                              |
+| $A      | the hostname corresponding to the contents of the agent-addr field of the PDU, if available, |
+|         | otherwise the contents of the agent-addr field of the PDU (v1 TRAPs only).                   |
+| $b      | PDU source address (Note: this is not necessarily an IPv4 address)                           |
+| $B      | PDU source hostname if available, otherwise PDU source address (see note above)              | 
+| $N      | enterprise string                                                                            | 
+| $O      | oid as name or numbers                                                                       |
+| $P      | security information from the PDU (community name for v1/v2c, user and context for v3)       |
+| $q      | trap sub-type (numeric, in decimal)                                                          |
+| $s      | SNMP Version                                                                                 |
+| $t      | decimal number of seconds since the operating system epoch (as returned by time(2))          |
+| $T      | the value of the sysUpTime.0 varbind in seconds                                              |
+| $w      | trap number                                                                                  |
+| $W      | trap description                                                                             |
+| $x      | current date                                                                                 |
+| $X      | current time                                                                                 |
+| $\<n\>  | *nth* attribute                                                                              |
+| $#      | number of varbinds                                                                           |
+
+See http://net-snmp.sourceforge.net/docs/man/snmptrapd.html
+
+
 Troubleshooting
 ---------------
 
 Stop `snmptrapd` and run it in the foreground:
 
     $ sudo service snmptrapd stop
-    $ sudo ALERTA_ENDPOINT="http://10.0.2.2:8080" snmptrapd -m +ALL -Lsd -p /var/run/snmptrapd.pid -f
+    $ sudo ALERTA_ENDPOINT="http://localhost:8080" snmptrapd -m +ALL -Lsd -p /var/run/snmptrapd.pid -f
 
 Tail syslog file:
 
     $ tail -f /var/log/messages
 
-Send test trap:
+Send test traps:
 
-    $ snmptrap -v2c -c public localhost "" .1.3.6.1.6.3.1.1.5.3.0 0 s "This is a test linkDown trap"
+    $ sudo snmptrap -v2c -c public localhost "" .1.3.6.1.6.3.1.1.5.3.0 0 s "This is a test linkDown trap"
+    $ sudo snmptrap -v2c -c public localhost "" .1.3.6.1.6.3.1.1.5.4.0 0 s "This is a test linkUp trap"
 
 If the trap is not processed and nothing appears in the logs use `strace`
 to generate system-level tracing of the daemon:
@@ -206,4 +234,4 @@ References
 License
 -------
 
-Copyright (c) 2014-2016 Nick Satterly. Available under the MIT License.
+Copyright (c) 2014-2017 Nick Satterly. Available under the MIT License.
