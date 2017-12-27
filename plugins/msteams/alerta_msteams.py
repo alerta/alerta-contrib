@@ -49,16 +49,14 @@ class SendConnectorCardMessage(PluginBase):
                 LOG.error('MS Teams: ERROR - Template render failed: %s', e)
                 return
         else:
-            summary = ('<b>[{status}] {environment} {service} {severity} - <i>{event} on {resource}</i></b> <a href="{dashboard}/#/alert/{alert_id}">{short_id}</a>').format(
+            summary = ('<b>[{status}] {environment} {service} {severity} - <i>{event} on {resource}</i></b><br>{text}').format(
                 status=alert.status.capitalize(),
                 environment=alert.environment.upper(),
                 service=','.join(alert.service),
                 severity=alert.severity.capitalize(),
                 event=alert.event,
                 resource=alert.resource,
-                alert_id=alert.id,
-                short_id=alert.get_id(short=True),
-                dashboard=DASHBOARD_URL
+                text=alert.text
             )
             url = "%s/#/alert/%s" % (DASHBOARD_URL, alert.id)
 
