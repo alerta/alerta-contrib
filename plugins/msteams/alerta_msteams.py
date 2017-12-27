@@ -62,7 +62,6 @@ class SendConnectorCardMessage(PluginBase):
             )
             url = "%s/#/alert/%s" % (DASHBOARD_URL, alert.id)
 
-
         LOG.debug('MS Teams payload: %s', summary)
 
         try:
@@ -72,8 +71,6 @@ class SendConnectorCardMessage(PluginBase):
             msTeamsMessage.send()
         except Exception as e:
             raise RuntimeError("MS Teams: ERROR - %s", e)
-
-        LOG.debug('MS Teams: %s - %s', r.status_code, r.text)
 
     def status_change(self, alert, status, text):
         return
