@@ -32,12 +32,12 @@ class ZabbixEventAck(PluginBase):
 
     def status_change(self, alert, status, text):
 
+        if alert.event_type != 'zabbixAlert':
+            return
+
         zabbix_api_url = ZABBIX_API_URL or alert.attributes.get('zabbixUrl', DEFAULT_ZABBIX_API_URL)
         self.zapi = ZabbixAPI(zabbix_api_url)
         self.zapi.login(ZABBIX_USER, ZABBIX_PASSWORD)
-
-        if alert.event_type != 'zabbixAlert':
-            return
 
         if alert.status == status or not status in ['ack', 'closed']:
             return
