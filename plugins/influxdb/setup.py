@@ -14,7 +14,7 @@ setup(
     packages=find_packages(),
     py_modules=['alerta_influxdb'],
     install_requires=[
-        'influxdb'
+        'influxdb>=5.0.0'
     ],
     include_package_data=True,
     zip_safe=True,

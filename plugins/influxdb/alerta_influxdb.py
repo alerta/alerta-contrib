@@ -29,7 +29,7 @@ class InfluxDBWrite(PluginBase):
 
     def __init__(self, name=None):
 
-        self.client = InfluxDBClient.from_DSN(INFLUXDB_DSN, timeout=2)
+        self.client = InfluxDBClient.from_dsn(INFLUXDB_DSN, timeout=2)
 
         dbname = INFLUXDB_DATABASE or self.client._database
         try:
