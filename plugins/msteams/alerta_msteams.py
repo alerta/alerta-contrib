@@ -12,7 +12,7 @@ from alerta.plugins import PluginBase
 
 LOG = logging.getLogger('alerta.plugins.msteams')
 
-MS_TEAMS_URL = os.environ.get('MS_TEAMS_WEBHOOK') or app.config.get('MS_TEAMS_WEBHOOK')
+MS_TEAMS_URL = os.environ.get('MS_TEAMS_WEBHOOK_URL') or app.config.get('MS_TEAMS_WEBHOOK_URL')
 MS_TEAMS_SUMMARY_FMT = os.environ.get('MS_TEAMS_SUMMARY_FMT') or app.config.get('MS_TEAMS_SUMMARY_FMT', None)  # Message summary format
 DASHBOARD_URL = os.environ.get('DASHBOARD_URL') or app.config.get('DASHBOARD_URL', '')
 
@@ -49,23 +49,35 @@ class SendConnectorCardMessage(PluginBase):
                 LOG.error('MS Teams: ERROR - Template render failed: %s', e)
                 return
         else:
-            summary = ('<b>[{status}] {environment} {service} {severity} - <i>{event} on {resource}</i></b><br>{text}').format(
+            summary = ('<b>[{status}] {environment} {service} {severity} - <i>{event} on {resource}</i></b>').format(
                 status=alert.status.capitalize(),
                 environment=alert.environment.upper(),
                 service=','.join(alert.service),
                 severity=alert.severity.capitalize(),
                 event=alert.event,
-                resource=alert.resource,
-                text=alert.text
+                resource=alert.resource
             )
             url = "%s/#/alert/%s" % (DASHBOARD_URL, alert.id)
+            
+        if alert.severity == 'critical':
+            color = "D8122A"
+        elif alert.severity == 'major':
+            color = "EA680F"
+        elif alert.severity == 'minor':
+            color = "FFBE1E"
+        elif alert.severity == 'warning':
+            color = "BA2222"
+        else:
+            color = "00AA5A"
 
         LOG.debug('MS Teams payload: %s', summary)
 
         try:
             msTeamsMessage = pymsteams.connectorcard(MS_TEAMS_URL)
-            msTeamsMessage.text(summary)
+            msTeamsMessage.title(summary)
+            msTeamsMessage.text(alert.text)
             msTeamsMessage.addLinkButton("Open in Alerta", url)
+            msTeamsMessage.color(color)
             msTeamsMessage.send()
         except Exception as e:
             raise RuntimeError("MS Teams: ERROR - %s", e)
