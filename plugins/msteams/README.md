@@ -32,7 +32,7 @@ server configuration file or as environment variables.
 
 ```python
 PLUGINS = ['msteams']
-MS_TEAMS_WEBHOOK =  'https://outlook.office.com/webhook/.../IncomingWebhook/.../...'
+MS_TEAMS_WEBHOOK_URL =  'https://outlook.office.com/webhook/.../IncomingWebhook/.../...'
 DASHBOARD_URL = 'http://try.alerta.io'
 ```
 

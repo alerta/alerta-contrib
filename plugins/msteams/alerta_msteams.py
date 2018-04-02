@@ -12,7 +12,7 @@ from alerta.plugins import PluginBase
 
 LOG = logging.getLogger('alerta.plugins.msteams')
 
-MS_TEAMS_URL = os.environ.get('MS_TEAMS_WEBHOOK_URL') or app.config.get('MS_TEAMS_WEBHOOK_URL')
+MS_TEAMS_WEBHOOK_URL = os.environ.get('MS_TEAMS_WEBHOOK_URL') or app.config.get('MS_TEAMS_WEBHOOK_URL')
 MS_TEAMS_SUMMARY_FMT = os.environ.get('MS_TEAMS_SUMMARY_FMT') or app.config.get('MS_TEAMS_SUMMARY_FMT', None)  # Message summary format
 DASHBOARD_URL = os.environ.get('DASHBOARD_URL') or app.config.get('DASHBOARD_URL', '')
 
@@ -73,7 +73,7 @@ class SendConnectorCardMessage(PluginBase):
         LOG.debug('MS Teams payload: %s', summary)
 
         try:
-            msTeamsMessage = pymsteams.connectorcard(MS_TEAMS_URL)
+            msTeamsMessage = pymsteams.connectorcard(MS_TEAMS_WEBHOOK_URL)
             msTeamsMessage.title(summary)
             msTeamsMessage.text(alert.text)
             msTeamsMessage.addLinkButton("Open in Alerta", url)
