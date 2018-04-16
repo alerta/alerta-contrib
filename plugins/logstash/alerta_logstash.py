@@ -16,8 +16,12 @@ DEFAULT_LOGSTASH_HOST = 'localhost'
 DEFAULT_LOGSTASH_PORT = 6379
 
 LOGSTASH_HOST = os.environ.get('LOGSTASH_HOST') or app.config.get('LOGSTASH_HOST', DEFAULT_LOGSTASH_HOST)
-LOGSTASH_PORT = os.environ.get('LOGSTASH_PORT') or app.config.get('LOGSTASH_PORT', DEFAULT_LOGSTASH_PORT)
-
+LOGSTASH_PORT = app.config.get('LOGSTASH_PORT', DEFAULT_LOGSTASH_PORT)
+if os.environ.get('LOGSTASH_PORT') is not None:
+    try:
+        LOGSTASH_PORT = int(os.environ.get('LOGSTASH_PORT'))
+    except Exception as e:
+        LOG.exception(e)
 
 class LogStashOutput(PluginBase):
 
