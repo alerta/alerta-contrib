@@ -16,12 +16,7 @@ DEFAULT_LOGSTASH_HOST = 'localhost'
 DEFAULT_LOGSTASH_PORT = 6379
 
 LOGSTASH_HOST = os.environ.get('LOGSTASH_HOST') or app.config.get('LOGSTASH_HOST', DEFAULT_LOGSTASH_HOST)
-LOGSTASH_PORT = app.config.get('LOGSTASH_PORT', DEFAULT_LOGSTASH_PORT)
-if os.environ.get('LOGSTASH_PORT') is not None:
-    try:
-        LOGSTASH_PORT = int(os.environ.get('LOGSTASH_PORT'))
-    except Exception as e:
-        LOG.exception(e)
+LOGSTASH_PORT = os.environ.get('LOGSTASH_PORT') or app.config.get('LOGSTASH_PORT', DEFAULT_LOGSTASH_PORT)
 
 class LogStashOutput(PluginBase):
 
@@ -34,8 +29,14 @@ class LogStashOutput(PluginBase):
 
     def post_receive(self, alert):
         try:
+            logstash_port = int(LOGSTASH_PORT)
+        except Exception as e:
+            LOG.error("Alerta_logstash: Could not parse 'LOGSTASH_PORT': %s", e)
+            raise RuntimeError("Could not parse 'LOGSTASH_PORT': %s" % e)
+
+        try:
             self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            self.sock.connect((LOGSTASH_HOST, LOGSTASH_PORT))
+            self.sock.connect((LOGSTASH_HOST, logstash_port))
         except Exception as e:
             raise RuntimeError("Logstash TCP connection error: %s" % str(e))
 
