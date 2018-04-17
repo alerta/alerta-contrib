@@ -1,4 +1,5 @@
 
+import json
 import logging
 import os
 import socket
@@ -41,7 +42,7 @@ class LogStashOutput(PluginBase):
             raise RuntimeError("Logstash TCP connection error: %s" % str(e))
 
         try:
-            self.sock.send("%s\r\n" % alert)
+            self.sock.send(b"%s\r\n" % json.dumps(alert.get_body(history=False)).encode('utf-8'))
         except Exception as e:
             LOG.exception(e)
             raise RuntimeError("logstash exception")
