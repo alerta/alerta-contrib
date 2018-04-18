@@ -17,7 +17,7 @@ Text: {{ alert.text }}
 Duplicate Count: {{ alert.duplicate_count }}
 Origin: {{ alert.origin }}
 Tags: {{ alert.tags|join(', ') }}
-{% for key,value in alert.attributes.iteritems() -%}
+{% for key,value in alert.attributes.items() -%}
 {{ key|title }}: {{ value }}
 {% endfor -%}
 
