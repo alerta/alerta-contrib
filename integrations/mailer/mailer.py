@@ -444,7 +444,12 @@ def main():
         config_file = config_list
 
     try:
-        config.read(os.path.expanduser(config_file))
+        # No need to expanduser if we got a list (already done sooner)
+        # Morever expanduser does not accept a list.
+        if isinstance(config_file, list):
+            config.read(config_file)
+        else:
+            config.read(os.path.expanduser(config_file))
     except Exception as e:
         LOG.warning("Problem reading configuration file %s - is this an ini file?", config_file)  # nopep8
         sys.exit(1)
@@ -474,7 +479,12 @@ def main():
     if os.environ.get('DEBUG'):
         OPTIONS['debug'] = True
 
-    group_rules = parse_group_rules(config_file)
+    if isinstance(config_file, list):
+        group_rules = []
+        for file in config_file:
+            group_rules.append(parse_group_rules(file)
+    else:
+        group_rules = parse_group_rules(config_file)
     if group_rules is not None:
         OPTIONS['group_rules'] = group_rules
 
