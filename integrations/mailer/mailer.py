@@ -174,7 +174,7 @@ class MailSender(threading.Thread):
         keep_alive = 0
 
         while not self.should_stop:
-            for alertid in on_hold.keys():
+            for alertid in list(on_hold.keys()):
                 try:
                     (alert, hold_time) = on_hold[alertid]
                 except KeyError:
