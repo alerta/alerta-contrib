@@ -36,7 +36,8 @@ PLUGINS = ['forward']
 ```python
 PLUGINS = ['enhance', 'forward']
 FORWARD_URL = 'http://www.example.com/api'
-FORWARD_KEY = 'client_api_key'
+FORWARD_API_KEY = 'client_api_key'
+FORWARD_MAX_LENGTH = 3 # cycle detector
 ```
 
 Copyright (c) 2018 SKob. Available under the MIT License.
