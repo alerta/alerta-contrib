@@ -1,7 +1,7 @@
 
 from setuptools import setup, find_packages
 
-version = '5.3.6'
+version = '0.3.4'
 
 setup(
     name="alerta-prometheus",
@@ -14,8 +14,7 @@ setup(
     packages=find_packages(),
     py_modules=['alerta_prometheus'],
     install_requires=[
-        'requests',
-        'alerta-server>=4.10.1'
+        'requests'
     ],
     include_package_data=True,
     zip_safe=True,

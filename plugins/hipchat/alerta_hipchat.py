@@ -1,22 +1,18 @@
 
-import json
-import logging
 import os
+import json
 import requests
+import logging
 
-try:
-    from alerta.plugins import app  # alerta >= 5.0
-except ImportError:
-    from alerta.app import app  # alerta < 5.0
+from alerta.app import app
 from alerta.plugins import PluginBase
 
 LOG = logging.getLogger('alerta.plugins.hipchat')
 
-HIPCHAT_URL = os.environ.get('HIPCHAT_URL') or app.config.get('HIPCHAT_URL', 'https://api.hipchat.com/v2') # Hipchat URL, change if using privately hosted Hipchat
+HIPCHAT_URL = 'https://api.hipchat.com/v2'
 HIPCHAT_ROOM = os.environ.get('HIPCHAT_ROOM') or app.config['HIPCHAT_ROOM']  # Room Name or Room API ID
 HIPCHAT_API_KEY = os.environ.get('HIPCHAT_API_KEY') or app.config['HIPCHAT_API_KEY']  # Room Notification Token
 HIPCHAT_SUMMARY_FMT = os.environ.get('HIPCHAT_SUMMARY_FMT') or app.config.get('HIPCHAT_SUMMARY_FMT', None)  # Message summary format
-HIPCHAT_VERIFY_SSL = os.environ.get('HIPCHAT_VERIFY_SSL') or app.config.get('HIPCHAT_VERIFY_SSL', True) # Verify SSL cert from Hipchat
 DASHBOARD_URL = os.environ.get('DASHBOARD_URL') or app.config.get('DASHBOARD_URL', '')
 
 try:
@@ -91,7 +87,7 @@ class SendRoomNotification(PluginBase):
 
         LOG.debug('HipChat: Notification sent to %s', url)
         try:
-            r = requests.post(url, data=json.dumps(payload), headers=headers, timeout=2, verify=HIPCHAT_VERIFY_SSL)
+            r = requests.post(url, data=json.dumps(payload), headers=headers, timeout=2)
         except Exception as e:
             raise RuntimeError("HipChat: ERROR - %s", e)
 

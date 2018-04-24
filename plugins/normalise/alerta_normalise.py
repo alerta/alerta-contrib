@@ -1,4 +1,3 @@
-
 import logging
 
 from alerta.plugins import PluginBase

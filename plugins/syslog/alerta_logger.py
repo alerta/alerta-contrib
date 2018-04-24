@@ -1,13 +1,11 @@
 
-import logging
 import os
 import sys
+import logging
+
 from logging.handlers import SysLogHandler
 
-try:
-    from alerta.plugins import app  # alerta >= 5.0
-except ImportError:
-    from alerta.app import app  # alerta < 5.0
+from alerta.app import app
 from alerta.plugins import PluginBase
 
 LOG = logging.getLogger('alerta.plugins.logger')

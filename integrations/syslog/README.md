@@ -6,8 +6,6 @@ Receive [RFC 5424](https://tools.ietf.org/html/rfc5424.html),
 [Cisco syslog](http://www.cisco.com/c/en/us/td/docs/routers/access/wireless/software/guide/SysMsgLogging.html)
 messages and forward to Alerta.
 
-![Screenshot](./images/alerta-syslog.png)
-
 For help, join [![Gitter chat](https://badges.gitter.im/alerta/chat.png)](https://gitter.im/alerta/chat)
 
 Installation

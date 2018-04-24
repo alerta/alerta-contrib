@@ -1,7 +1,7 @@
 
 from setuptools import setup, find_packages
 
-version = '5.1.0'
+version = '0.0.3'
 
 setup(
     name="alerta-telegram",
@@ -14,8 +14,7 @@ setup(
     packages=find_packages(),
     py_modules=['alerta_telegram'],
     install_requires=[
-        'telepot',
-        'jinja2'
+        'telepot'
     ],
     include_package_data=True,
     zip_safe=True,
