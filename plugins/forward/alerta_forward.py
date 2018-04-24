@@ -3,6 +3,11 @@ import logging
 from alerta.plugins import PluginBase
 from alertaclient.api import Client
 
+try:
+    from alerta.plugins import app  # alerta >= 5.0
+except ImportError:
+    from alerta.app import app  # alerta < 5.0
+
 LOG = logging.getLogger('alerta.plugins.forward')
 
 FORWARD_URL = app.config.get('FORWARD_URL')
@@ -15,22 +20,23 @@ class ForwardAlert(PluginBase):
         return alert
 
     def post_receive(self, alert):
-        if not FORWARD_URL or not FORWARD_API:
+        if not FORWARD_URL or not FORWARD_API_KEY:
             return
         client = Client(endpoint=FORWARD_URL, key=FORWARD_API_KEY)
-        forwarded_alert = alert.del['event']
-        forwarded_alert = forwarded_alert.del['resource']
-        fw_count = forwarded_alert.attributes.get('fw_count') or 0
+        fw_alert = alert.serialize
+        event = fw_alert.pop('event')
+        resource = fw_alert.pop('resource')
+        fw_count = alert.attributes.get('fw_count') or 0
         fw_count = fw_count+1
         if fw_count >= FORWARD_MAX_LENGTH:
             LOG.debug('alert discarded by cycle overflow')
             return
 
-        forwarded_alert.attributes['fw_count'] = fw_count
-        client.send_event(
-            event=alert.get('event'),
-            resource=alert.get('resource'),
-            forwarded_alert
+        fw_alert.get('attributes')['fw_count'] = fw_count
+        client.send_alert(
+            event=event,
+            resource=resource,
+            **fw_alert
         )
         return
 
