@@ -1,9 +1,12 @@
 
-import os
-import logging
 import json
+import logging
+import os
 
-from alerta.app import app
+try:
+    from alerta.plugins import app  # alerta >= 5.0
+except ImportError:
+    from alerta.app import app  # alerta < 5.0
 from alerta.plugins import PluginBase
 
 import cachetclient.cachet as cachet

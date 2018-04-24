@@ -1,11 +1,13 @@
 
-import os
 import datetime
-import requests
 import logging
+import os
+import requests
 
-from alerta.app import app
-from alerta.app import db
+try:
+    from alerta.plugins import app  # alerta >= 5.0
+except ImportError:
+    from alerta.app import app  # alerta < 5.0
 from alerta.plugins import PluginBase
 
 LOG = logging.getLogger('alerta.plugins.prometheus')
@@ -30,6 +32,12 @@ class AlertmanagerSilence(PluginBase):
         if alert.event_type != 'prometheusAlert':
             return
 
+        try:
+            silence_days = int(ALERTMANAGER_SILENCE_DAYS)
+        except Exception as e:
+            LOG.error("Alertmanager: Could not parse 'ALERTMANAGER_SILENCE_DAYS': %s", e)
+            raise RuntimeError("Could not parse 'ALERTMANAGER_SILENCE_DAYS': %s" % e)
+
         if alert.status == status:
             return
 
@@ -47,7 +55,7 @@ class AlertmanagerSilence(PluginBase):
                     }
                 ],
                 "startsAt": datetime.datetime.utcnow().replace(microsecond=0).isoformat() + ".000Z",
-                "endsAt": (datetime.datetime.utcnow() + datetime.timedelta(days=ALERTMANAGER_SILENCE_DAYS))
+                "endsAt": (datetime.datetime.utcnow() + datetime.timedelta(days=silence_days))
                               .replace(microsecond=0).isoformat() + ".000Z",
                 "createdBy": "alerta",
                 "comment": text if text != '' else "silenced by alerta"
@@ -55,18 +63,23 @@ class AlertmanagerSilence(PluginBase):
 
             base_url = ALERTMANAGER_API_URL or alert.attributes.get('externalUrl', DEFAULT_ALERTMANAGER_API_URL)
             url = base_url + '/api/v1/silences'
+
+            LOG.debug('Alertmanager: URL=%s', url)
+            LOG.debug('Alertmanager: data=%s', data)
+
             try:
                 r = requests.post(url, json=data, timeout=2)
             except Exception as e:
-                raise RuntimeError("Alertmanager: ERROR - %s", e)
+                raise RuntimeError("Alertmanager: ERROR - %s" % e)
             LOG.debug('Alertmanager: %s - %s', r.status_code, r.text)
 
             # example r={"status":"success","data":{"silenceId":8}}
             try:
                 silenceId = r.json()['data']['silenceId']
-                db.update_attributes(alert.id, {'silenceId': silenceId})
+                alert.attributes['silenceId'] = silenceId
+                text = text + ' (silenced in Alertmanager)'
             except Exception as e:
-                raise RuntimeError("Alertmanager: ERROR - %s", e)
+                raise RuntimeError("Alertmanager: ERROR - %s" % e)
             LOG.debug('Alertmanager: Added silenceId %s to attributes', silenceId)
 
         elif status == 'open':
@@ -79,11 +92,13 @@ class AlertmanagerSilence(PluginBase):
                 try:
                     r = requests.delete(url, timeout=2)
                 except Exception as e:
-                    raise RuntimeError("Alertmanager: ERROR - %s", e)
+                    raise RuntimeError("Alertmanager: ERROR - %s" % e)
                 LOG.debug('Alertmanager: %s - %s', r.status_code, r.text)
 
                 try:
-                    db.update_attributes(alert.id, {'silenceId': None})
+                    alert.attributes['silenceId'] = None
                 except Exception as e:
-                    raise RuntimeError("Alertmanager: ERROR - %s", e)
+                    raise RuntimeError("Alertmanager: ERROR - %s" % e)
                 LOG.debug('Alertmanager: Removed silenceId %s from attributes', silenceId)
+
+        return alert, status, text

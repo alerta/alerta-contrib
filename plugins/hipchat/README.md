@@ -35,6 +35,8 @@ PLUGINS = ['hipchat']
 HIPCHAT_ROOM = 'alerts'
 HIPCHAT_API_KEY =  'W4Dll5plS0qrqXCpPwjwzF9pO2TJI2Oou9Xaq8je'
 DASHBOARD_URL = 'http://try.alerta.io'
+HIPCHAT_URL = 'https://api.hipchat.com/v2'
+HIPCHAT_VERIFY_SSL = True
 ```
 
 The `HIPCHAT_SUMMARY_FMT` configuration variable is a Jinja2 template

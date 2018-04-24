@@ -23,12 +23,12 @@ discover them.
 Configuration
 -------------
 
-Add `logger` to the list of enabled `PLUGINS` in `alertad.conf` server
+Add `syslog` to the list of enabled `PLUGINS` in `alertad.conf` server
 configuration file and set plugin-specific variables either in the
 server configuration file or as environment variables.
 
 ```python
-PLUGINS = ['logger']
+PLUGINS = ['syslog']
 ```
 
 **Default Configuration**
@@ -45,7 +45,7 @@ The defaults are enough for most use-cases or override them in the
 `alertad.conf` configuration file:
 
 ```python
-PLUGINS = ['reject','logger']
+PLUGINS = ['reject','syslog']
 SYSLOG_FACILITY = 'local0'
 ```
 

@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 
-from alertaclient.api import ApiClient
-from alertaclient.alert import Alert
+from alertaclient.api import Client
 import sys
 import os
 import time
@@ -9,57 +8,60 @@ import json
 import consul
 import time
 
-client = consul.Consul(host='127.0.0.1', port=8500, token=None, scheme='http', consistency='default', dc=None, verify=True)
+CONSUL_HOST = os.environ.get('CONSUL_HOST', '127.0.0.1')
+CONSUL_PORT = int(os.environ.get('CONSUL_PORT', 8500))
+
+client = consul.Consul(host=CONSUL_HOST, port=CONSUL_PORT, token=None, scheme='http', consistency='default', dc=None, verify=True)
 
 j = json.load(sys.stdin)
-print "Request:"
-print j
+print("Request:")
+print(j)
 
 try:
     url = client.kv.get('alerta/apiurl')[1]['Value']
 except:
-    print "No URL defined, exiting"
+    print("No URL defined, exiting")
     sys.exit(1)
 
 try:
     key = client.kv.get('alerta/apikey')[1]['Value']
 except:
-    print "No key defined, exiting"
+    print("No key defined, exiting")
     sys.exit(1)
 
 
 try:
     max_retries = int(client.kv.get('alerta/max_retries')[1]['Value'])
 except TypeError:
-    print "No value defined, using default"
+    print("No value defined, using default")
     max_retries = 3
 
 try:
     sleep = int(client.kv.get('alerta/sleep')[1]['Value'])
 except TypeError:
-    print "No value defined, using default"
+    print("No value defined, using default")
     sleep = 2
 
 try:
     timeout = int(client.kv.get('alerta/timeout')[1]['Value'])
 except TypeError:
-    print "No value defined, using default"
+    print("No value defined, using default")
     timeout = 900
 
 try:
     origin = client.kv.get('alerta/origin')[1]['Value']
 except TypeError:
-    print "No value defined, using default"
+    print("No value defined, using default")
     origin = "consul"
 
 try:
     alerttype = client.kv.get('alerta/alerttype')[1]['Value']
 except TypeError:
-    print "No value defined, using default"
+    print("No value defined, using default")
     alerttype = "ConsulAlert"
 
 
-api = ApiClient(endpoint=url, key=key)
+api = Client(endpoint=url, key=key)
 
 SEVERITY_MAP = {
     'critical':   'critical',
@@ -76,11 +78,23 @@ def createalert( data ):
         except:
              environment = "Production"
 
-    alert = Alert(resource=data['Node'], event=data['CheckId'], value=data['Status'], correlate=SEVERITY_MAP.keys(), environment=environment, service=[data['CheckId']], severity=SEVERITY_MAP[data['Status']], text=data['Output'], timeout=timeout, origin=origin, type=alerttype)
     for i in range(max_retries):
         try:
             print("Response:")
-            print(api.send(alert))
+            response = api.send_alert(
+              resource=data['Node'],
+              event=data['CheckId'],
+              value=data['Status'],
+              correlate=SEVERITY_MAP.keys(),
+              environment=environment,
+              service=[data['CheckId']],
+              severity=SEVERITY_MAP[data['Status']],
+              text=data['Output'],
+              timeout=timeout,
+              origin=origin,
+              type=alerttype
+            )
+            print(response)
         except Exception as e:
             print("HTTP Error: {}".format(e))
             time.sleep(sleep)

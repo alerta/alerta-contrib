@@ -1,9 +1,12 @@
 
+import logging
 import os
 import requests
-import logging
 
-from alerta.app import app
+try:
+    from alerta.plugins import app  # alerta >= 5.0
+except ImportError:
+    from alerta.app import app  # alerta < 5.0
 from alerta.plugins import PluginBase
 
 LOG = logging.getLogger('alerta.plugins.pushover')
@@ -54,7 +57,7 @@ class PushMessage(PluginBase):
             "url": '%s/#/alert/%s' % (DASHBOARD_URL, alert.id),
             "url_title": "View alert",
             "priority": priority,
-            "timestamp": int(alert.get_date('create_time', fmt='epoch')),
+            "timestamp": alert.create_time,
             "sound": "tugboat"
         }
 

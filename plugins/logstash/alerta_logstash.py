@@ -1,8 +1,13 @@
+
+import json
+import logging
 import os
 import socket
-import logging
 
-from alerta.app import app
+try:
+    from alerta.plugins import app  # alerta >= 5.0
+except ImportError:
+    from alerta.app import app  # alerta < 5.0
 from alerta.plugins import PluginBase
 
 
@@ -13,7 +18,6 @@ DEFAULT_LOGSTASH_PORT = 6379
 
 LOGSTASH_HOST = os.environ.get('LOGSTASH_HOST') or app.config.get('LOGSTASH_HOST', DEFAULT_LOGSTASH_HOST)
 LOGSTASH_PORT = os.environ.get('LOGSTASH_PORT') or app.config.get('LOGSTASH_PORT', DEFAULT_LOGSTASH_PORT)
-
 
 class LogStashOutput(PluginBase):
 
@@ -26,13 +30,19 @@ class LogStashOutput(PluginBase):
 
     def post_receive(self, alert):
         try:
+            logstash_port = int(LOGSTASH_PORT)
+        except Exception as e:
+            LOG.error("Alerta_logstash: Could not parse 'LOGSTASH_PORT': %s", e)
+            raise RuntimeError("Could not parse 'LOGSTASH_PORT': %s" % e)
+
+        try:
             self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            self.sock.connect((LOGSTASH_HOST, LOGSTASH_PORT))
+            self.sock.connect((LOGSTASH_HOST, logstash_port))
         except Exception as e:
             raise RuntimeError("Logstash TCP connection error: %s" % str(e))
 
         try:
-            self.sock.send("%s\r\n" % alert)
+            self.sock.send(b"%s\r\n" % json.dumps(alert.get_body(history=False)).encode('utf-8'))
         except Exception as e:
             LOG.exception(e)
             raise RuntimeError("logstash exception")

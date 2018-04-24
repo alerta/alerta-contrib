@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
-import json
 import datetime
+import json
 import logging
 import os
 import platform
@@ -16,12 +16,12 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
 import jinja2
-
-from alertaclient.alert import AlertDocument
-from alertaclient.api import ApiClient
-from alertaclient.heartbeat import Heartbeat
+from alertaclient.api import Client
+from alertaclient.models.alert import Alert
 from kombu import Connection, Exchange, Queue
 from kombu.mixins import ConsumerMixin
+
+__version__ = '5.1.0'
 
 DNS_RESOLVER_AVAILABLE = False
 
@@ -50,6 +50,7 @@ DEFAULT_OPTIONS = {
     'amqp_topic':    'notify',
     'smtp_host':     'smtp.gmail.com',
     'smtp_port':     587,
+    'smtp_username': '', # application-specific username if it differs from the specified 'mail_from' user
     'smtp_password': '',  # application-specific password if gmail used
     'smtp_starttls': True,  # use the STARTTLS SMTP extension
     'smtp_use_ssl': False,  # whether or not SSL is being used for the SMTP connection
@@ -111,7 +112,7 @@ class FanoutConsumer(ConsumerMixin):
     def on_message(self, body, message):
 
         try:
-            alert = AlertDocument.parse_alert(body)
+            alert = Alert.parse(body)
             alertid = alert.get_id()
         except Exception as e:
             LOG.warn(e)
@@ -169,11 +170,11 @@ class MailSender(threading.Thread):
 
     def run(self):
 
-        api = ApiClient(endpoint=OPTIONS['endpoint'], key=OPTIONS['key'])
+        api = Client(endpoint=OPTIONS['endpoint'], key=OPTIONS['key'])
         keep_alive = 0
 
         while not self.should_stop:
-            for alertid in on_hold.keys():
+            for alertid in list(on_hold.keys()):
                 try:
                     (alert, hold_time) = on_hold[alertid]
                 except KeyError:
@@ -186,9 +187,9 @@ class MailSender(threading.Thread):
                         continue
 
             if keep_alive >= 10:
-                tag = OPTIONS['smtp_host'] or 'alerta-mailer'
                 try:
-                    api.send(Heartbeat(tags=[tag]))
+                    origin = '{}/{}'.format('alerta-mailer', OPTIONS['smtp_host'])
+                    api.heartbeat(origin, tags=[__version__])
                 except Exception as e:
                     time.sleep(5)
                     continue
@@ -295,10 +296,10 @@ class MailSender(threading.Thread):
             LOG.debug('%s : Email sent to %s' % (alert.get_id(),
                                                  ','.join(contacts)))
             return (msg, contacts)
-        except (socket.error, socket.herror, socket.gaierror), e:
+        except (socket.error, socket.herror, socket.gaierror) as e:
             LOG.error('Mail server connection error: %s', e)
             return None
-        except smtplib.SMTPException, e:
+        except smtplib.SMTPException as e:
             LOG.error('Failed to send mail to %s on %s:%s : %s',
                       ", ".join(contacts),
                       OPTIONS['smtp_host'], OPTIONS['smtp_port'], e)
@@ -357,7 +358,7 @@ class MailSender(threading.Thread):
                 mx.starttls()
 
             if OPTIONS['smtp_password']:
-                mx.login(OPTIONS['mail_from'], OPTIONS['smtp_password'])
+                mx.login(OPTIONS['smtp_username'], OPTIONS['smtp_password'])
 
             mx.sendmail(OPTIONS['mail_from'],
                         contacts,
@@ -429,7 +430,7 @@ def main():
     config_file = os.environ.get('ALERTA_CONF_FILE') or DEFAULT_OPTIONS['config_file']  # nopep8
 
     # Convert default booleans to its string type, otherwise config.getboolean fails  # nopep8
-    defopts = {k: str(v) if type(v) is bool else v for k, v in DEFAULT_OPTIONS.iteritems()}  # nopep8
+    defopts = {k: str(v) if type(v) is bool else v for k, v in DEFAULT_OPTIONS.items()}  # nopep8
     config = configparser.RawConfigParser(defaults=defopts)
 
     if os.path.exists("{}.d".format(config_file)):
@@ -443,13 +444,13 @@ def main():
         config_file = config_list
 
     try:
-        config.read(config_file)
+        config.read(os.path.expanduser(config_file))
     except Exception as e:
         LOG.warning("Problem reading configuration file %s - is this an ini file?", config_file)  # nopep8
         sys.exit(1)
 
     if config.has_section(CONFIG_SECTION):
-        from types import NoneType
+        NoneType = type(None)
         config_getters = {
             NoneType: config.get,
             str: config.get,
@@ -467,7 +468,9 @@ def main():
 
     OPTIONS['endpoint'] = os.environ.get('ALERTA_ENDPOINT') or OPTIONS['endpoint']  # nopep8
     OPTIONS['key'] = os.environ.get('ALERTA_API_KEY') or OPTIONS['key']
+    OPTIONS['smtp_username'] = os.environ.get('SMTP_USERNAME') or OPTIONS['smtp_username'] or OPTIONS['mail_from']
     OPTIONS['smtp_password'] = os.environ.get('SMTP_PASSWORD') or OPTIONS['smtp_password']  # nopep8
+
     if os.environ.get('DEBUG'):
         OPTIONS['debug'] = True
 
@@ -481,7 +484,7 @@ def main():
     except (SystemExit, KeyboardInterrupt):
         sys.exit(0)
     except Exception as e:
-        print str(e)
+        print(str(e))
         sys.exit(1)
 
     from kombu.utils.debug import setup_logging
@@ -497,7 +500,7 @@ def main():
             mailer.join()
             sys.exit(0)
         except Exception as e:
-            print str(e)
+            print(str(e))
             sys.exit(1)
 
 if __name__ == '__main__':

@@ -33,6 +33,7 @@ server configuration file or as environment variables.
 PLUGINS = ['telegram']
 TELEGRAM_TOKEN = ''  # default="not set"
 TELEGRAM_CHAT_ID = ''  # default="not set"
+TELEGRAM_TEMPLATE = '' # default will use hardcoded one
 ```
 
 Create a new Telegram Bot using a Telegram client.
@@ -46,6 +47,13 @@ the webhook URL to your Alerta API Telegram endpoint (must be HTTPS):
 TELEGRAM_WEBHOOK_URL = 'https://alerta.example.com/webhooks/telegram'
 BLACKOUT_DURATION = 86400   # default=3600 ie. 1 hour
 ```
+
+Templating 
+----------
+
+There can be defined template to send data to telegram it have to be defined in `TELEGRAM_TEMPLATE`. 
+Template have to be writen in [Jinja2](http://jinja.pocoo.org/docs/2.10/)
+Alert data will be passed to it as context. So you can modify tg message as you wish. Example can be found in [Explorer](http://explorer.alerta.io/#/send) 
 
 Troubleshooting
 ---------------
@@ -75,6 +83,7 @@ References
 
   * Telegram Bots Intro: https://core.telegram.org/bots
   * Telepot Python Client: http://telepot.readthedocs.io/en/latest/
+  * Jinja2: http://jinja.pocoo.org/docs/2.10/
 
 License
 -------

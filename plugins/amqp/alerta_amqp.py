@@ -1,10 +1,14 @@
-import os
+
 import logging
+import os
 
 from kombu import BrokerConnection, Exchange, Producer
 from kombu.utils.debug import setup_logging
 
-from alerta.app import app
+try:
+    from alerta.plugins import app  # alerta >= 5.0
+except ImportError:
+    from alerta.app import app  # alerta < 5.0
 from alerta.plugins import PluginBase
 
 LOG = logging.getLogger('alerta.plugins.amqp')
@@ -19,8 +23,7 @@ AMQP_TOPIC = os.environ.get('AMQP_TOPIC') or app.config.get('AMQP_TOPIC', DEFAUL
 class FanoutPublisher(PluginBase):
 
     def __init__(self, name=None):
-
-        if app.debug:
+        if app.config['DEBUG']:
             setup_logging(loglevel='DEBUG', loggers=[''])
 
         self.connection = BrokerConnection(AMQP_URL)
@@ -44,11 +47,10 @@ class FanoutPublisher(PluginBase):
         return alert
 
     def post_receive(self, alert):
-
         LOG.info('Sending message %s to AMQP topic "%s"', alert.get_id(), AMQP_TOPIC)
-        LOG.debug('Message: %s', alert.get_body())
-
-        self.producer.publish(alert.get_body(), declare=[self.exchange], retry=True)
+        body = alert.get_body()
+        LOG.debug('Message: %s', body)
+        self.producer.publish(body, declare=[self.exchange], retry=True)
 
     def status_change(self, alert, status, text):
         return

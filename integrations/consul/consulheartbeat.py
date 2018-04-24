@@ -1,12 +1,6 @@
 #!/usr/bin/env python
 
-from alertaclient.api import ApiClient
-from alertaclient.alert import Alert
-from alertaclient.heartbeat import Heartbeat
-import sys
-import os
-import time
-import json
+from alertaclient.api import Client
 import consul
 import time
 
@@ -20,13 +14,12 @@ sleep = int(client.kv.get('alerta/sleep')[1]['Value'])
 timeout = int(client.kv.get('alerta/timeout')[1]['Value'])
 
 origin = client.kv.get('alerta/origin')[1]['Value']
-api = ApiClient(endpoint=url, key=key)
+api = Client(endpoint=url, key=key)
 
 def createheartbeat():
-    hb = Heartbeat(origin=origin, timeout=timeout)
     for i in range(max_retries):
         try:
-            print(api.send(hb))
+            print(api.heartbeat(origin=origin, timeout=timeout))
         except Exception as e:
             print("HTTP Error: {}".format(e))
             time.sleep(sleep)

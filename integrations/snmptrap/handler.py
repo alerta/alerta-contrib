@@ -1,16 +1,14 @@
 
-import os
-import sys
 import datetime
 import logging
+import os
+import platform
 import re
+import sys
 
+from alertaclient.api import Client
 
-from alertaclient.api import ApiClient
-from alertaclient.alert import Alert
-from alertaclient.heartbeat import Heartbeat
-
-__version__ = '3.3.1'
+__version__ = '5.0.0'
 
 
 LOG = logging.getLogger("alerta.snmptrap")
@@ -28,30 +26,46 @@ class SnmpTrapHandler(object):
         endpoint = os.environ.get('ALERTA_ENDPOINT', 'http://localhost:8080')
         key = os.environ.get('ALERTA_API_KEY', None)
 
-        self.api = ApiClient(endpoint=endpoint, key=key)
+        self.api = Client(endpoint=endpoint, key=key)
 
         data = sys.stdin.read()
         LOG.info('snmptrapd -> %r', data)
-        data = unicode(data, 'utf-8', errors='ignore')
+        try:
+            data = unicode(data, 'utf-8', errors='ignore')  # python 2
+        except NameError:
+            pass
         LOG.debug('unicoded -> %s', data)
 
-        snmptrapAlert = SnmpTrapHandler.parse_snmptrap(data)
-
-        if snmptrapAlert:
-            try:
-                self.api.send(snmptrapAlert)
-            except Exception, e:
-                LOG.warning('Failed to send alert: %s', e)
+        try:
+            resource, event, correlate, trap_version, trapvars = self.parse_snmptrap(data)
+            if resource and event:
+                self.api.send_alert(
+                    resource=resource,
+                    event=event,
+                    correlate=correlate,
+                    group='SNMP',
+                    value=trapvars['$w'],
+                    severity='indeterminate',
+                    environment='Production',
+                    service=['Network'],
+                    text=trapvars['$W'],
+                    event_type='snmptrapAlert',
+                    attributes={'trapvars': {k.replace('$', '_'): v for k, v in trapvars.items()}},
+                    tags=[trap_version],
+                    create_time=datetime.datetime.strptime('%sT%s.000Z' % (trapvars['$x'], trapvars['$X']), '%Y-%m-%dT%H:%M:%S.%fZ'),
+                    raw_data=data
+                )
+        except Exception as e:
+            LOG.warning('Failed to send alert: %s', e)
 
         LOG.debug('Send heartbeat...')
-        heartbeat = Heartbeat(tags=[__version__])
         try:
-            self.api.send(heartbeat)
-        except Exception, e:
+            origin = '{}/{}'.format('snmptrap', platform.uname()[1])
+            self.api.heartbeat(origin, tags=[__version__])
+        except Exception as e:
             LOG.warning('Failed to send heartbeat: %s', e)
 
-    @staticmethod
-    def parse_snmptrap(data):
+    def parse_snmptrap(self, data):
 
         pdu_data = data.splitlines()
         varbind_list = pdu_data[:]
@@ -99,7 +113,6 @@ class SnmpTrapHandler(object):
         LOG.debug('varbinds = %s', varbinds)
 
         correlate = list()
-
         if trap_version == 'SNMPv1':
             if trapvars['$w'] == '0':
                 trapvars['$O'] = 'coldStart'
@@ -161,27 +174,8 @@ class SnmpTrapHandler(object):
             else:
                 resource = '<NONE>'
 
-        snmptrapAlert = Alert(
-            resource=resource,
-            event=trapvars['$O'],
-            correlate=correlate,
-            group='SNMP',
-            value=trapvars['$w'],
-            severity='indeterminate',
-            environment='Production',
-            service=['Network'],
-            text=trapvars['$W'],
-            event_type='snmptrapAlert',
-            attributes={'trapvars': {k.replace('$','_'):v for k,v in trapvars.iteritems()}},
-            tags=[trap_version],
-            create_time=datetime.datetime.strptime('%sT%s.000Z' % (trapvars['$x'], trapvars['$X']), '%Y-%m-%dT%H:%M:%S.%fZ'),
-            raw_data=data
-        )
+        return resource, trapvars['$O'], correlate, trap_version, trapvars
 
-        if snmptrapAlert.get_type() == 'Heartbeat':
-            snmptrapAlert = Heartbeat(origin=snmptrapAlert.origin, tags=[__version__])
-
-        return snmptrapAlert
 
 def main():
 
