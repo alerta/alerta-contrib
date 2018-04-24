@@ -54,6 +54,7 @@ Plugins
   * [Timeout](plugins/timeout)
   * [Twilio SMS](plugins/twilio)
   * [Zabbix](plugins/zabbix)
+  * [Forward](plugins/forward)
 
 License
 -------
