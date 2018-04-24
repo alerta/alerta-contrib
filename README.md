@@ -41,8 +41,6 @@ Plugins
   * [InfluxDB](plugins/influxdb)
   * [Logstash](plugins/logstash)
   * [Normalise](plugins/normalise)
-  * [OP5](plugins/op5)
-  * [OpsGenie](plugins/opsgenie)
   * [PagerDuty](plugins/pagerduty)
   * [Prometheus](plugins/prometheus)
   * [Google Cloud Pub/Sub](plugins/pubsub)
@@ -51,10 +49,12 @@ Plugins
   * [Amazon SNS](plugins/sns)
   * [Syslog](plugins/syslog)
   * [Telegram](plugins/telegram)
-  * [Timeout](plugins/timeout)
   * [Twilio SMS](plugins/twilio)
+<<<<<<< HEAD
   * [Zabbix](plugins/zabbix)
   * [Forward](plugins/forward)
+=======
+>>>>>>> parent of 7f8ff6e... conflict
 
 License
 -------

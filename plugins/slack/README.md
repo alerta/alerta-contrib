@@ -37,11 +37,10 @@ To configure the Slack plugin start by setting up an
 [incoming webhook integration](https://my.slack.com/services/new/incoming-webhook/)
 for your Slack channel and adding the following configuration settings to `alertad.conf`:
 
-```python
+```
 SLACK_WEBHOOK_URL = 'https://hooks.slack.com/services/T00000000/B00000000/XXXXXXXXXXXXXXXXXXXXXXXX'
 SLACK_ATTACHMENTS = True  # default=False
 SLACK_CHANNEL = '' # if empty then uses channel from incoming webhook configuration
-SLACK_CHANNEL_ENV_MAP = { 'Production' : '#alert-prod' } # Default=None (optionnal) Allow to specify a channel on a per-environment basis. SLACK_CHANNEL is used a default value
 
 ICON_EMOJI = '' # default :rocket:
 ALERTA_USERNAME = '' # default alerta

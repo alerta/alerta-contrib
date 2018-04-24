@@ -1,4 +1,3 @@
-
 import logging
 
 from alerta.plugins import PluginBase
@@ -6,7 +5,6 @@ from alerta.plugins import PluginBase
 LOG = logging.getLogger('alerta.plugins.enhance')
 
 RUNBOOK_URL = 'http://www.example.com/wiki/RunBook'   # example only
-
 
 class EnhanceAlert(PluginBase):
 

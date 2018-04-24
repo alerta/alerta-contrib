@@ -1,6 +1,5 @@
 
 import sys
-import platform
 import time
 import subprocess
 import threading
@@ -9,9 +8,11 @@ import re
 import logging
 import yaml
 
-from alertaclient.api import Client
+from alertaclient.api import ApiClient
+from alertaclient.alert import Alert
+from alertaclient.heartbeat import Heartbeat
 
-__version__ = '3.3.0'
+__version__ = '3.2.0'
 
 LOG = logging.getLogger('alerta.pinger')
 LOG.setLevel(logging.DEBUG)
@@ -44,7 +45,7 @@ def init_targets():
     LOG.info('Loading Ping targets...')
     try:
         targets = yaml.load(open(PING_FILE))
-    except Exception as e:
+    except Exception, e:
         LOG.error('Failed to load Ping targets: %s', e)
     LOG.info('Loaded %d Ping targets OK', len(targets))
 
@@ -126,21 +127,25 @@ class WorkerThread(threading.Thread):
             correlate = _PING_ALERTS
             raw_data = stdout
 
+            pingAlert = Alert(
+                resource=resource,
+                event=event,
+                correlate=correlate,
+                group=group,
+                value=value,
+                severity=severity,
+                environment=environment,
+                service=service,
+                text=text,
+                event_type='serviceAlert',
+                tags=None,
+                raw_data=raw_data,
+            )
+
             try:
-                self.api.send_alert(
-                    resource=resource,
-                    event=event,
-                    correlate=correlate,
-                    group=group,
-                    value=value,
-                    severity=severity,
-                    environment=environment,
-                    service=service,
-                    text=text,
-                    event_type='serviceAlert',
-                    raw_data=raw_data,
-                )
-            except Exception as e:
+                r = self.api.send(pingAlert)
+                LOG.debug(r)
+            except Exception, e:
                 LOG.warning('Failed to send alert: %s', e)
 
             self.queue.task_done()
@@ -198,7 +203,7 @@ class PingerDaemon(object):
         # Create internal queue
         self.queue = Queue.Queue()
 
-        self.api = Client()
+        self.api = ApiClient()
 
         # Initialiase ping targets
         ping_list = init_targets()
@@ -209,7 +214,7 @@ class PingerDaemon(object):
             w = WorkerThread(self.api, self.queue)
             try:
                 w.start()
-            except Exception as e:
+            except Exception, e:
                 LOG.error('Worker thread #%s did not start: %s', i, e)
                 continue
             LOG.info('Started worker thread: %s', w.getName())
@@ -225,10 +230,10 @@ class PingerDaemon(object):
                             self.queue.put((environment, service, target, retries, time.time()))
 
                 LOG.debug('Send heartbeat...')
+                heartbeat = Heartbeat(tags=[__version__])
                 try:
-                    origin = '{}/{}'.format('pinger', platform.uname()[1])
-                    self.api.heartbeat(origin, tags=[__version__])
-                except Exception as e:
+                    self.api.send(heartbeat)
+                except Exception, e:
                     LOG.warning('Failed to send heartbeat: %s', e)
 
                 time.sleep(LOOP_EVERY)

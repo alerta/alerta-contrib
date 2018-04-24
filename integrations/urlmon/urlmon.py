@@ -1,5 +1,5 @@
 
-import platform
+import os
 import sys
 import time
 import urllib2
@@ -9,7 +9,9 @@ import Queue
 import re
 import logging
 
-from alertaclient.api import Client
+from alertaclient.api import ApiClient
+from alertaclient.alert import Alert
+from alertaclient.heartbeat import Heartbeat
 
 from BaseHTTPServer import BaseHTTPRequestHandler as BHRH
 
@@ -178,13 +180,13 @@ class WorkerThread(threading.Thread):
                     if 'Content-type' in headers and headers['Content-type'] == 'application/json':
                         try:
                             body = json.loads(body)
-                        except ValueError as e:
+                        except ValueError, e:
                             LOG.error('Could not evaluate rule %s: %s', rule, e)
                     try:
                         eval(rule)  # NOTE: assumes request body in variable called 'body'
-                    except (SyntaxError, NameError, ZeroDivisionError) as e:
+                    except (SyntaxError, NameError, ZeroDivisionError), e:
                         LOG.error('Could not evaluate rule %s: %s', rule, e)
-                    except Exception as e:
+                    except Exception, e:
                         LOG.error('Could not evaluate rule %s: %s', rule, e)
                     else:
                         if not eval(rule):
@@ -205,24 +207,26 @@ class WorkerThread(threading.Thread):
             tags = check.get('tags', list())
             threshold_info = "%s : RT > %d RT > %d x %s" % (check['url'], warn_thold, crit_thold, check.get('count', 1))
 
+            urlmonAlert = Alert(
+                resource=resource,
+                event=event,
+                correlate=correlate,
+                group=group,
+                value=value,
+                severity=severity,
+                environment=environment,
+                service=service,
+                text=text,
+                event_type='serviceAlert',
+                tags=tags,
+                attributes={
+                    'thresholdInfo': threshold_info
+                }
+            )
+
             try:
-                self.api.send_alert(
-                    resource=resource,
-                    event=event,
-                    correlate=correlate,
-                    group=group,
-                    value=value,
-                    severity=severity,
-                    environment=environment,
-                    service=service,
-                    text=text,
-                    event_type='serviceAlert',
-                    tags=tags,
-                    attributes={
-                        'thresholdInfo': threshold_info
-                    }
-                )
-            except Exception as e:
+                self.api.send(urlmonAlert)
+            except Exception, e:
                 LOG.warning('Failed to send alert: %s', e)
 
             self.queue.task_done()
@@ -279,16 +283,16 @@ class WorkerThread(threading.Thread):
                 else:
                     req = urllib2.Request(url, headers=headers)
                 response = urllib2.urlopen(req, None, MAX_TIMEOUT)
-            except ValueError as e:
+            except ValueError, e:
                 LOG.error('Request failed: %s', e)
-            except urllib2.URLError as e:
+            except urllib2.URLError, e:
                 if hasattr(e, 'reason'):
                     reason = str(e.reason)
                     status = None
                 elif hasattr(e, 'code'):
                     reason = None
                     status = e.code
-            except Exception as e:
+            except Exception, e:
                 LOG.warning('Unexpected error: %s', e)
             else:
                 status = response.getcode()
@@ -317,7 +321,7 @@ class UrlmonDaemon(object):
         self.running = True
 
         self.queue = Queue.Queue()
-        self.api = Client(endpoint=settings.ENDPOINT, key=settings.API_KEY)
+        self.api = self.api = ApiClient(endpoint=settings.ENDPOINT, key=settings.API_KEY)
 
         # Start worker threads
         LOG.debug('Starting %s worker threads...', SERVER_THREADS)
@@ -325,7 +329,7 @@ class UrlmonDaemon(object):
             w = WorkerThread(self.queue, self.api)
             try:
                 w.start()
-            except Exception as e:
+            except Exception, e:
                 LOG.error('Worker thread #%s did not start: %s', i, e)
                 continue
             LOG.info('Started worker thread: %s', w.getName())
@@ -336,10 +340,10 @@ class UrlmonDaemon(object):
                     self.queue.put((check, time.time()))
 
                 LOG.debug('Send heartbeat...')
+                heartbeat = Heartbeat(tags=[__version__])
                 try:
-                    origin = '{}/{}'.format('urlmon', platform.uname()[1])
-                    self.api.heartbeat(origin, tags=[__version__])
-                except Exception as e:
+                    self.api.send(heartbeat)
+                except Exception, e:
                     LOG.warning('Failed to send heartbeat: %s', e)
 
                 time.sleep(LOOP_EVERY)

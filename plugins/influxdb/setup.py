@@ -1,7 +1,7 @@
 
 from setuptools import setup, find_packages
 
-version = '5.4.2'
+version = '0.4.0'
 
 setup(
     name="alerta-influxdb",
@@ -14,7 +14,7 @@ setup(
     packages=find_packages(),
     py_modules=['alerta_influxdb'],
     install_requires=[
-        'influxdb>=5.0.0'
+        'influxdb'
     ],
     include_package_data=True,
     zip_safe=True,

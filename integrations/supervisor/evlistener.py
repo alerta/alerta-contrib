@@ -4,7 +4,9 @@ import sys
 import json
 import platform
 
-from alertaclient.api import Client
+from alertaclient.api import ApiClient
+from alertaclient.alert import Alert
+from alertaclient.heartbeat import Heartbeat
 
 
 class Listener(object):
@@ -27,23 +29,19 @@ class Listener(object):
 
 def main():
 
-    api = Client()
+    api = ApiClient()
     listener = Listener()
 
     while True:
         listener.send_cmd('READY\n')
         headers, body = listener.wait()
-        event = headers['eventname']
 
+        event = headers['eventname']
         if event.startswith('TICK'):
-            try:
-                origin = '{}/{}'.format('supervisord', platform.uname()[1])
-                api.heartbeat(origin, tags=[headers['ver'], event])
-            except Exception as e:
-                listener.log_stderr(e)
-                listener.send_cmd('RESULT 4\nFAIL')
-            else:
-                listener.send_cmd('RESULT 2\nOK')
+            supervisorAlert = Heartbeat(
+                origin='supervisord',
+                tags=[headers['ver'], event]
+            )
         else:
             if event.endswith('FATAL'):
                 severity = 'critical'
@@ -53,33 +51,35 @@ def main():
                 severity = 'minor'
             else:
                 severity = 'normal'
-            try:
-                api.send_alert(
-                    resource='%s:%s' % (platform.uname()[1], body['processname']),
-                    environment='Production',
-                    service=['supervisord'],
-                    event=event,
-                    correlate=[
-                        'PROCESS_STATE_STARTING',
-                        'PROCESS_STATE_RUNNING',
-                        'PROCESS_STATE_BACKOFF',
-                        'PROCESS_STATE_STOPPING',
-                        'PROCESS_STATE_EXITED',
-                        'PROCESS_STATE_STOPPED',
-                        'PROCESS_STATE_FATAL',
-                        'PROCESS_STATE_UNKNOWN'
-                    ],
-                    value='serial=%s' % headers['serial'],
-                    severity=severity,
-                    origin=headers['server'],
-                    text='State changed from %s to %s.' % (body['from_state'], event),
-                    raw_data='%s\n\n%s' % (json.dumps(headers), json.dumps(body))
-                )
-            except Exception as e:
-                listener.log_stderr(e)
-                listener.send_cmd('RESULT 4\nFAIL')
-            else:
-                listener.send_cmd('RESULT 2\nOK')
+
+            supervisorAlert = Alert(
+                resource='%s:%s' % (platform.uname()[1], body['processname']),
+                environment='Production',
+                service=['supervisord'],
+                event=event,
+                correlate=[
+                    'PROCESS_STATE_STARTING',
+                    'PROCESS_STATE_RUNNING',
+                    'PROCESS_STATE_BACKOFF',
+                    'PROCESS_STATE_STOPPING',
+                    'PROCESS_STATE_EXITED',
+                    'PROCESS_STATE_STOPPED',
+                    'PROCESS_STATE_FATAL',
+                    'PROCESS_STATE_UNKNOWN'
+                ],
+                value='serial=%s' % headers['serial'],
+                severity=severity,
+                origin=headers['server'],
+                text='State changed from %s to %s.' % (body['from_state'], event),
+                raw_data='%s\n\n%s' % (json.dumps(headers), json.dumps(body))
+            )
+        try:
+            api.send(supervisorAlert)
+        except Exception as e:
+            listener.log_stderr(e)
+            listener.send_cmd('RESULT 4\nFAIL')
+        else:
+            listener.send_cmd('RESULT 2\nOK')
 
 if __name__ == '__main__':
     main()

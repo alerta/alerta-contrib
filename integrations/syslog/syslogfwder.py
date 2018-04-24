@@ -1,16 +1,17 @@
 
 import os
 import sys
-import platform
 import socket
 import select
 import re
 import logging
 
-from alertaclient.api import Client
+from alertaclient.api import ApiClient
+from alertaclient.alert import Alert
+from alertaclient.heartbeat import Heartbeat
 
 
-__version__ = '3.5.0'
+__version__ = '3.4.2'
 
 SYSLOG_TCP_PORT = int(os.environ.get('SYSLOG_TCP_PORT', 514))
 SYSLOG_UDP_PORT = int(os.environ.get('SYSLOG_UDP_PORT', 514))
@@ -84,14 +85,14 @@ class SyslogDaemon(object):
 
     def __init__(self):
 
-        self.api = Client()
+        self.api = ApiClient()
 
         LOG.info('Starting UDP listener...')
         # Set up syslog UDP listener
         try:
             self.udp = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
             self.udp.bind(('', SYSLOG_UDP_PORT))
-        except socket.error as e:
+        except socket.error, e:
             LOG.error('Syslog UDP error: %s', e)
             sys.exit(2)
         LOG.info('Listening on syslog port %s/udp' % SYSLOG_UDP_PORT)
@@ -103,7 +104,7 @@ class SyslogDaemon(object):
             self.tcp.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
             self.tcp.bind(('', SYSLOG_TCP_PORT))
             self.tcp.listen(5)
-        except socket.error as e:
+        except socket.error, e:
             LOG.error('Syslog TCP error: %s', e)
             sys.exit(2)
         LOG.info('Listening on syslog port %s/tcp' % SYSLOG_TCP_PORT)
@@ -133,17 +134,17 @@ class SyslogDaemon(object):
                         alerts = self.parse_syslog(ip=addr[0], data=data)
                         for alert in alerts:
                             try:
-                                self.api.send_alert(**alert)
-                            except Exception as e:
+                                self.api.send(alert)
+                            except Exception, e:
                                 LOG.warning('Failed to send alert: %s', e)
 
                     count += 1
                 if not ip or count % 5 == 0:
                     LOG.debug('Send heartbeat...')
+                    heartbeat = Heartbeat(tags=[__version__])
                     try:
-                        origin = '{}/{}'.format('syslog', platform.uname()[1])
-                        self.api.heartbeat(origin, tags=[__version__])
-                    except Exception as e:
+                        self.api.send(heartbeat)
+                    except Exception, e:
                         LOG.warning('Failed to send heartbeat: %s', e)
 
             except (KeyboardInterrupt, SystemExit):
@@ -202,7 +203,7 @@ class SyslogDaemon(object):
                     CISCO_SYSLOG = m.group(2)
                     try:
                         CISCO_FACILITY, CISCO_SEVERITY, CISCO_MNEMONIC = m.group(3).split('-')
-                    except ValueError as e:
+                    except ValueError, e:
                         LOG.error('Could not parse Cisco syslog - %s: %s', e, m.group(3))
                         CISCO_FACILITY = CISCO_SEVERITY = CISCO_MNEMONIC = 'na'
 
@@ -238,20 +239,20 @@ class SyslogDaemon(object):
             correlate = ['%s%s' % (facility.capitalize(), s.capitalize()) for s in SYSLOG_SEVERITY_NAMES]
             raw_data = msg
 
-            syslogAlert = {
-                'resource': resource,
-                'event': event,
-                'environment': environment,
-                'severity': severity,
-                'correlate':correlate,
-                'service': service,
-                'group': group,
-                'value': value,
-                'text': text,
-                'tags': tags,
-                'event_type': 'syslogAlert',
-                'raw_data': raw_data
-            }
+            syslogAlert = Alert(
+                resource=resource,
+                event=event,
+                environment=environment,
+                severity=severity,
+                correlate=correlate,
+                service=service,
+                group=group,
+                value=value,
+                text=text,
+                tags=tags,
+                event_type='syslogAlert',
+                raw_data=raw_data,
+            )
             syslogAlerts.append(syslogAlert)
 
         return syslogAlerts

@@ -25,6 +25,8 @@ class ForwardAlert(PluginBase):
         if fw_count >= FORWARD_MAX_LENGTH:
             LOG.debug('alert discarded by cycle overflow')
             return
+
+        forwarded_alert.attributes['fw_count'] = fw_count
         client.send_event(
             event=alert.get('event'),
             resource=alert.get('resource'),
