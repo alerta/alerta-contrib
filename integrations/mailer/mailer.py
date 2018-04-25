@@ -482,7 +482,7 @@ def main():
     if isinstance(config_file, list):
         group_rules = []
         for file in config_file:
-            group_rules.append(parse_group_rules(file))
+            group_rules.extend(parse_group_rules(file))
     else:
         group_rules = parse_group_rules(config_file)
     if group_rules is not None:
