@@ -36,10 +36,12 @@ Plugins
   * [AMQP](plugins/amqp)
   * [Cachet](plugins/cachet)
   * [Enhance](plugins/enhance)
+  * [Forward](plugins/forward)
   * [GeoIP](plugins/geoip)
   * [HipChat](plugins/hipchat)
   * [InfluxDB](plugins/influxdb)
   * [Logstash](plugins/logstash)
+  * [MS Teams](plugins/msteams)
   * [Normalise](plugins/normalise)
   * [OP5](plugins/op5)
   * [OpsGenie](plugins/opsgenie)
@@ -54,10 +56,9 @@ Plugins
   * [Timeout](plugins/timeout)
   * [Twilio SMS](plugins/twilio)
   * [Zabbix](plugins/zabbix)
-  * [Forward](plugins/forward)
 
 License
 -------
 
-Copyright (c) 2014-2017 Nick Satterly and [AUTHORS](AUTHORS). Available under the MIT License.
+Copyright (c) 2014-2018 Nick Satterly and [AUTHORS](AUTHORS). Available under the MIT License.
 
