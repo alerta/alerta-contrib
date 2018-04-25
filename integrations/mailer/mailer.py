@@ -406,7 +406,7 @@ def validate_rules(rules):
 
 
 def parse_group_rules(config_file):
-    rules_dir = "{}.rules.d".format(config_file)
+    rules_dir = "{}/alerta.rules.d".format(os.path.dirname(config_file))
     LOG.debug('Looking for rules files in %s', rules_dir)
     if os.path.exists(rules_dir):
         rules_d = []
@@ -482,7 +482,7 @@ def main():
     if isinstance(config_file, list):
         group_rules = []
         for file in config_file:
-            group_rules.append(parse_group_rules(file)
+            group_rules.append(parse_group_rules(file))
     else:
         group_rules = parse_group_rules(config_file)
     if group_rules is not None:
