@@ -421,6 +421,7 @@ def parse_group_rules(config_file):
                 except:
                     LOG.exception('Could not parse file')
         return rules_d
+    return ()
 
 
 def main():
