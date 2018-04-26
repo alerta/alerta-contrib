@@ -21,7 +21,7 @@ from alertaclient.models.alert import Alert
 from kombu import Connection, Exchange, Queue
 from kombu.mixins import ConsumerMixin
 
-__version__ = '5.1.0'
+__version__ = '5.2.0'
 
 DNS_RESOLVER_AVAILABLE = False
 
