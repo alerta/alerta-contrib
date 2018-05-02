@@ -57,6 +57,11 @@ Plugins
   * [Twilio SMS](plugins/twilio)
   * [Zabbix](plugins/zabbix)
 
+Webhooks
+--------
+
+  * [Sentry](webhooks/sentry)
+
 License
 -------
 
