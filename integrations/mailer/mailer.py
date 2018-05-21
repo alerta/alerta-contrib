@@ -21,7 +21,7 @@ from alertaclient.models.alert import Alert
 from kombu import Connection, Exchange, Queue
 from kombu.mixins import ConsumerMixin
 
-__version__ = '5.1.0'
+__version__ = '5.2.0'
 
 DNS_RESOLVER_AVAILABLE = False
 
@@ -406,7 +406,7 @@ def validate_rules(rules):
 
 
 def parse_group_rules(config_file):
-    rules_dir = "{}.rules.d".format(config_file)
+    rules_dir = "{}/alerta.rules.d".format(os.path.dirname(config_file))
     LOG.debug('Looking for rules files in %s', rules_dir)
     if os.path.exists(rules_dir):
         rules_d = []
@@ -421,6 +421,7 @@ def parse_group_rules(config_file):
                 except:
                     LOG.exception('Could not parse file')
         return rules_d
+    return ()
 
 
 def main():
@@ -444,7 +445,12 @@ def main():
         config_file = config_list
 
     try:
-        config.read(os.path.expanduser(config_file))
+        # No need to expanduser if we got a list (already done sooner)
+        # Morever expanduser does not accept a list.
+        if isinstance(config_file, list):
+            config.read(config_file)
+        else:
+            config.read(os.path.expanduser(config_file))
     except Exception as e:
         LOG.warning("Problem reading configuration file %s - is this an ini file?", config_file)  # nopep8
         sys.exit(1)
@@ -474,7 +480,12 @@ def main():
     if os.environ.get('DEBUG'):
         OPTIONS['debug'] = True
 
-    group_rules = parse_group_rules(config_file)
+    if isinstance(config_file, list):
+        group_rules = []
+        for file in config_file:
+            group_rules.extend(parse_group_rules(file))
+    else:
+        group_rules = parse_group_rules(config_file)
     if group_rules is not None:
         OPTIONS['group_rules'] = group_rules
 
