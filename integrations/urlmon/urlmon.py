@@ -87,6 +87,12 @@ class WorkerThread(threading.Thread):
             rule = check.get('rule', None)
             warn_thold = check.get('warning', SLOW_WARNING_THRESHOLD)
             crit_thold = check.get('critical', SLOW_CRITICAL_THRESHOLD)
+            checker_api = check.get('api_endpoint', None)
+            checker_apikey = check.get('api_key', None)
+            if (checker_api and checker_apikey):
+                local_api = Client(endpoint=checker_api, key=checker_apikey)
+            else:
+                local_api = self.api
 
             try:
                 description = HTTP_RESPONSES[status]
@@ -206,7 +212,7 @@ class WorkerThread(threading.Thread):
             threshold_info = "%s : RT > %d RT > %d x %s" % (check['url'], warn_thold, crit_thold, check.get('count', 1))
 
             try:
-                self.api.send_alert(
+                local_api.send_alert(
                     resource=resource,
                     event=event,
                     correlate=correlate,

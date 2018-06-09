@@ -28,7 +28,9 @@ checks = [
         "resource": "www.google.com",
         "url": "http://www.google.com?q=foo#q=foo",
         "environment": "Production",
-        "service": ["Google", "Search"]
+        "service": ["Google", "Search"],
+        "api_endpoint": "http://localhost:8080",
+        "api_key": "<APIKEY>"
     },
     {
         "resource": "guardian-football",
@@ -44,6 +46,8 @@ checks = [
 
 Add the `search` setting and `URLmon` will search the response body for the
 text and generate a `HttpContentError` if it is not found.
+
+You can set up differents api andpoints for differents checkers (see example above).
 
 References
 ----------
