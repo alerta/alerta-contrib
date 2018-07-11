@@ -61,6 +61,8 @@ Plugins
 Webhooks
 --------
 
+  * [Azure Monitor](webhooks/azuremonitor)
+  * [Mailgun](webhooks/mailgun)
   * [Sentry](webhooks/sentry)
 
 License
