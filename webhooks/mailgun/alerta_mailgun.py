@@ -36,7 +36,7 @@ class MailgunWebhook(WebhookBase):
             severity=severity,
             service=['Email'],
             group=group,
-            text=payload['stripped-text'] or payload['body-plain'],
+            text=payload['stripped-text'],
             tags=[],
             attributes={},
             origin='Mailgun/{}'.format(payload['recipient']),
