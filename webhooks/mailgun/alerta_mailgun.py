@@ -15,10 +15,6 @@ class MailgunWebhook(WebhookBase):
         except:
             environment = 'Production'
         try:
-            create_time = datetime.datetime.fromtimestamp(int(payload['timestamp'])).strftime('%Y-%m-%dT%H:%M:%S.%fZ')
-        except:
-            create_time = datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%S.%fZ')
-        try:
             severity = query_string['severity']
         except:
             severity = 'major'
@@ -29,7 +25,6 @@ class MailgunWebhook(WebhookBase):
 
         return Alert(
             resource=payload['sender'],
-            create_time=create_time,
             type='Email Alert',
             event=payload['subject'],
             environment=environment,
