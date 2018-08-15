@@ -49,6 +49,7 @@ Plugins
   * [Prometheus](plugins/prometheus)
   * [Google Cloud Pub/Sub](plugins/pubsub)
   * [Pushover.net](plugins/pushover)
+  * [Rocket.Chat](plugins/rocketchat)
   * [Slack](plugins/slack)
   * [Amazon SNS](plugins/sns)
   * [Syslog](plugins/syslog)
