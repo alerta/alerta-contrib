@@ -55,6 +55,19 @@ the Alerta console:
 DASHBOARD_URL = ''  # default="not set"
 ```
 
+Slack Apps API
+--------------
+To use the Slack "Apps" API instead of an Incoming Webhook, create an application and 
+obtain its OAuth token.  Use that to set ```SLACK_TOKEN``` and specify the 
+URL endpoint to the new API entrypoint this way:
+
+```python
+SLACK_WEBHOOK_URL = 'https://slack.com/api/chat.postMessage'
+SLACK_TOKEN = 'xoxp-903711738716-407999999999-433333333331-a844444444488888888822222222220c'
+```
+
+Ensure SLACK_CHANNEL is set for the default channel for alerts.  You may still use SLACK_CHANNEL_ENV_MAP.
+
 
 References
 ----------
