@@ -40,7 +40,12 @@ ICON_EMOJI = os.environ.get('ICON_EMOJI') or app.config.get(
     'ICON_EMOJI', ':rocket:')
 DASHBOARD_URL = os.environ.get(
     'DASHBOARD_URL') or app.config.get('DASHBOARD_URL', '')
-
+SLACK_HEADERS = {
+    'Content-Type': 'application/json'
+}
+SLACK_TOKEN = os.environ.get('SLACK_TOKEN') or app.config['SLACK_TOKEN']
+if SLACK_TOKEN:
+    SLACK_HEADERS['Authorization'] = 'Bearer ' + SLACK_TOKEN
 
 class ServiceIntegration(PluginBase):
 
@@ -112,11 +117,11 @@ class ServiceIntegration(PluginBase):
 
         try:
             r = requests.post(SLACK_WEBHOOK_URL,
-                              data=json.dumps(payload), timeout=2)
+                              data=json.dumps(payload), headers=SLACK_HEADERS, timeout=2)
         except Exception as e:
             raise RuntimeError("Slack connection error: %s", e)
 
-        LOG.debug('Slack response: %s', r.status_code)
+        LOG.debug('Slack response: %s\n%s' % (r.status_code, r.text))
 
     def status_change(self, alert, status, text):
         if SLACK_SEND_ON_ACK == False or status not in ['ack', 'assign']:
@@ -127,8 +132,8 @@ class ServiceIntegration(PluginBase):
         LOG.debug('Slack payload: %s', payload)
         try:
             r = requests.post(SLACK_WEBHOOK_URL,
-                              data=json.dumps(payload), timeout=2)
+                              data=json.dumps(payload), headers=SLACK_HEADERS, timeout=2)
         except Exception as e:
             raise RuntimeError("Slack connection error: %s", e)
 
-        LOG.debug('Slack response: %s', r.status_code)
+        LOG.debug('Slack response: %s\n%s' % (r.status_code, r.text))
