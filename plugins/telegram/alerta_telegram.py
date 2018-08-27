@@ -48,9 +48,12 @@ class TelegramBot(PluginBase):
             LOG.debug('Telegram: %s', self.bot.getWebhookInfo())
 
         super(TelegramBot, self).__init__(name)
-        if TELEGRAM_TEMPLATE and os.path.exists(TELEGRAM_TEMPLATE):
-            with open(TELEGRAM_TEMPLATE, 'r') as f:
-                self.template = Template(f.read())
+        if TELEGRAM_TEMPLATE:
+            if os.path.exists(TELEGRAM_TEMPLATE):
+                with open(TELEGRAM_TEMPLATE, 'r') as f:
+                    self.template = Template(f.read())
+            else:
+                self.template = Template(TELEGRAM_TEMPLATE)
         else:
             self.template = Template(DEFAULT_TMPL)
 
