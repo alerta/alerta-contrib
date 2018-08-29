@@ -11,7 +11,6 @@ setup(
     license='MIT',
     author='Nick Satterly',
     author_email='nick.satterly@gmail.com',
-    packages=find_packages(),
     py_modules=['alerta_rocketchat'],
     install_requires=[
         'requests'
