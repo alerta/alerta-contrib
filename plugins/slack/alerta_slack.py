@@ -5,6 +5,11 @@ import os
 import requests
 
 try:
+    from jinja2 import Template
+except Exception as e:
+    LOG.error('SLACK: ERROR - Jinja template error: %s, template functionality will be unavailable', e)
+
+try:
     from alerta.plugins import app  # alerta >= 5.0
 except ImportError:
     from alerta.app import app  # alerta < 5.0
@@ -35,7 +40,15 @@ SLACK_DEFAULT_SEVERITY_MAP = {'security': '#000000', # black
                               'debug': '#808080', # gray
                               'trace': '#808080', # gray
                               'ok': '#00CC00'} # green
-
+SLACK_SUMMARY_FMT = os.environ.get('SLACK_SUMMARY_FMT') or app.config.get('SLACK_SUMMARY_FMT', None)  # Message summary format
+SLACK_DEFAULT_SUMMARY_FMT='<b>[{status}] {environment} {service} {severity} - <i>{event} on {resource}</i></b> <a href="{dashboard}/#/alert/{alert_id}">{short_id}</a>'
+SLACK_DEFAULT_ATTACHMENT_SIZE_MAP = {
+                              'resource': False,
+                              'severity': True,
+                              'environment': True,
+                              'status': True,
+                              'services': True}
+SLACK_ATTACHMENT_SIZE_MAP = app.config.get('SLACK_ATTACHMENT_SIZE_MAP', SLACK_DEFAULT_ATTACHMENT_SIZE_MAP)
 ICON_EMOJI = os.environ.get('ICON_EMOJI') or app.config.get(
     'ICON_EMOJI', ':rocket:')
 DASHBOARD_URL = os.environ.get(
@@ -60,11 +73,36 @@ class ServiceIntegration(PluginBase):
         return alert
 
     def _slack_prepare_payload(self, alert, status=None, text=None):
-        summary = "*[%s] %s %s - _%s on %s_* <%s/#/alert/%s|%s>" % (
-            (status if status else alert.status).capitalize(), alert.environment, alert.severity.capitalize(
-            ), alert.event, alert.resource, DASHBOARD_URL,
-            alert.id, alert.get_id(short=True)
-        )
+        if SLACK_SUMMARY_FMT:
+            try:
+                LOG.debug('SLACK: generating template: %s' % SLACK_SUMMARY_FMT)
+                template = Template(SLACK_SUMMARY_FMT)
+            except Exception as e:
+                LOG.error('SLACK: ERROR - Template init failed: %s', e)
+                return
+
+            try:
+                LOG.debug('SLACK: rendering template: %s' % SLACK_SUMMARY_FMT)
+                template_vars = {
+                    'alert': alert,
+                    'config': app.config
+                }
+                summary = template.render(**template_vars)
+            except Exception as e:
+                LOG.error('SLACK: ERROR - Template render failed: %s', e)
+                return
+        else:
+            summary = SLACK_DEFAULT_SUMMARY_FMT.format(
+                status=alert.status.capitalize(),
+                environment=alert.environment.upper(),
+                service=','.join(alert.service),
+                severity=alert.severity.capitalize(),
+                event=alert.event,
+                resource=alert.resource,
+                alert_id=alert.id,
+                short_id=alert.get_id(short=True),
+                dashboard=DASHBOARD_URL
+            )
 
         if alert.severity in self._severities:
             color = self._severities[alert.severity]
@@ -72,9 +110,6 @@ class ServiceIntegration(PluginBase):
             color = '#00CC00'  # green
 
         channel = SLACK_CHANNEL_ENV_MAP.get(alert.environment, SLACK_CHANNEL)
-
-        txt = "<%s/#/alert/%s|%s> %s - %s" % (DASHBOARD_URL, alert.get_id(
-        ), alert.get_id(short=True), alert.event, text if text else alert.text)
 
         if not SLACK_ATTACHMENTS:
             payload = {
@@ -88,18 +123,18 @@ class ServiceIntegration(PluginBase):
                 "username": ALERTA_USERNAME,
                 "channel": channel,
                 "icon_emoji": ICON_EMOJI,
+                "text": summary,
                 "attachments": [{
-                    "fallback": summary,
                     "color": color,
-                    "pretext": txt,
                     "fields": [
+                        {"title": "Resource", "value": alert.resource, "short": SLACK_ATTACHMENT_SIZE_MAP['resource']},
+                        {"title": "Severity", "value": alert.severity.capitalize(), "short": SLACK_ATTACHMENT_SIZE_MAP['severity']},
                         {"title": "Status", "value": (status if status else alert.status).capitalize(),
-                         "short": True},
+                         "short": SLACK_ATTACHMENT_SIZE_MAP['status']},
                         {"title": "Environment",
-                            "value": alert.environment, "short": True},
-                        {"title": "Resource", "value": alert.resource, "short": True},
+                            "value": alert.environment, "short": SLACK_ATTACHMENT_SIZE_MAP['environment']},
                         {"title": "Services", "value": ", ".join(
-                            alert.service), "short": True}
+                            alert.service), "short": SLACK_ATTACHMENT_SIZE_MAP['services']}
                     ]
                 }]
             }

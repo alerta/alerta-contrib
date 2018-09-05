@@ -55,6 +55,18 @@ the Alerta console:
 DASHBOARD_URL = ''  # default="not set"
 ```
 
+The `SLACK_SUMMARY_FMT` configuration variable is a Jinja2 template
+string and accepts any Jinja2 syntax. The formatter has access to two
+variables in the template environment, 'alert' for all alert details
+and 'config' for access to the alerta configuration.
+
+If you have Jinja2 available you can try customizing the message like
+this:
+
+```python
+SLACK_SUMMARY_FMT = '*[{{ alert.status|capitalize }}]* [{{ alert.severity|capitalize }}] Event {{ alert.event }} on *{{ alert.environment }} - {{ alert.resource }}*: {{alert.value}}\n{{alert.text}}\nAlert Console: <{{ config.DASHBOARD_URL }}|click here> / Alert: <{{ config.DASHBOARD_URL }}/#/alert/{{ alert.id }}|{{ alert.id[:8] }}>'
+```
+
 Slack Apps API
 --------------
 To use the Slack "Apps" API instead of an Incoming Webhook, create an application and 
