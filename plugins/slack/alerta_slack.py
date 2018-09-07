@@ -40,17 +40,11 @@ SLACK_DEFAULT_SEVERITY_MAP = {'security': '#000000', # black
                               'debug': '#808080', # gray
                               'trace': '#808080', # gray
                               'ok': '#00CC00'} # green
-SLACK_SUMMARY_FMT = os.environ.get('SLACK_SUMMARY_FMT') or app.config.get('SLACK_SUMMARY_FMT', None)  # Message summary format
-SLACK_DEFAULT_SUMMARY_FMT='<b>[{status}] {environment} {service} {severity} - <i>{event} on {resource}</i></b> <a href="{dashboard}/#/alert/{alert_id}">{short_id}</a>'
-SLACK_DEFAULT_ATTACHMENT_SIZE_MAP = {
-                              'resource': False,
-                              'severity': True,
-                              'environment': True,
-                              'status': True,
-                              'services': True}
-SLACK_ATTACHMENT_SIZE_MAP = app.config.get('SLACK_ATTACHMENT_SIZE_MAP', SLACK_DEFAULT_ATTACHMENT_SIZE_MAP)
+SLACK_SUMMARY_FMT = app.config.get('SLACK_SUMMARY_FMT', None)  # Message summary format
+SLACK_DEFAULT_SUMMARY_FMT='*[{status}] {environment} {service} {severity}* - _{event} on {resource}_ <{dashboard}/#/alert/{alert_id}|{short_id}>'
 ICON_EMOJI = os.environ.get('ICON_EMOJI') or app.config.get(
     'ICON_EMOJI', ':rocket:')
+SLACK_PAYLOAD = app.config.get('SLACK_PAYLOAD', None)  # Full API control
 DASHBOARD_URL = os.environ.get(
     'DASHBOARD_URL') or app.config.get('DASHBOARD_URL', '')
 SLACK_HEADERS = {
@@ -72,72 +66,83 @@ class ServiceIntegration(PluginBase):
     def pre_receive(self, alert):
         return alert
 
-    def _slack_prepare_payload(self, alert, status=None, text=None):
-        if SLACK_SUMMARY_FMT:
-            try:
-                LOG.debug('SLACK: generating template: %s' % SLACK_SUMMARY_FMT)
-                template = Template(SLACK_SUMMARY_FMT)
-            except Exception as e:
-                LOG.error('SLACK: ERROR - Template init failed: %s', e)
-                return
+    def _format_template(self, templateFmt, templateVars):
+        try:
+            LOG.debug('SLACK: generating template: %s' % templateFmt)
+            template = Template(templateFmt)
+        except Exception as e:
+            LOG.error('SLACK: ERROR - Template init failed: %s', e)
+            return
 
-            try:
-                LOG.debug('SLACK: rendering template: %s' % SLACK_SUMMARY_FMT)
-                template_vars = {
-                    'alert': alert,
-                    'config': app.config
-                }
-                summary = template.render(**template_vars)
-            except Exception as e:
-                LOG.error('SLACK: ERROR - Template render failed: %s', e)
-                return
-        else:
-            summary = SLACK_DEFAULT_SUMMARY_FMT.format(
-                status=alert.status.capitalize(),
-                environment=alert.environment.upper(),
-                service=','.join(alert.service),
-                severity=alert.severity.capitalize(),
-                event=alert.event,
-                resource=alert.resource,
-                alert_id=alert.id,
-                short_id=alert.get_id(short=True),
-                dashboard=DASHBOARD_URL
-            )
+        try:
+            LOG.debug('SLACK: rendering template: %s' % templateFmt)
+            LOG.debug('SLACK: rendering variables: %s' % templateVars)
+            return template.render(**templateVars)
+        except Exception as e:
+            LOG.error('SLACK: ERROR - Template render failed: %s', e)
+            return
+
+    def _slack_prepare_payload(self, alert, status=None, text=None):
 
         if alert.severity in self._severities:
             color = self._severities[alert.severity]
         else:
             color = '#00CC00'  # green
-
         channel = SLACK_CHANNEL_ENV_MAP.get(alert.environment, SLACK_CHANNEL)
+        templateVars = {
+            'alert': alert,
+            'status': status if status else alert.status,
+            'config': app.config,
+            'color': color,
+            'channel': channel,
+            'emoji': ICON_EMOJI,
+        }
 
-        if not SLACK_ATTACHMENTS:
-            payload = {
-                "username": ALERTA_USERNAME,
-                "channel": channel,
-                "text": summary,
-                "icon_emoji": ICON_EMOJI
-            }
+        if SLACK_PAYLOAD:
+            LOG.info("Formatting with slack payload")
+            payload = json.loads(self._format_template(json.dumps(SLACK_PAYLOAD), templateVars))
         else:
-            payload = {
-                "username": ALERTA_USERNAME,
-                "channel": channel,
-                "icon_emoji": ICON_EMOJI,
-                "text": summary,
-                "attachments": [{
-                    "color": color,
-                    "fields": [
-                        {"title": "Resource", "value": alert.resource, "short": SLACK_ATTACHMENT_SIZE_MAP['resource']},
-                        {"title": "Severity", "value": alert.severity.capitalize(), "short": SLACK_ATTACHMENT_SIZE_MAP['severity']},
-                        {"title": "Status", "value": (status if status else alert.status).capitalize(),
-                         "short": SLACK_ATTACHMENT_SIZE_MAP['status']},
-                        {"title": "Environment",
-                            "value": alert.environment, "short": SLACK_ATTACHMENT_SIZE_MAP['environment']},
-                        {"title": "Services", "value": ", ".join(
-                            alert.service), "short": SLACK_ATTACHMENT_SIZE_MAP['services']}
-                    ]
-                }]
-            }
+            if type(SLACK_SUMMARY_FMT) is str:
+                summary = self._format_template(SLACK_SUMMARY_FMT, templateVars)
+            else:
+                summary = SLACK_DEFAULT_SUMMARY_FMT.format(
+                    status=alert.status.capitalize(),
+                    environment=alert.environment.upper(),
+                    service=','.join(alert.service),
+                    severity=alert.severity.capitalize(),
+                    event=alert.event,
+                    resource=alert.resource,
+                    alert_id=alert.id,
+                    short_id=alert.get_id(short=True),
+                    dashboard=DASHBOARD_URL
+                )
+            if not SLACK_ATTACHMENTS:
+                payload = {
+                    "username": ALERTA_USERNAME,
+                    "channel": channel,
+                    "text": summary,
+                    "icon_emoji": ICON_EMOJI
+                }
+            else:
+                payload = {
+                    "username": ALERTA_USERNAME,
+                    "channel": channel,
+                    "icon_emoji": ICON_EMOJI,
+                    "text": summary,
+                    "attachments": [{
+                        "fallback": summary,
+                        "color": color,
+                        "fields": [
+                            {"title": "Status", "value": (status if status else alert.status).capitalize(),
+                             "short": True},
+                            {"title": "Environment",
+                                "value": alert.environment, "short": True},
+                            {"title": "Resource", "value": alert.resource, "short": True},
+                            {"title": "Services", "value": ", ".join(
+                                alert.service), "short": True}
+                        ]
+                    }]
+                }
 
         return payload
 
