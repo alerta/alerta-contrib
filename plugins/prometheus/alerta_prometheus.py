@@ -15,11 +15,18 @@ LOG = logging.getLogger('alerta.plugins.prometheus')
 DEFAULT_ALERTMANAGER_API_URL = 'http://localhost:9093'
 
 ALERTMANAGER_API_URL = os.environ.get('ALERTMANAGER_API_URL') or app.config.get('ALERTMANAGER_API_URL', None)
-ALERTMANAGER_API_KEY = os.environ.get('ALERTMANAGER_API_KEY') or app.config.get('ALERTMANAGER_API_KEY', '')  # not used
+ALERTMANAGER_USERNAME = os.environ.get('ALERTMANAGER_USERNAME') or app.config.get('ALERTMANAGER_USERNAME', None)
+ALERTMANAGER_PASSWORD = os.environ.get('ALERTMANAGER_PASSWORD') or app.config.get('ALERTMANAGER_PASSWORD', None)
 ALERTMANAGER_SILENCE_DAYS = os.environ.get('ALERTMANAGER_SILENCE_DAYS') or app.config.get('ALERTMANAGER_SILENCE_DAYS', 1)
 
 
 class AlertmanagerSilence(PluginBase):
+
+    def __init__(self, name=None):
+
+        self.auth = (ALERTMANAGER_USERNAME, ALERTMANAGER_PASSWORD) if ALERTMANAGER_USERNAME else None
+
+        super(AlertmanagerSilence, self).__init__(name)
 
     def pre_receive(self, alert):
         return alert
@@ -68,7 +75,7 @@ class AlertmanagerSilence(PluginBase):
             LOG.debug('Alertmanager: data=%s', data)
 
             try:
-                r = requests.post(url, json=data, timeout=2)
+                r = requests.post(url, json=data, auth=self.auth, timeout=2)
             except Exception as e:
                 raise RuntimeError("Alertmanager: ERROR - %s" % e)
             LOG.debug('Alertmanager: %s - %s', r.status_code, r.text)
@@ -90,7 +97,7 @@ class AlertmanagerSilence(PluginBase):
                 base_url = ALERTMANAGER_API_URL or alert.attributes.get('externalUrl', DEFAULT_ALERTMANAGER_API_URL)
                 url = base_url + '/api/v1/silence/%s' % silenceId
                 try:
-                    r = requests.delete(url, timeout=2)
+                    r = requests.delete(url, auth=self.auth, timeout=2)
                 except Exception as e:
                     raise RuntimeError("Alertmanager: ERROR - %s" % e)
                 LOG.debug('Alertmanager: %s - %s', r.status_code, r.text)
