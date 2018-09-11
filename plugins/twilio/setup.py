@@ -1,7 +1,7 @@
 
 from setuptools import setup, find_packages
 
-version = '5.3.1'
+version = '5.4.0'
 
 setup(
     name="alerta-twilio",
@@ -14,7 +14,7 @@ setup(
     packages=find_packages(),
     py_modules=['alerta_twilio_sms'],
     install_requires=[
-        'twilio'
+        'twilio>=6.0.0'
     ],
     include_package_data=True,
     zip_safe=True,

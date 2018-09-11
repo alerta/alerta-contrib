@@ -1,7 +1,8 @@
 
 import logging
 import os
-from twilio.rest import TwilioRestClient
+from twilio.rest import Client
+from twilio.base.exceptions import TwilioRestException
 
 try:
     from alerta.plugins import app  # alerta >= 5.0
@@ -33,10 +34,15 @@ class SendSMSMessage(PluginBase):
             ','.join(alert.service), alert.resource, alert.event
         )
 
-        client = TwilioRestClient(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN)
-        message = client.messages.create(body=message, to=TWILIO_TO_NUMBER, from_=TWILIO_FROM_NUMBER)
+        client = Client(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN)
+        for twilio_to in TWILIO_TO_NUMBER.split(','):
+            LOG.debug('Twilio SMS: Send message from {}, to {}'.format(TWILIO_FROM_NUMBER, twilio_to))
+            try:
+                message = client.messages.create(body=message, to=twilio_to, from_=TWILIO_FROM_NUMBER)
+            except TwilioRestException as e:
+                LOG.error('Twilio SMS: ERROR - {}'.format(str(e)))
+            else:
+                LOG.info("Twilio SMS: Message ID: %s", message.sid)
 
-        LOG.info("Twilio SMS Message ID: %s", message.sid)
-
-    def status_change(self, alert, status):
+    def status_change(self, alert, status, text):
         return
