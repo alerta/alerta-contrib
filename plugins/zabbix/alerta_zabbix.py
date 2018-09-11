@@ -35,21 +35,20 @@ class ZabbixEventAck(PluginBase):
         if alert.event_type != 'zabbixAlert':
             return
 
-        zabbix_api_url = ZABBIX_API_URL or alert.attributes.get('zabbixUrl', DEFAULT_ZABBIX_API_URL)
-        self.zapi = ZabbixAPI(zabbix_api_url)
-        self.zapi.login(ZABBIX_USER, ZABBIX_PASSWORD)
-
         if alert.status == status or not status in ['ack', 'closed']:
-            self.zapi.do_request('user.logout')
             return
 
-        trigger_id = alert.attributes.get('triggerId', None)
         event_id = alert.attributes.get('eventId', None)
+        trigger_id = alert.attributes.get('triggerId', None)
 
         if not event_id:
             LOG.error('Zabbix: eventId missing from alert attributes')
-            self.zapi.do_request('user.logout')
             return
+
+        # login to zabbix
+        zabbix_api_url = ZABBIX_API_URL or alert.attributes.get('zabbixUrl', DEFAULT_ZABBIX_API_URL)
+        self.zapi = ZabbixAPI(zabbix_api_url)
+        self.zapi.login(ZABBIX_USER, ZABBIX_PASSWORD)
 
         LOG.debug('Zabbix: acknowledge (%s) event=%s, resource=%s (triggerId=%s, eventId=%s) ', status, alert.event, alert.resource, trigger_id, event_id)
 
@@ -70,12 +69,12 @@ class ZabbixEventAck(PluginBase):
                     LOG.debug('Zabbix: ack all failed, ack only the one event')
                     r = self.zapi.event.acknowledge(eventids=event_id, message='%s: %s' % (status, text), action=NO_ACTION)
                 except ZabbixAPIException as e:
-                    self.zapi.do_request('user.logout')
                     raise RuntimeError("Zabbix: ERROR - %s", e)
+            finally:
+                self.zapi.do_request('user.logout')
 
             LOG.debug('Zabbix: event.acknowledge(ack) => %s', r)
             text = text + ' (acknowledged in Zabbix)'
-            self.zapi.do_request('user.logout')
 
         elif status == 'closed':
 
@@ -95,11 +94,11 @@ class ZabbixEventAck(PluginBase):
                     LOG.debug('Zabbix: ack all failed, close only the one event')
                     r = self.zapi.event.acknowledge(eventids=event_id, message='%s: %s' % (status, text), action=ACTION_CLOSE)
                 except ZabbixAPIException as e:
-                    self.zapi.do_request('user.logout')
                     raise RuntimeError("Zabbix: ERROR - %s", e)
+            finally:
+                self.zapi.do_request('user.logout')
 
             LOG.debug('Zabbix: event.acknowledge(closed) => %s', r)
             text = text + ' (closed in Zabbix)'
-            self.zapi.do_request('user.logout')
 
         return alert, status, text
