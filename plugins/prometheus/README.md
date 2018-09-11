@@ -51,12 +51,10 @@ ALERTMANAGER_SILENCE_DAYS = 2  # default=1
 Authentication
 --------------
 
-Prometheus Alertmanager [does not provide any form of authentication][1] by
-default. For convenience, this plugin will support Basic Auth if it has
+Prometheus Alertmanager [does not provide any form of authentication](https://prometheus.io/docs/operating/security/#authentication-authorization-and-encryption)
+by default. For convenience, this plugin will support Basic Auth if it has
 been configured (using a reverse proxy or otherwise). Any other form of
 authentication will require development work by the user.
-
-[1]: (https://prometheus.io/docs/operating/security/#authentication-authorization-and-encryption)
 
 **Example of BasicAuth configuration**
 
