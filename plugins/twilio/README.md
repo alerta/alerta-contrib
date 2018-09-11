@@ -36,6 +36,13 @@ TWILIO_TO_NUMBER = ''
 TWILIO_FROM_NUMBER = ''
 ```
 
+Multiple destination phone numbers can be configured in the `TWILIO_TO_NUMBER`
+configuration setting if separated by a comma:
+
+```python
+TWILIO_TO_NUMBER = '+15555555,+4471234567'
+```
+
 Troubleshooting
 ---------------
 
