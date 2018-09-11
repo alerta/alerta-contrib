@@ -48,6 +48,24 @@ ALERTMANAGER_API_URL = 'http://demo.robustperception.io:9093'  # default=http://
 ALERTMANAGER_SILENCE_DAYS = 2  # default=1
 ```
 
+Authentication
+--------------
+
+Prometheus Alertmanager [does not provide any form of authentication][1] by
+default. For convenience, this plugin will support Basic Auth if it has
+been configured (using a reverse proxy or otherwise). Any other form of
+authentication will require development work by the user.
+
+[1]: (https://prometheus.io/docs/operating/security/#authentication-authorization-and-encryption)
+
+**Example of BasicAuth configuration**
+
+```python
+ALERTMANAGER_API_URL = 'http://localhost:9093'
+ALERTMANAGER_USERNAME = 'promuser'
+ALERTMANAGER_PASSWORD = 'prompass'
+```
+
 Troubleshooting
 ---------------
 
