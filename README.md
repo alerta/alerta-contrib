@@ -41,6 +41,7 @@ Plugins
   * [HipChat](plugins/hipchat)
   * [InfluxDB](plugins/influxdb)
   * [Logstash](plugins/logstash)
+  * [Mattermost](plugins/mattermost)
   * [MS Teams](plugins/msteams)
   * [Normalise](plugins/normalise)
   * [OP5](plugins/op5)
