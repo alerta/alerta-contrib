@@ -34,6 +34,9 @@ PLUGINS = ['telegram']
 TELEGRAM_TOKEN = ''  # default="not set"
 TELEGRAM_CHAT_ID = ''  # default="not set"
 TELEGRAM_TEMPLATE = '' # default will use hardcoded one
+TELEGRAM_PROXY = '' # default="not set", URL must start from http://, socks5 not supported
+TELEGRAM_PROXY_USERNAME = '' # default="not set"
+TELEGRAM_PROXY_PASSWORD = '' # default="not set"
 ```
 
 Create a new Telegram Bot using a Telegram client.

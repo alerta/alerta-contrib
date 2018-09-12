@@ -31,10 +31,24 @@ TELEGRAM_WEBHOOK_URL = app.config.get('TELEGRAM_WEBHOOK_URL', None) \
                        or os.environ.get('TELEGRAM_WEBHOOK_URL')
 TELEGRAM_TEMPLATE = app.config.get('TELEGRAM_TEMPLATE') \
                     or os.environ.get('TELEGRAM_TEMPLATE')
+TELEGRAM_PROXY = app.config.get('TELEGRAM_PROXY') \
+                 or os.environ.get('TELEGRAM_PROXY')
+TELEGRAM_PROXY_USERNAME = app.config.get('TELEGRAM_PROXY_USERNAME') \
+                          or os.environ.get('TELEGRAM_PROXY_USERNAME')
+TELEGRAM_PROXY_PASSWORD = app.config.get('TELEGRAM_PROXY_PASSWORD') \
+                          or os.environ.get('TELEGRAM_PROXY_PASSWORD')
 
 DASHBOARD_URL = app.config.get('DASHBOARD_URL', '') \
                 or os.environ.get('DASHBOARD_URL')
 
+# use all the same, but telepot.aio.api.set_proxy for async telepot
+if all([TELEGRAM_PROXY, TELEGRAM_PROXY_USERNAME, TELEGRAM_PROXY_PASSWORD]):
+    telepot.api.set_proxy(
+        TELEGRAM_PROXY, (TELEGRAM_PROXY_USERNAME, TELEGRAM_PROXY_PASSWORD))
+    LOG.debug('Telegram: using proxy %s', TELEGRAM_PROXY)
+elif TELEGRAM_PROXY is not None:
+    telepot.api.set_proxy(TELEGRAM_PROXY)
+    LOG.debug('Telegram: using proxy %s', TELEGRAM_PROXY)
 
 class TelegramBot(PluginBase):
     def __init__(self, name=None):
