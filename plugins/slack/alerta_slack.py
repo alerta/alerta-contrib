@@ -50,7 +50,7 @@ DASHBOARD_URL = os.environ.get(
 SLACK_HEADERS = {
     'Content-Type': 'application/json'
 }
-SLACK_TOKEN = os.environ.get('SLACK_TOKEN') or app.config['SLACK_TOKEN']
+SLACK_TOKEN = os.environ.get('SLACK_TOKEN') or app.config.get('SLACK_TOKEN',None)
 if SLACK_TOKEN:
     SLACK_HEADERS['Authorization'] = 'Bearer ' + SLACK_TOKEN
 
