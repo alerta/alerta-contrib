@@ -157,11 +157,12 @@ class ServiceIntegration(PluginBase):
 
         try:
             r = requests.post(SLACK_WEBHOOK_URL,
-                              data=json.dumps(payload), headers=SLACK_HEADERS, timeout=2)
+                              data=json.dumps(payload), headers=SLACK_HEADERS, timeout=30)
+            LOG.debug('Slack post receive response: %s\n%s' % (r.status_code, r.text))
         except Exception as e:
-            raise RuntimeError("Slack connection error: %s", e)
+            LOG.error('Slack post receive exception: %s', e)
+            raise RuntimeError("Slack post receive connection error: %s", e)
 
-        LOG.debug('Slack response: %s\n%s' % (r.status_code, r.text))
 
     def status_change(self, alert, status, text):
         if SLACK_SEND_ON_ACK == False or status not in ['ack', 'assign']:
@@ -172,8 +173,9 @@ class ServiceIntegration(PluginBase):
         LOG.debug('Slack payload: %s', payload)
         try:
             r = requests.post(SLACK_WEBHOOK_URL,
-                              data=json.dumps(payload), headers=SLACK_HEADERS, timeout=2)
+                              data=json.dumps(payload), headers=SLACK_HEADERS, timeout=30)
+            LOG.debug('Slack post update response: %s\n%s' % (r.status_code, r.text))
         except Exception as e:
-            raise RuntimeError("Slack connection error: %s", e)
+            LOG.error('Slack post update exception: %s', e);
+            raise RuntimeError("Slack post change connection error: %s", e)
 
-        LOG.debug('Slack response: %s\n%s' % (r.status_code, r.text))
