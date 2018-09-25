@@ -3,6 +3,7 @@ import json
 import logging
 import os
 import requests
+import traceback
 
 try:
     from jinja2 import Template
@@ -99,8 +100,10 @@ class ServiceIntegration(PluginBase):
         }
 
         if SLACK_PAYLOAD:
-            LOG.info("Formatting with slack payload")
-            payload = json.loads(self._format_template(json.dumps(SLACK_PAYLOAD), templateVars))
+            LOG.debug("Formatting with slack payload template")
+            formattedPayload = self._format_template(json.dumps(SLACK_PAYLOAD), templateVars).replace('\n', '\\n')
+            LOG.debug("Formatted slack payload:\n%s" % formattedPayload)
+            payload = json.loads(formattedPayload)
         else:
             if type(SLACK_SUMMARY_FMT) is str:
                 summary = self._format_template(SLACK_SUMMARY_FMT, templateVars)
@@ -151,9 +154,13 @@ class ServiceIntegration(PluginBase):
         if alert.repeat:
             return
 
-        payload = self._slack_prepare_payload(alert)
+        try:
+            payload = self._slack_prepare_payload(alert)
 
-        LOG.debug('Slack payload: %s', payload)
+            LOG.debug('Slack payload: %s', payload)
+        except Exception as e:
+            LOG.error('Exception formatting payload: %s\n%s' % (e, traceback.format_exc()))
+            return
 
         try:
             r = requests.post(SLACK_WEBHOOK_URL,
@@ -167,9 +174,14 @@ class ServiceIntegration(PluginBase):
         if SLACK_SEND_ON_ACK == False or status not in ['ack', 'assign']:
             return
 
-        payload = self._slack_prepare_payload(alert, status, text)
+        try:
+            payload = self._slack_prepare_payload(alert, status, text)
 
-        LOG.debug('Slack payload: %s', payload)
+            LOG.debug('Slack payload: %s', payload)
+        except Exception as e:
+            LOG.error('Exception formatting payload: %s\n%s' % (e, traceback.format_exc()))
+            return
+
         try:
             r = requests.post(SLACK_WEBHOOK_URL,
                               data=json.dumps(payload), headers=SLACK_HEADERS, timeout=2)
