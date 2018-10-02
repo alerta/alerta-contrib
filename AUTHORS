@@ -1,3 +1,4 @@
+abenaguev <32957223+abenaguev@users.noreply.github.com>
 Aivars Šterns <asterns@evolutiongaming.com>
 Aleksey Shirokih <shirokih@nocproject.org>
 Angel Velasquez <avelasquez@sangoma.com>
@@ -16,13 +17,17 @@ Joao Mesquita <jmesquita@sangoma.com>
 John Siegrist <john@complects.com>
 Konstantinos Kagkelidis <kaggis@gmail.com>
 Kurt Westerfeld <kurt@yellowbrick.io>
+Kurt Westerfeld <kwesterfeld@users.noreply.github.com>
+kwesterfeld2 <38136866+kwesterfeld2@users.noreply.github.com>
 Marco <marco@supino.org>
 Marco Supino <marco@drivenets.net>
 marksmyth <smythmark1980@gmail.com>
 Matteo Cerutti <matteo.cerutti@rkrepsilon.com>
+max <3752128+maximilize@users.noreply.github.com>
 Minh Danh <minhdanh@hoiio.com>
 Moises Silva <msilva@sangoma.com>
 Nick Satterly <nfsatterly@gmail.com>
+Nick Satterly <nick.satterly@gmail.com>
 Nick Satterly <nick.satterly@guardian.co.uk>
 Nick Satterly <nick.satterly@theguardian.com>
 Rafael Matias <rafael.matias@centralway.com>
@@ -35,6 +40,7 @@ Thomas Collins <thomaswcollins@gmail.com>
 Tomeu Canyelles Escarrer <bcanyelles@apsl.net>
 wanggenyi <genyiwang@gmail.com>
 Yann Cézard <eesprit@users.noreply.github.com>
+Yoshiharu Mori <y-mori@sraoss.co.jp>
 Карамышев Степан <karamyshev@corp.sputnik.ru>
 
 $ git log --format='%aN <%aE>' | sort -f | uniq

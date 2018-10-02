@@ -1,7 +1,7 @@
 
 from setuptools import setup, find_packages
 
-version = '5.2.1'
+version = '5.2.2'
 
 setup(
     name="alerta-pubsub",
@@ -14,7 +14,7 @@ setup(
     packages=find_packages(),
     py_modules=['alerta_pubsub'],
     install_requires=[
-        'google-cloud',
+        'google-cloud-pubsub',
         'oauth2client'
     ],
     include_package_data=True,

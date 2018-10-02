@@ -1,7 +1,7 @@
 
 from setuptools import setup, find_packages
 
-version = '5.4.2'
+version = '5.4.3'
 
 setup(
     name="alerta-influxdb",

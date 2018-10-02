@@ -1,18 +1,18 @@
 
 from setuptools import setup, find_packages
 
-version = '5.4.0'
+version = '5.0.0'
 
 setup(
-    name="alerta-slack",
+    name="alerta-rocketchat",
     version=version,
-    description='Alerta plugin for Slack',
+    description='Alerta plugin for Rocket.Chat',
     url='https://github.com/alerta/alerta-contrib',
     license='MIT',
     author='Nick Satterly',
-    author_email='nick.satterly@theguardian.com',
+    author_email='nick.satterly@gmail.com',
     packages=find_packages(),
-    py_modules=['alerta_slack'],
+    py_modules=['alerta_rocketchat'],
     install_requires=[
         'requests'
     ],
@@ -20,7 +20,7 @@ setup(
     zip_safe=True,
     entry_points={
         'alerta.plugins': [
-            'slack = alerta_slack:ServiceIntegration'
+            'rocketchat = alerta_rocketchat:PostMessage'
         ]
     }
 )

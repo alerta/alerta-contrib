@@ -3,6 +3,12 @@ import json
 import logging
 import os
 import requests
+import traceback
+
+try:
+    from jinja2 import Template
+except Exception as e:
+    LOG.error('SLACK: ERROR - Jinja template error: %s, template functionality will be unavailable', e)
 
 try:
     from alerta.plugins import app  # alerta >= 5.0
@@ -35,12 +41,19 @@ SLACK_DEFAULT_SEVERITY_MAP = {'security': '#000000', # black
                               'debug': '#808080', # gray
                               'trace': '#808080', # gray
                               'ok': '#00CC00'} # green
-
+SLACK_SUMMARY_FMT = app.config.get('SLACK_SUMMARY_FMT', None)  # Message summary format
+SLACK_DEFAULT_SUMMARY_FMT='*[{status}] {environment} {service} {severity}* - _{event} on {resource}_ <{dashboard}/#/alert/{alert_id}|{short_id}>'
 ICON_EMOJI = os.environ.get('ICON_EMOJI') or app.config.get(
     'ICON_EMOJI', ':rocket:')
+SLACK_PAYLOAD = app.config.get('SLACK_PAYLOAD', None)  # Full API control
 DASHBOARD_URL = os.environ.get(
     'DASHBOARD_URL') or app.config.get('DASHBOARD_URL', '')
-
+SLACK_HEADERS = {
+    'Content-Type': 'application/json'
+}
+SLACK_TOKEN = os.environ.get('SLACK_TOKEN') or app.config.get('SLACK_TOKEN',None)
+if SLACK_TOKEN:
+    SLACK_HEADERS['Authorization'] = 'Bearer ' + SLACK_TOKEN
 
 class ServiceIntegration(PluginBase):
 
@@ -54,50 +67,85 @@ class ServiceIntegration(PluginBase):
     def pre_receive(self, alert):
         return alert
 
+    def _format_template(self, templateFmt, templateVars):
+        try:
+            LOG.debug('SLACK: generating template: %s' % templateFmt)
+            template = Template(templateFmt)
+        except Exception as e:
+            LOG.error('SLACK: ERROR - Template init failed: %s', e)
+            return
+
+        try:
+            LOG.debug('SLACK: rendering template: %s' % templateFmt)
+            LOG.debug('SLACK: rendering variables: %s' % templateVars)
+            return template.render(**templateVars)
+        except Exception as e:
+            LOG.error('SLACK: ERROR - Template render failed: %s', e)
+            return
+
     def _slack_prepare_payload(self, alert, status=None, text=None):
-        summary = "*[%s] %s %s - _%s on %s_* <%s/#/alert/%s|%s>" % (
-            (status if status else alert.status).capitalize(), alert.environment, alert.severity.capitalize(
-            ), alert.event, alert.resource, DASHBOARD_URL,
-            alert.id, alert.get_id(short=True)
-        )
 
         if alert.severity in self._severities:
             color = self._severities[alert.severity]
         else:
             color = '#00CC00'  # green
-
         channel = SLACK_CHANNEL_ENV_MAP.get(alert.environment, SLACK_CHANNEL)
+        templateVars = {
+            'alert': alert,
+            'status': status if status else alert.status,
+            'config': app.config,
+            'color': color,
+            'channel': channel,
+            'emoji': ICON_EMOJI,
+        }
 
-        txt = "<%s/#/alert/%s|%s> %s - %s" % (DASHBOARD_URL, alert.get_id(
-        ), alert.get_id(short=True), alert.event, text if text else alert.text)
-
-        if not SLACK_ATTACHMENTS:
-            payload = {
-                "username": ALERTA_USERNAME,
-                "channel": channel,
-                "text": summary,
-                "icon_emoji": ICON_EMOJI
-            }
+        if SLACK_PAYLOAD:
+            LOG.debug("Formatting with slack payload template")
+            formattedPayload = self._format_template(json.dumps(SLACK_PAYLOAD), templateVars).replace('\n', '\\n')
+            LOG.debug("Formatted slack payload:\n%s" % formattedPayload)
+            payload = json.loads(formattedPayload)
         else:
-            payload = {
-                "username": ALERTA_USERNAME,
-                "channel": channel,
-                "icon_emoji": ICON_EMOJI,
-                "attachments": [{
-                    "fallback": summary,
-                    "color": color,
-                    "pretext": txt,
-                    "fields": [
-                        {"title": "Status", "value": (status if status else alert.status).capitalize(),
-                         "short": True},
-                        {"title": "Environment",
-                            "value": alert.environment, "short": True},
-                        {"title": "Resource", "value": alert.resource, "short": True},
-                        {"title": "Services", "value": ", ".join(
-                            alert.service), "short": True}
-                    ]
-                }]
-            }
+            if type(SLACK_SUMMARY_FMT) is str:
+                summary = self._format_template(SLACK_SUMMARY_FMT, templateVars)
+            else:
+                summary = SLACK_DEFAULT_SUMMARY_FMT.format(
+                    status=alert.status.capitalize(),
+                    environment=alert.environment.upper(),
+                    service=','.join(alert.service),
+                    severity=alert.severity.capitalize(),
+                    event=alert.event,
+                    resource=alert.resource,
+                    alert_id=alert.id,
+                    short_id=alert.get_id(short=True),
+                    dashboard=DASHBOARD_URL
+                )
+            if not SLACK_ATTACHMENTS:
+                payload = {
+                    "username": ALERTA_USERNAME,
+                    "channel": channel,
+                    "text": summary,
+                    "icon_emoji": ICON_EMOJI
+                }
+            else:
+                payload = {
+                    "username": ALERTA_USERNAME,
+                    "channel": channel,
+                    "icon_emoji": ICON_EMOJI,
+                    "text": summary,
+                    "attachments": [{
+                        "fallback": summary,
+                        "color": color,
+                        "fields": [
+                            {"title": "Status", "value": (status if status else alert.status).capitalize(),
+                             "short": True},
+                            {"title": "Environment",
+                                "value": alert.environment, "short": True},
+                            {"title": "Resource", "value": alert.resource, "short": True},
+                            {"title": "Services", "value": ", ".join(
+                                alert.service), "short": True}
+                        ]
+                    }]
+                }
 
         return payload
 
@@ -106,29 +154,38 @@ class ServiceIntegration(PluginBase):
         if alert.repeat:
             return
 
-        payload = self._slack_prepare_payload(alert)
+        try:
+            payload = self._slack_prepare_payload(alert)
 
-        LOG.debug('Slack payload: %s', payload)
+            LOG.debug('Slack payload: %s', payload)
+        except Exception as e:
+            LOG.error('Exception formatting payload: %s\n%s' % (e, traceback.format_exc()))
+            return
 
         try:
             r = requests.post(SLACK_WEBHOOK_URL,
-                              data=json.dumps(payload), timeout=2)
+                              data=json.dumps(payload), headers=SLACK_HEADERS, timeout=2)
         except Exception as e:
             raise RuntimeError("Slack connection error: %s", e)
 
-        LOG.debug('Slack response: %s', r.status_code)
+        LOG.debug('Slack response: %s\n%s' % (r.status_code, r.text))
 
     def status_change(self, alert, status, text):
         if SLACK_SEND_ON_ACK == False or status not in ['ack', 'assign']:
             return
 
-        payload = self._slack_prepare_payload(alert, status, text)
+        try:
+            payload = self._slack_prepare_payload(alert, status, text)
 
-        LOG.debug('Slack payload: %s', payload)
+            LOG.debug('Slack payload: %s', payload)
+        except Exception as e:
+            LOG.error('Exception formatting payload: %s\n%s' % (e, traceback.format_exc()))
+            return
+
         try:
             r = requests.post(SLACK_WEBHOOK_URL,
-                              data=json.dumps(payload), timeout=2)
+                              data=json.dumps(payload), headers=SLACK_HEADERS, timeout=2)
         except Exception as e:
             raise RuntimeError("Slack connection error: %s", e)
 
-        LOG.debug('Slack response: %s', r.status_code)
+        LOG.debug('Slack response: %s\n%s' % (r.status_code, r.text))

@@ -41,6 +41,7 @@ Plugins
   * [HipChat](plugins/hipchat)
   * [InfluxDB](plugins/influxdb)
   * [Logstash](plugins/logstash)
+  * [Mattermost](plugins/mattermost)
   * [MS Teams](plugins/msteams)
   * [Normalise](plugins/normalise)
   * [OP5](plugins/op5)
@@ -49,6 +50,7 @@ Plugins
   * [Prometheus](plugins/prometheus)
   * [Google Cloud Pub/Sub](plugins/pubsub)
   * [Pushover.net](plugins/pushover)
+  * [Rocket.Chat](plugins/rocketchat)
   * [Slack](plugins/slack)
   * [Amazon SNS](plugins/sns)
   * [Syslog](plugins/syslog)
@@ -61,6 +63,8 @@ Plugins
 Webhooks
 --------
 
+  * [Azure Monitor](webhooks/azuremonitor)
+  * [Mailgun](webhooks/mailgun)
   * [Sentry](webhooks/sentry)
 
 License

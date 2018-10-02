@@ -2,6 +2,8 @@
 import logging
 import os
 
+from datetime import datetime
+
 try:
     from alerta.plugins import app  # alerta >= 5.0
 except ImportError:
@@ -15,14 +17,11 @@ LOG = logging.getLogger('alerta.plugins.influxdb')
 # 'influxdb://username:password@localhost:8086/databasename'
 DEFAULT_INFLUXDB_DSN = 'influxdb://user:pass@localhost:8086/alerta'
 
-INFLUXDB_DSN = os.environ.get('INFLUXDB_DSN') or app.config.get(
-    'INFLUXDB_DSN', DEFAULT_INFLUXDB_DSN)
-INFLUXDB_DATABASE = os.environ.get(
-    'INFLUXDB_DATABASE') or app.config.get('INFLUXDB_DATABASE', None)
+INFLUXDB_DSN = os.environ.get('INFLUXDB_DSN') or app.config.get('INFLUXDB_DSN', DEFAULT_INFLUXDB_DSN)
+INFLUXDB_DATABASE = os.environ.get('INFLUXDB_DATABASE') or app.config.get('INFLUXDB_DATABASE', None)
 
 # Specify the name of a measurement to which all alerts will be logged
-INFLUXDB_MEASUREMENT = os.environ.get(
-    'INFLUXDB_MEASUREMENT') or app.config.get('INFLUXDB_MEASUREMENT', 'event')
+INFLUXDB_MEASUREMENT = os.environ.get('INFLUXDB_MEASUREMENT') or app.config.get('INFLUXDB_MEASUREMENT', 'event')
 
 
 class InfluxDBWrite(PluginBase):
@@ -54,15 +53,21 @@ class InfluxDBWrite(PluginBase):
             except ValueError:
                 pass
 
-        tags.update(event=alert.event, resource=alert.resource, environment=alert.environment,
-                    severity=alert.severity, status=status if status else alert.status, service=','.join(alert.service))
+        tags.update(
+            event=alert.event,
+            resource=alert.resource,
+            environment=alert.environment,
+            severity=alert.severity,
+            status=status if status else alert.status,
+            service=','.join(alert.service)
+        )
         if alert.customer:
             tags.update(customer=alert.customer)
 
         # event data
         point = {
             'measurement': INFLUXDB_MEASUREMENT,
-            'time': alert.last_receive_time,
+            'time': datetime.utcnow() if status else alert.create_time,
             'tags': tags,
             'fields': {}
         }

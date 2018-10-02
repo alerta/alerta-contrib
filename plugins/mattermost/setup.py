@@ -1,26 +1,25 @@
-
 from setuptools import setup, find_packages
 
-version = '5.4.0'
+version = '1.1.3'
 
 setup(
-    name="alerta-slack",
+    name="alerta-mattermost",
     version=version,
-    description='Alerta plugin for Slack',
+    description='Alerta plugin for Mattermost',
     url='https://github.com/alerta/alerta-contrib',
     license='MIT',
-    author='Nick Satterly',
-    author_email='nick.satterly@theguardian.com',
+    author='Dmitrii Sitnikov (WWHW)',
+    author_email='no-reply@wwhw.org',
     packages=find_packages(),
-    py_modules=['alerta_slack'],
+    py_modules=['alerta_mattermost'],
     install_requires=[
-        'requests'
+        'matterhook',
     ],
     include_package_data=True,
     zip_safe=True,
     entry_points={
         'alerta.plugins': [
-            'slack = alerta_slack:ServiceIntegration'
+            'mattermost = alerta_mattermost:ServiceIntegration'
         ]
     }
 )
