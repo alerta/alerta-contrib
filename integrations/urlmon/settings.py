@@ -10,14 +10,15 @@ checks = [
         "environment": "Production",
         "service": ["Google", "Search"]
         "api_endpoint": "http://localhost:8080",
-        "api_key": None
+        "api_key": None,
     },
     {
         "resource": "guardian-football",
-        "url": "http://www.guardian.co.uk/football",
+        "url": "https://www.guardian.co.uk/football",
         "environment": "Production",
         "service": ["theguardian.com", "Sport"],
-        "tags": ["football"]
+        "tags": ["football"],
+        "check_ssl": True
     },
 ]
 
