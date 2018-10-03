@@ -1,4 +1,3 @@
-
 import platform
 import sys
 import time
@@ -241,31 +240,34 @@ class WorkerThread(threading.Thread):
             if check_ssl:
                 ssl_date_fmt = r'%b %d %H:%M:%S %Y %Z'
                 context = ssl.create_default_context()
+                domain = '{uri.netloc}'.format(uri=urllib.parse.urlparse(check.get('url')))
+                port = urllib.parse.urlparse(check.get('url')).port or 443
                 conn = context.wrap_socket(
                     socket.socket(socket.AF_INET),
-                    server_hostname=check['url'],
+                    server_hostname=domain
                 )
                 conn.settimeout(3.0)
-                conn.connect(check.get('url'), 443)
+                conn.connect((domain, port))
                 ssl_info = conn.getpeercert()
                 days_left = datetime.datetime.strptime(ssl_info['notAfter'], ssl_date_fmt) - datetime.datetime.utcnow()
+                send = False
                 if days_left < datetime.timedelta(days=0):
                     text = 'HTTPS cert for %s expired' % check['resource']
                     severity = 'critical'
                     send = True
-                elif days_left < SSL_DAYS_PANIC:
-                    text = 'HTTPS cert for %s will expire at %d' % (check['resource'], days_left)
+                elif days_left < datetime.timedelta(days=SSL_DAYS) and days_left > datetime.timedelta(days=SSL_DAYS_PANIC):
+                    text = 'HTTPS cert for %s will expire at %s' % (check['resource'], days_left)
                     severity = 'major'
                     send = True
-                elif days_left < SSL_DAYS_PANIC:
-                    text = 'HTTPS cert for %s will expire at %d' % (check['resource'], days_left)
-                    severity = 'minor'
+                elif days_left <= datetime.timedelta(days=SSL_DAYS_PANIC):
+                    text = 'HTTPS cert for %s will expire at %s' % (check['resource'], days_left)
+                    severity = 'critical'
                     send = True
                 if send:
                     try:
                         local_api.send_alert(
                             resource=resource,
-                            event=event,
+                            event='HttpSSLChecker',
                             correlate=correlate,
                             group=group,
                             value='0',
@@ -428,3 +430,4 @@ def main():
 
 if __name__ == '__main__':
     main()
+
