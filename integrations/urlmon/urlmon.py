@@ -253,11 +253,11 @@ class WorkerThread(threading.Thread):
                     text = 'HTTPS cert for %s expired' % check['resource']
                     severity = 'critical'
                     send = True
-                elif days_left < SSL_DAYS_PANIC
+                elif days_left < SSL_DAYS_PANIC:
                     text = 'HTTPS cert for %s will expire at %d' % (check['resource'], days_left)
                     severity = 'major'
                     send = True
-                elif days_left < SSL_DAYS_PANIC
+                elif days_left < SSL_DAYS_PANIC:
                     text = 'HTTPS cert for %s will expire at %d' % (check['resource'], days_left)
                     severity = 'minor'
                     send = True
