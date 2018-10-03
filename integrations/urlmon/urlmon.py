@@ -328,7 +328,7 @@ class WorkerThread(threading.Thread):
             urllib.request.install_opener(opener)
 
             if 'User-agent' not in headers:
-                headers['User-agent'] = 'alert-urlmon/%s Python-urllib/%s' % (__version__, urllib.__version__)
+                headers['User-agent'] = 'alert-urlmon/%s' % (__version__)
 
             try:
                 if post:
