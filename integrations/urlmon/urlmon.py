@@ -250,39 +250,37 @@ class WorkerThread(threading.Thread):
                 conn.connect((domain, port))
                 ssl_info = conn.getpeercert()
                 days_left = datetime.datetime.strptime(ssl_info['notAfter'], ssl_date_fmt) - datetime.datetime.utcnow()
-                send = False
                 if days_left < datetime.timedelta(days=0):
                     text = 'HTTPS cert for %s expired' % check['resource']
                     severity = 'critical'
-                    send = True
                 elif days_left < datetime.timedelta(days=SSL_DAYS) and days_left > datetime.timedelta(days=SSL_DAYS_PANIC):
                     text = 'HTTPS cert for %s will expire at %s' % (check['resource'], days_left)
                     severity = 'major'
-                    send = True
                 elif days_left <= datetime.timedelta(days=SSL_DAYS_PANIC):
                     text = 'HTTPS cert for %s will expire at %s' % (check['resource'], days_left)
                     severity = 'critical'
-                    send = True
-                if send:
-                    try:
-                        local_api.send_alert(
-                            resource=resource,
-                            event='HttpSSLChecker',
-                            correlate=correlate,
-                            group=group,
-                            value='0',
-                            severity=severity,
-                            environment=environment,
-                            service=service,
-                            text=text,
-                            event_type='serviceAlert',
-                            tags=tags,
-                            attributes={
-                                'thresholdInfo': threshold_info
-                            }
-                        )
-                    except Exception as e:
-                        LOG.warning('Failed to send ssl alert: %s', e)
+                else:
+                    severity = 'normal'
+
+                try:
+                    local_api.send_alert(
+                        resource=resource,
+                        event='HttpSSLChecker',
+                        correlate=correlate,
+                        group=group,
+                        value='0',
+                        severity=severity,
+                        environment=environment,
+                        service=service,
+                        text=text,
+                        event_type='serviceAlert',
+                        tags=tags,
+                        attributes={
+                            'thresholdInfo': threshold_info
+                        }
+                    )
+                except Exception as e:
+                    LOG.warning('Failed to send ssl alert: %s', e)
 
             self.queue.task_done()
             LOG.info('%s check complete.', self.getName())
