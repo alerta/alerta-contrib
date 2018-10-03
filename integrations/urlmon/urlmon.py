@@ -246,7 +246,7 @@ class WorkerThread(threading.Thread):
                     server_hostname=check['url'],
                 )
                 conn.settimeout(3.0)
-                conn.connect((check['url'], 443))
+                conn.connect(check.get('url'), 443)
                 ssl_info = conn.getpeercert()
                 days_left = datetime.datetime.strptime(ssl_info['notAfter'], ssl_date_fmt) - datetime.datetime.utcnow()
                 if days_left < datetime.timedelta(days=0):
