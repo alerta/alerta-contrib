@@ -1,19 +1,22 @@
-
 import platform
 import sys
 import time
-import urllib2
+import urllib.request, urllib.error, urllib.parse
 import json
 import threading
-import Queue
+import queue
 import re
 import logging
 
+import datetime
+import ssl
+import socket
+
 from alertaclient.api import Client
 
-from BaseHTTPServer import BaseHTTPRequestHandler as BHRH
+from http.server import BaseHTTPRequestHandler as BHRH
 
-HTTP_RESPONSES = dict([(k, v[0]) for k, v in BHRH.responses.items()])
+HTTP_RESPONSES = dict([(k, v[0]) for k, v in list(BHRH.responses.items())])
 
 # Add missing responses
 HTTP_RESPONSES[102] = 'Processing'
@@ -45,6 +48,8 @@ SERVER_THREADS = 20
 SLOW_WARNING_THRESHOLD = 5000  # ms
 SLOW_CRITICAL_THRESHOLD = 10000  # ms
 MAX_TIMEOUT = 15000  # ms
+SSL_DAYS = 30
+SSL_DAYS_PANIC = 7
 
 import settings
 
@@ -89,6 +94,7 @@ class WorkerThread(threading.Thread):
             crit_thold = check.get('critical', SLOW_CRITICAL_THRESHOLD)
             checker_api = check.get('api_endpoint', None)
             checker_apikey = check.get('api_key', None)
+            check_ssl = check.get('check_ssl')
             if (checker_api and checker_apikey):
                 local_api = Client(endpoint=checker_api, key=checker_apikey)
             else:
@@ -231,6 +237,51 @@ class WorkerThread(threading.Thread):
             except Exception as e:
                 LOG.warning('Failed to send alert: %s', e)
 
+            if check_ssl:
+                ssl_date_fmt = r'%b %d %H:%M:%S %Y %Z'
+                context = ssl.create_default_context()
+                domain = '{uri.netloc}'.format(uri=urllib.parse.urlparse(check.get('url')))
+                port = urllib.parse.urlparse(check.get('url')).port or 443
+                conn = context.wrap_socket(
+                    socket.socket(socket.AF_INET),
+                    server_hostname=domain
+                )
+                conn.settimeout(3.0)
+                conn.connect((domain, port))
+                ssl_info = conn.getpeercert()
+                days_left = datetime.datetime.strptime(ssl_info['notAfter'], ssl_date_fmt) - datetime.datetime.utcnow()
+                if days_left < datetime.timedelta(days=0):
+                    text = 'HTTPS cert for %s expired' % check['resource']
+                    severity = 'critical'
+                elif days_left < datetime.timedelta(days=SSL_DAYS) and days_left > datetime.timedelta(days=SSL_DAYS_PANIC):
+                    text = 'HTTPS cert for %s will expire at %s' % (check['resource'], days_left)
+                    severity = 'major'
+                elif days_left <= datetime.timedelta(days=SSL_DAYS_PANIC):
+                    text = 'HTTPS cert for %s will expire at %s' % (check['resource'], days_left)
+                    severity = 'critical'
+                else:
+                    severity = 'normal'
+
+                try:
+                    local_api.send_alert(
+                        resource=resource,
+                        event='HttpSSLChecker',
+                        correlate=correlate,
+                        group=group,
+                        value='0',
+                        severity=severity,
+                        environment=environment,
+                        service=service,
+                        text=text,
+                        event_type='serviceAlert',
+                        tags=tags,
+                        attributes={
+                            'thresholdInfo': threshold_info
+                        }
+                    )
+                except Exception as e:
+                    LOG.warning('Failed to send ssl alert: %s', e)
+
             self.queue.task_done()
             LOG.info('%s check complete.', self.getName())
 
@@ -260,34 +311,34 @@ class WorkerThread(threading.Thread):
             start = time.time()
 
             if username and password:
-                auth_handler = urllib2.HTTPBasicAuthHandler()
+                auth_handler = urllib.request.HTTPBasicAuthHandler()
                 auth_handler.add_password(realm=realm,
                                           uri=uri,
                                           user=username,
                                           passwd=password)
                 if proxy:
-                    opener = urllib2.build_opener(auth_handler, urllib2.ProxyHandler(proxy))
+                    opener = urllib.request.build_opener(auth_handler, urllib.request.ProxyHandler(proxy))
                 else:
-                    opener = urllib2.build_opener(auth_handler)
+                    opener = urllib.request.build_opener(auth_handler)
             else:
                 if proxy:
-                    opener = urllib2.build_opener(urllib2.ProxyHandler(proxy))
+                    opener = urllib.request.build_opener(urllib.request.ProxyHandler(proxy))
                 else:
-                    opener = urllib2.build_opener()
-            urllib2.install_opener(opener)
+                    opener = urllib.request.build_opener()
+            urllib.request.install_opener(opener)
 
             if 'User-agent' not in headers:
-                headers['User-agent'] = 'alert-urlmon/%s Python-urllib/%s' % (__version__, urllib2.__version__)
+                headers['User-agent'] = 'alert-urlmon/%s' % (__version__)
 
             try:
                 if post:
-                    req = urllib2.Request(url, json.dumps(post), headers=headers)
+                    req = urllib.request.Request(url, json.dumps(post), headers=headers)
                 else:
-                    req = urllib2.Request(url, headers=headers)
-                response = urllib2.urlopen(req, None, MAX_TIMEOUT)
+                    req = urllib.request.Request(url, headers=headers)
+                response = urllib.request.urlopen(req, None, MAX_TIMEOUT)
             except ValueError as e:
                 LOG.error('Request failed: %s', e)
-            except urllib2.URLError as e:
+            except urllib.error.URLError as e:
                 if hasattr(e, 'reason'):
                     reason = str(e.reason)
                     status = None
@@ -322,7 +373,7 @@ class UrlmonDaemon(object):
 
         self.running = True
 
-        self.queue = Queue.Queue()
+        self.queue = queue.Queue()
         self.api = Client(endpoint=settings.ENDPOINT, key=settings.API_KEY)
 
         # Start worker threads
@@ -377,3 +428,4 @@ def main():
 
 if __name__ == '__main__':
     main()
+
