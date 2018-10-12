@@ -1,20 +1,18 @@
-
 from alerta.models.alert import Alert
 from alerta.webhooks import WebhookBase
 import json
-
 
 class AzureMonitorWebhook(WebhookBase):
 
     def incoming(self, query_string, payload):
         
-        # Environment is not avaible in the payload, use request param.
+        # fail-safe to a default environment
         try:
             environment = query_string['environment']
         except:
             environment = 'Production'
         
-        # Azure have two formats for their weebhooks (the first one is new format and the decond one is old format.
+        # Azure has two formats for their webhooks (the first one is new format and the second one is old format)
         try:
             if payload['data']['status'] == 'Activated':
                 severity = 'critical'
@@ -23,22 +21,21 @@ class AzureMonitorWebhook(WebhookBase):
             else:
                 severity = 'unknown'
                 
-            resource=payload['data']['context']['resourceName']
-            create_time=payload['data']['context']['timestamp']
-            event=payload['data']['context']['name']
-            service=payload['data']['context']['resourceType']
-            group=payload['data']['context']['resourceGroupName']
-            tags=['{}={}'.format(k, v) for k, v in payload['data']['properties'].items()]
+            resource        = payload['data']['context']['resourceName']
+            create_time     = payload['data']['context']['timestamp']
+            event           = payload['data']['context']['name']
+            service         = payload['data']['context']['resourceType']
+            group           = payload['data']['context']['resourceGroupName']
+            tags            = ['{}={}'.format(k, v) for k, v in payload['data']['properties'].items()]
+
             if payload['schemaId'] == 'AzureMonitorMetricAlert':
-                type = 'MetricAlert'
+                event_type = 'MetricAlert'
                 text = '{}: {} {} ({} {})'.format(severity.upper(), payload['data']['context']['condition']['allOf'][0]['metricValue'], payload['data']['context']['condition']['allOf'][0]['metricName'], payload['data']['context']['condition']['allOf'][0]['operator'], payload['data']['context']['condition']['allOf'][0]['threshold'])
                 value = '{} {}'.format(payload['data']['context']['condition']['allOf'][0]['metricValue'], payload['data']['context']['condition']['allOf'][0]['metricName'])
             else:
                 text = '{}'.format(severity.upper())
                 value = ''
-                type = 'EventAlert'
-               
-        
+                event_type = 'EventAlert'
         
         except:
             if payload['status'] == 'Activated':
@@ -55,19 +52,18 @@ class AzureMonitorWebhook(WebhookBase):
                 text = '{}'.format(severity.upper())
                 value = ''
             
-            resource=payload['context']['resourceName']
-            create_time=payload['context']['timestamp']
-            type='{}Alert'.format(payload['context']['conditionType'])
-            event=payload['context']['name']
-            service=[payload['context']['resourceType']]
-            group=payload['context']['resourceGroupName']
-            tags=['{}={}'.format(k, v) for k, v in payload['properties'].items()]
-
+            resource        = payload['context']['resourceName']
+            create_time     = payload['context']['timestamp']
+            event_type      = '{}Alert'.format(payload['context']['conditionType'])
+            event           = payload['context']['name']
+            service         = [payload['context']['resourceType']]
+            group           = payload['context']['resourceGroupName']
+            tags            = ['{}={}'.format(k, v) for k, v in payload['properties'].items()]
 
         return Alert(
             resource=resource,
             create_time=create_time,
-            type=type,
+            type=event_type,
             event=event,
             environment=environment,
             severity=severity,
