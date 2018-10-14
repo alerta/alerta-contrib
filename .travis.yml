@@ -1,0 +1,26 @@
+if: tag IS present OR type = pull_request OR (branch = master AND type = push)   # we only CI the master, tags and PRs
+
+language: python
+cache: pip
+dist: xenial
+python:
+  - "2.7"
+  - "3.5"
+  - "3.6"
+
+services:
+  - mongodb
+
+addons:
+  apt:
+    sources:
+    - mongodb-3.0-precise
+    packages:
+    - mongodb-org-server
+
+install:
+  - pip install -r tests/requirements.txt
+  - pip install -e plugins/rocketchat       # rocketchat
+
+script:
+  - nosetests --verbosity=3 plugins/*/test*
