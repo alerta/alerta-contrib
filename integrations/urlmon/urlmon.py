@@ -407,7 +407,7 @@ class UrlmonDaemon(object):
                             resource=origin,
                             event='big queue for http checks',
                             value=self.queue.qsize(),
-                            severity='warning'
+                            severity='warning',
                             text='URL check queue length is %d', self.queue.qsize(),
                             event_type='serviceAlert',
                         )
