@@ -395,12 +395,28 @@ class UrlmonDaemon(object):
                 LOG.debug('Send heartbeat...')
                 try:
                     origin = '{}/{}'.format('urlmon', platform.uname()[1])
-                    self.api.heartbeat(origin, tags=[__version__])
+                    self.api.heartbeat(origin, tags=[__version__], timeout=3600)
                 except Exception as e:
                     LOG.warning('Failed to send heartbeat: %s', e)
 
                 time.sleep(LOOP_EVERY)
                 LOG.info('URL check queue length is %d', self.queue.qsize())
+
+                if self.queue.qsize() > 100:
+                    severity = 'warning'
+                else:
+                    severity = 'ok'
+                try:
+                    self.api.send_alert(
+                        resource=origin,
+                        event='big queue for http checks',
+                        value=self.queue.qsize(),
+                        severity=severity,
+                        text='URL check queue length is %d', self.queue.qsize(),
+                        event_type='serviceAlert',
+                    )
+                except Exception as e:
+                    LOG.warning('Failed to send alert: %s', e)
 
             except (KeyboardInterrupt, SystemExit):
                 self.shuttingdown = True
