@@ -48,6 +48,8 @@ DEFAULT_OPTIONS = {
     'key':           '',
     'amqp_url':      'redis://localhost:6379/',
     'amqp_topic':    'notify',
+    'amqp_queue_name':    '', # Name of the AMQP queue. Default is no name (default queue destination).
+    'amqp_queue_exclusive': True, # Exclusive queues may only be consumed by the current connection.
     'smtp_host':     'smtp.gmail.com',
     'smtp_port':     587,
     'smtp_username': '', # application-specific username if it differs from the specified 'mail_from' user
@@ -96,11 +98,11 @@ class FanoutConsumer(ConsumerMixin):
 
         queues = [
             Queue(
-                name='',
+                name=OPTIONS['amqp_queue_name'],
                 exchange=exchange,
                 routing_key='',
                 channel=self.channel,
-                exclusive=True
+                exclusive=OPTIONS['amqp_queue_exclusive']
             )
         ]
 
