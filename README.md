@@ -15,6 +15,7 @@ Integrations
 ------------
 
   * [Consul](integrations/consul)
+  * [Fail2Ban](integrations/fail2ban)
   * [Kibana](https://github.com/alerta/kibana-alerta)
   * [Mailer](integrations/mailer)
   * [Nagios](https://github.com/alerta/nagios-alerta)
@@ -64,9 +65,9 @@ Webhooks
 --------
 
   * [Azure Monitor](webhooks/azuremonitor)
+  * [Fail2Ban](webhooks/fail2ban)
   * [Mailgun](webhooks/mailgun)
   * [Sentry](webhooks/sentry)
-  * [Fail2Ban](webhooks/fail2ban)
 
 License
 -------
