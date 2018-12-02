@@ -66,6 +66,7 @@ Webhooks
   * [Azure Monitor](webhooks/azuremonitor)
   * [Mailgun](webhooks/mailgun)
   * [Sentry](webhooks/sentry)
+  * [Fail2Ban](webhooks/fail2ban)
 
 License
 -------
