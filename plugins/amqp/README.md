@@ -41,7 +41,7 @@ messaging backbone to make use of this plugin.
 
 ```python
 PLUGINS = ['reject','amqp']
-AMQP_URL = 'amqp://login:password@server:port//'  # => default RabbitMQ port=5762
+AMQP_URL = 'amqp://login:password@server:port//'  # => default RabbitMQ port=5672
 AMQP_TOPIC = 'alerta.notify'
 ```
 
