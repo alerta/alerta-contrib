@@ -97,7 +97,7 @@ class TriggerEvent(PluginBase):
             except Exception as e:
                 raise RuntimeError("OpsGenie connection error: %s" % e)
 
-        LOG.debug('OpsGenie response: %s - %s', r.status_code, r.text)
+        LOG.debug('OpsGenie response: %s - %s' % (r.status_code, r.text))
 
     def status_change(self, alert, status, text):
         LOG.debug('Alert change %s to %s: %s' % (alert.id, status, alert.get_body(history=False)))
@@ -108,4 +108,4 @@ class TriggerEvent(PluginBase):
 
         r = self.opsgenie_close_alert(alert, 'STATUS-CLOSE')
 
-        LOG.debug('OpsGenie response: %s - %s', r.status_code, r.text)
+        LOG.debug('OpsGenie response: %s - %s' % (r.status_code, r.text))
