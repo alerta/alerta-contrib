@@ -24,7 +24,7 @@ class AzureMonitorWebhook(WebhookBase):
             resource        = payload['data']['context']['resourceName']
             create_time     = payload['data']['context']['timestamp']
             event           = payload['data']['context']['name']
-            service         = payload['data']['context']['resourceType']
+            service         = [payload['data']['context']['resourceType']]
             group           = payload['data']['context']['resourceGroupName']
             tags            = ['{}={}'.format(k, v) for k, v in payload['data']['properties'].items()]
 
