@@ -26,7 +26,7 @@ class AzureMonitorWebhook(WebhookBase):
             event           = payload['data']['context']['name']
             service         = payload['data']['context']['resourceType']
             group           = payload['data']['context']['resourceGroupName']
-            tags            = ['{}={}'.format(k, v) for k, v in payload['data']['properties'].items()]
+            tags            = [] if payload['data']['properties'] is None else ['{}={}'.format(k, v) for k, v in payload['data']['properties'].items()]
 
             if payload['schemaId'] == 'AzureMonitorMetricAlert':
                 event_type = 'MetricAlert'
@@ -58,7 +58,7 @@ class AzureMonitorWebhook(WebhookBase):
             event           = payload['context']['name']
             service         = [payload['context']['resourceType']]
             group           = payload['context']['resourceGroupName']
-            tags            = ['{}={}'.format(k, v) for k, v in payload['properties'].items()]
+            tags            = [] if payload['properties'] is None else ['{}={}'.format(k, v) for k, v in payload['properties'].items()]
 
         return Alert(
             resource=resource,
