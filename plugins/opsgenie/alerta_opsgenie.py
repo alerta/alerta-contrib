@@ -81,11 +81,13 @@ class TriggerEvent(PluginBase):
             details['previousSeverity'] = body['previousSeverity']
             details['duplicateCount'] = body['duplicateCount']
 
+            teams = []
+
             payload = {
                 "alias": alert.id,
                 "message": "[ %s ]: %s: %s" % (alert.environment, alert.severity, alert.text),
                 "entity": alert.environment,
-                "teams" : [],
+                "teams" : [{"name": team, "type": "team"} for team in teams],
                 "tags": [alert.environment, alert.resource, alert.service[0], alert.event],
                 "details": details
             }
