@@ -69,8 +69,17 @@ Webhooks
   * [Mailgun](webhooks/mailgun)
   * [Sentry](webhooks/sentry)
 
+Tests
+-----
+
+To run the tests using a local Postgres database run:
+
+    $ pip install -r requirements-dev.txt
+    $ createdb test5
+    $ ALERTA_SVR_CONF_FILE= DATABASE_URL=postgres:///test5 pytest -v webhooks/*/test*
+
 License
 -------
 
-Copyright (c) 2014-2018 Nick Satterly and [AUTHORS](AUTHORS). Available under the MIT License.
+Copyright (c) 2014-2019 Nick Satterly and [AUTHORS](AUTHORS). Available under the MIT License.
 
