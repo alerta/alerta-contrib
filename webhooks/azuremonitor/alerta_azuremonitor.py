@@ -18,6 +18,8 @@ class AzureMonitorWebhook(WebhookBase):
                 severity = 'critical'
             elif payload['data']['status'] == 'Resolved':
                 severity = 'ok'
+            elif payload['data']['status'] == 'Deactivated':
+                severity = 'ok'
             else:
                 severity = 'unknown'
                 
