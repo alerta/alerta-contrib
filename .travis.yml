@@ -27,4 +27,4 @@ install:
   - pip install -r requirements-dev.txt
 
 script:
-  - pytest -v webhooks/sentry
+  - pytest -v webhooks/*/test*

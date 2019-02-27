@@ -1,71 +1,102 @@
 from alerta.models.alert import Alert
 from alerta.webhooks import WebhookBase
-import json
+
+SEVERITY_MAP = {
+    '0': 'critical',       # Critical
+    '1': 'major',          # Error
+    '2': 'warning',        # Warning
+    '3': 'informational',  # Informational
+    '4': 'debug'           # Verbose
+}
+
+DEFAULT_SEVERITY_LEVEL = '3'  # 'warning'
+
 
 class AzureMonitorWebhook(WebhookBase):
+    """
+    Microsoft Azure Monitor alerts webhook
+    https://docs.microsoft.com/en-us/azure/azure-monitor/platform/alerts-webhooks
+    """
 
     def incoming(self, query_string, payload):
-        
-        # fail-safe to a default environment
-        try:
-            environment = query_string['environment']
-        except:
-            environment = 'Production'
-        
-        # Azure has two formats for their webhooks (the first one is new format and the second one is old format)
-        try:
-            if payload['data']['status'] == 'Activated':
-                severity = 'critical'
-            elif payload['data']['status'] == 'Resolved':
-                severity = 'ok'
-            elif payload['data']['status'] == 'Deactivated':
+
+        # Alerts (new)
+        if 'data' in payload:
+            context = payload['data']['context']
+
+            status = payload['data']['status']
+            if status == 'Resolved' or status == 'Deactivated':
                 severity = 'ok'
             else:
-                severity = 'unknown'
-                
-            resource        = payload['data']['context']['resourceName']
-            create_time     = payload['data']['context']['timestamp']
-            event           = payload['data']['context']['name']
-            service         = [payload['data']['context']['resourceType']]
-            group           = payload['data']['context']['resourceGroupName']
-            tags            = [] if payload['data']['properties'] is None else ['{}={}'.format(k, v) for k, v in payload['data']['properties'].items()]
+                severity = SEVERITY_MAP[context.get('severity', DEFAULT_SEVERITY_LEVEL)]
+
+            resource = context['resourceName']
+            event = context['name']
+            environment = query_string.get('environment', 'Production')
+            service = [context['resourceType']]
+            group = context['resourceGroupName']
+            tags = [] if payload['data']['properties'] is None else ['{}={}'.format(k, v) for k, v in
+                                                             payload['data']['properties'].items()]
+            create_time = context['timestamp']
 
             if payload['schemaId'] == 'AzureMonitorMetricAlert':
                 event_type = 'MetricAlert'
-                text = '{}: {} {} ({} {})'.format(severity.upper(), payload['data']['context']['condition']['allOf'][0]['metricValue'], payload['data']['context']['condition']['allOf'][0]['metricName'], payload['data']['context']['condition']['allOf'][0]['operator'], payload['data']['context']['condition']['allOf'][0]['threshold'])
-                value = '{} {}'.format(payload['data']['context']['condition']['allOf'][0]['metricValue'], payload['data']['context']['condition']['allOf'][0]['metricName'])
+                text = '{}: {} {} ({} {})'.format(
+                    severity.upper(),
+                    context['condition']['allOf'][0]['metricValue'],
+                    context['condition']['allOf'][0]['metricName'],
+                    context['condition']['allOf'][0]['operator'],
+                    context['condition']['allOf'][0]['threshold'])
+                value = '{} {}'.format(
+                    context['condition']['allOf'][0]['metricValue'],
+                    context['condition']['allOf'][0]['metricName'])
             else:
                 text = '{}'.format(severity.upper())
                 value = ''
                 event_type = 'EventAlert'
-        
-        except:
+
+        # Alerts (classic)
+        else:
+            context = payload['context']
+
+            resource = context['resourceName']
+            event = context['name']
+            environment = query_string.get('environment', 'Production')
+
             if payload['status'] == 'Activated':
                 severity = 'critical'
             elif payload['status'] == 'Resolved':
                 severity = 'ok'
             else:
-                severity = 'unknown'
-    
-            if payload['context']['conditionType'] == 'Metric':
-                text = '{}: {} {} ({} {})'.format(severity.upper(), payload['context']['condition']['metricValue'], payload['context']['condition']['metricName'], payload['context']['condition']['operator'], payload['context']['condition']['threshold'])
-                value = '{} {}'.format(payload['context']['condition']['metricValue'], payload['context']['condition']['metricName'])
+                severity = 'indeterminate'
+
+            service = [context['resourceType']]
+            group = context['resourceGroupName']
+
+            if context['conditionType'] == 'Metric':
+                condition = context['condition']
+                text = '{}: {} {} ({} {})'.format(
+                    severity.upper(),
+                    condition['metricValue'],
+                    condition['metricName'],
+                    condition['operator'],
+                    condition['threshold']
+                )
+                value = '{} {}'.format(
+                    condition['metricValue'],
+                    condition['metricName']
+                )
             else:
                 text = '{}'.format(severity.upper())
                 value = ''
-            
-            resource        = payload['context']['resourceName']
-            create_time     = payload['context']['timestamp']
-            event_type      = '{}Alert'.format(payload['context']['conditionType'])
-            event           = payload['context']['name']
-            service         = [payload['context']['resourceType']]
-            group           = payload['context']['resourceGroupName']
-            tags            = [] if payload['properties'] is None else ['{}={}'.format(k, v) for k, v in payload['properties'].items()]
+
+            tags = [] if payload['properties'] is None else ['{}={}'.format(k, v) for k, v in
+                                                             payload['properties'].items()]
+            event_type = '{}Alert'.format(context['conditionType'])
+            create_time = context['timestamp']
 
         return Alert(
             resource=resource,
-            create_time=create_time,
-            type=event_type,
             event=event,
             environment=environment,
             severity=severity,
@@ -76,5 +107,7 @@ class AzureMonitorWebhook(WebhookBase):
             tags=tags,
             attributes={},
             origin='Azure Monitor',
-            raw_data=json.dumps(payload, indent=4)
+            type=event_type,
+            create_time=create_time,
+            raw_data=payload
         )
