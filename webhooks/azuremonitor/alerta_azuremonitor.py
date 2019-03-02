@@ -1,3 +1,5 @@
+from dateutil.parser import parse as parse_date
+
 from alerta.models.alert import Alert
 from alerta.webhooks import WebhookBase
 
@@ -37,7 +39,7 @@ class AzureMonitorWebhook(WebhookBase):
             group = context['resourceGroupName']
             tags = [] if payload['data']['properties'] is None else ['{}={}'.format(k, v) for k, v in
                                                              payload['data']['properties'].items()]
-            create_time = context['timestamp']
+            create_time = parse_date(context['timestamp'])
 
             if payload['schemaId'] == 'AzureMonitorMetricAlert':
                 event_type = 'MetricAlert'
@@ -93,7 +95,7 @@ class AzureMonitorWebhook(WebhookBase):
             tags = [] if payload['properties'] is None else ['{}={}'.format(k, v) for k, v in
                                                              payload['properties'].items()]
             event_type = '{}Alert'.format(context['conditionType'])
-            create_time = context['timestamp']
+            create_time = parse_date(context['timestamp'])
 
         return Alert(
             resource=resource,
