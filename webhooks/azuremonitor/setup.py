@@ -1,6 +1,6 @@
 from setuptools import setup, find_packages
 
-version = '5.0.0'
+version = '5.0.1'
 
 setup(
     name="alerta-azure-monitor",
@@ -13,6 +13,7 @@ setup(
     packages=find_packages(),
     py_modules=['alerta_azuremonitor'],
     install_requires=[
+        'python-dateutil'
     ],
     include_package_data=True,
     zip_safe=True,
