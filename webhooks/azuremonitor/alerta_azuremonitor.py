@@ -1,3 +1,5 @@
+import json
+
 from dateutil.parser import parse as parse_date
 
 from alerta.models.alert import Alert
@@ -111,5 +113,5 @@ class AzureMonitorWebhook(WebhookBase):
             origin='Azure Monitor',
             type=event_type,
             create_time=create_time,
-            raw_data=payload
+            raw_data=json.dumps(payload)
         )
