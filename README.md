@@ -64,10 +64,22 @@ Plugins
 Webhooks
 --------
 
+  * [AWS CloudWatch](https://github.com/alerta/alerta/blob/master/alerta/webhooks/cloudwatch.py)
   * [Azure Monitor](webhooks/azuremonitor)
   * [Fail2Ban](webhooks/fail2ban)
+  * [Grafana](https://github.com/alerta/alerta/blob/master/alerta/webhooks/grafana.py)
+  * [Graylog](https://github.com/alerta/alerta/blob/master/alerta/webhooks/graylog.py)
   * [Mailgun](webhooks/mailgun)
+  * [New Relic](https://github.com/alerta/alerta/blob/master/alerta/webhooks/newrelic.py)
+  * [PagerDuty](https://github.com/alerta/alerta/blob/master/alerta/webhooks/pagerduty.py)
+  * [Pingdom](https://github.com/alerta/alerta/blob/master/alerta/webhooks/pingdom.py)
+  * [Prometheus Alertmanager](https://github.com/alerta/alerta/blob/master/alerta/webhooks/prometheus.py)
+  * [Riemann](https://github.com/alerta/alerta/blob/master/alerta/webhooks/riemann.py)
   * [Sentry](webhooks/sentry)
+  * [Server Density](https://github.com/alerta/alerta/blob/master/alerta/webhooks/serverdensity.py)
+  * [Slack](https://github.com/alerta/alerta/blob/master/alerta/webhooks/slack.py)
+  * [Stackdriver](https://github.com/alerta/alerta/blob/master/alerta/webhooks/stackdriver.py)
+  * [Telegram](https://github.com/alerta/alerta/blob/master/alerta/webhooks/telegram.py)
 
 Tests
 -----
