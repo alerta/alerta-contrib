@@ -20,13 +20,13 @@ DASHBOARD_URL = os.environ.get('DASHBOARD_URL') or app.config.get('DASHBOARD_URL
 
 class TriggerEvent(PluginBase):
 
-    def pagerduty_service_key(self, resource):
+    def pagerduty_service_key(self, environment):
         if not SERVICE_KEY_MATCHERS:
             LOG.debug('No matchers defined! Default service key: %s' % (PAGERDUTY_SERVICE_KEY))
             return PAGERDUTY_SERVICE_KEY
 
         for mapping in SERVICE_KEY_MATCHERS:
-            if re.match(mapping['regex'], resource):
+            if re.match(mapping['regex'], environment):
                 LOG.debug('Matched regex: %s, service key: %s' % (mapping['regex'], mapping['api_key']))
                 return mapping['api_key']
 
@@ -91,3 +91,4 @@ class TriggerEvent(PluginBase):
             raise RuntimeError("PagerDuty connection error: %s" % e)
 
         LOG.debug('PagerDuty response: %s - %s', r.status_code, r.text)
+
