@@ -91,4 +91,3 @@ class TriggerEvent(PluginBase):
             raise RuntimeError("PagerDuty connection error: %s" % e)
 
         LOG.debug('PagerDuty response: %s - %s', r.status_code, r.text)
-
