@@ -25,8 +25,12 @@ SLACK_ATTACHMENTS = True if os.environ.get(
     'SLACK_ATTACHMENTS', 'False') == 'True' else app.config.get('SLACK_ATTACHMENTS', False)
 SLACK_CHANNEL = os.environ.get(
     'SLACK_CHANNEL') or app.config.get('SLACK_CHANNEL', '')
-SLACK_CHANNEL_ENV_MAP = json.loads(os.environ.get(
-    'SLACK_CHANNEL_ENV_MAP')) or app.config.get('SLACK_CHANNEL_ENV_MAP', dict())
+try:
+    SLACK_CHANNEL_ENV_MAP = json.loads(
+        os.environ.get('SLACK_CHANNEL_ENV_MAP'))
+except Exception as e:
+    SLACK_CHANNEL_ENV_MAP = app.config.get('SLACK_CHANNEL_ENV_MAP', dict())
+    
 ALERTA_USERNAME = os.environ.get(
     'ALERTA_USERNAME') or app.config.get('ALERTA_USERNAME', 'alerta')
 SLACK_SEND_ON_ACK = os.environ.get(
