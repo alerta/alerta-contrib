@@ -287,11 +287,10 @@ class MailSender(threading.Thread):
 
         # by default we are going to assume that the email is going to be text
         msg_text = MIMEText(text, 'plain', 'utf-8')
+        msg.attach(msg_text)
         if html:
             msg_html = MIMEText(html, 'html', 'utf-8')
             msg.attach(msg_html)
-
-        msg.attach(msg_text)
 
         try:
             self._send_email_message(msg, contacts)
