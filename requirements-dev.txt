@@ -1,2 +1,2 @@
 pytest
-alerta-server
+alerta-server[postgres]
