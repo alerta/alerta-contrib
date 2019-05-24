@@ -18,8 +18,13 @@ ZABBIX_API_URL = os.environ.get('ZABBIX_API_URL') or app.config.get('ZABBIX_API_
 ZABBIX_USER = os.environ.get('ZABBIX_USER') or app.config['ZABBIX_USER']
 ZABBIX_PASSWORD = os.environ.get('ZABBIX_PASSWORD') or app.config['ZABBIX_PASSWORD']
 
+# See https://www.zabbix.com/documentation/4.0/manual/api/reference/event/acknowledge
+
 NO_ACTION = 0
 ACTION_CLOSE = 1
+ACTION_ACK = 2
+ACTION_MSG = 4
+ACTION_SEV = 8
 
 
 class ZabbixEventAck(PluginBase):
@@ -63,11 +68,11 @@ class ZabbixEventAck(PluginBase):
 
             try:
                 LOG.debug('Zabbix: ack all events for trigger...')
-                r = self.zapi.event.acknowledge(eventids=event_ids, message='%s: %s' % (status, text), action=NO_ACTION)
+                r = self.zapi.event.acknowledge(eventids=event_ids, action=(ACTION_ACK | ACTION_MSG), message='%s: %s' % (status, text))
             except ZabbixAPIException:
                 try:
                     LOG.debug('Zabbix: ack all failed, ack only the one event')
-                    r = self.zapi.event.acknowledge(eventids=event_id, message='%s: %s' % (status, text), action=NO_ACTION)
+                    r = self.zapi.event.acknowledge(eventids=event_id, action=(ACTION_ACK | ACTION_MSG), message='%s: %s' % (status, text))
                 except ZabbixAPIException as e:
                     raise RuntimeError("Zabbix: ERROR - %s", e)
             finally:
@@ -88,11 +93,11 @@ class ZabbixEventAck(PluginBase):
 
             try:
                 LOG.debug('Zabbix: close all events for trigger...')
-                r = self.zapi.event.acknowledge(eventids=event_ids, message='%s: %s' % (status, text), action=ACTION_CLOSE)
+                r = self.zapi.event.acknowledge(eventids=event_ids, action=(ACTION_CLOSE | ACTION_MSG), message='%s: %s' % (status, text))
             except ZabbixAPIException:
                 try:
                     LOG.debug('Zabbix: ack all failed, close only the one event')
-                    r = self.zapi.event.acknowledge(eventids=event_id, message='%s: %s' % (status, text), action=ACTION_CLOSE)
+                    r = self.zapi.event.acknowledge(eventids=event_id, action=(ACTION_CLOSE | ACTION_MSG), message='%s: %s' % (status, text))
                 except ZabbixAPIException as e:
                     raise RuntimeError("Zabbix: ERROR - %s", e)
             finally:
