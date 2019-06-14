@@ -12,13 +12,6 @@ from alerta.plugins import PluginBase
 
 LOG = logging.getLogger('alerta.plugins.hipchat')
 
-HIPCHAT_URL = os.environ.get('HIPCHAT_URL') or app.config.get('HIPCHAT_URL', 'https://api.hipchat.com/v2') # Hipchat URL, change if using privately hosted Hipchat
-HIPCHAT_ROOM = os.environ.get('HIPCHAT_ROOM') or app.config['HIPCHAT_ROOM']  # Room Name or Room API ID
-HIPCHAT_API_KEY = os.environ.get('HIPCHAT_API_KEY') or app.config['HIPCHAT_API_KEY']  # Room Notification Token
-HIPCHAT_SUMMARY_FMT = os.environ.get('HIPCHAT_SUMMARY_FMT') or app.config.get('HIPCHAT_SUMMARY_FMT', None)  # Message summary format
-HIPCHAT_VERIFY_SSL = os.environ.get('HIPCHAT_VERIFY_SSL') or app.config.get('HIPCHAT_VERIFY_SSL', True) # Verify SSL cert from Hipchat
-DASHBOARD_URL = os.environ.get('DASHBOARD_URL') or app.config.get('DASHBOARD_URL', '')
-
 try:
     from jinja2 import Template
 except Exception as e:
@@ -27,10 +20,16 @@ except Exception as e:
 
 class SendRoomNotification(PluginBase):
 
-    def pre_receive(self, alert):
+    def pre_receive(self, alert, **kwargs):
         return alert
 
-    def post_receive(self, alert):
+    def post_receive(self, alert, **kwargs):
+        HIPCHAT_URL = self.get_config('HIPCHAT_URL', default='https://api.hipchat.com/v2', type=str, **kwargs) # Hipchat URL, change if using privately hosted Hipchat
+        HIPCHAT_API_KEY = self.get_config('HIPCHAT_API_KEY', **kwargs) # Room Notification Token
+        HIPCHAT_SUMMARY_FMT = self.get_config('HIPCHAT_SUMMARY_FMT', **kwargs) # Message summary format
+        HIPCHAT_VERIFY_SSL = self.get_config('HIPCHAT_VERIFY_SSL', default=True, type=bool, **kwargs) # Verify SSL cert from Hipchat
+        DASHBOARD_URL = self.get_config('DASHBOARD_URL', default='', type=str, **kwargs)
+        HIPCHAT_ROOM = self.get_config('HIPCHAT_ROOM', **kwargs)  # Room Name or Room API ID
 
         if alert.repeat:
             return
@@ -97,5 +96,5 @@ class SendRoomNotification(PluginBase):
 
         LOG.debug('HipChat: %s - %s', r.status_code, r.text)
 
-    def status_change(self, alert, status, text):
+    def status_change(self, alert, status, text, **kwargs):
         return
