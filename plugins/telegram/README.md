@@ -33,7 +33,7 @@ server configuration file or as environment variables.
 PLUGINS = ['telegram']
 TELEGRAM_TOKEN = ''  # default="not set"
 TELEGRAM_CHAT_ID = ''  # default="not set"
-TELEGRAM_TEMPLATE = '' # default will use hardcoded one
+TELEGRAM_TEMPLATE = '' # default will use hardcoded one (can be a filename to template file)
 TELEGRAM_PROXY = '' # default="not set", URL must start from http://, socks5 not supported
 TELEGRAM_PROXY_USERNAME = '' # default="not set"
 TELEGRAM_PROXY_PASSWORD = '' # default="not set"
@@ -54,7 +54,7 @@ BLACKOUT_DURATION = 86400   # default=3600 ie. 1 hour
 Templating 
 ----------
 
-There can be defined template to send data to telegram it have to be defined in `TELEGRAM_TEMPLATE`. 
+There can be defined template to send data to telegram it have to be defined in `TELEGRAM_TEMPLATE`. `TELEGRAM_TEMPLATE` can be a filename pointing to [Jinja2](http://jinja.pocoo.org/docs/2.10/) template file.
 Template have to be writen in [Jinja2](http://jinja.pocoo.org/docs/2.10/)
 Alert data will be passed to it as context. So you can modify tg message as you wish. Example can be found in [Explorer](http://explorer.alerta.io/#/send) 
 
