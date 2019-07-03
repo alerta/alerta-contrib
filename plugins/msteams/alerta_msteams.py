@@ -57,8 +57,9 @@ class SendConnectorCardMessage(PluginBase):
                 event=alert.event,
                 resource=alert.resource
             )
-            url = "%s/#/alert/%s" % (DASHBOARD_URL, alert.id)
-            
+
+        url = "%s/#/alert/%s" % (DASHBOARD_URL, alert.id)
+
         if alert.severity == 'critical':
             color = "D8122A"
         elif alert.severity == 'major':
