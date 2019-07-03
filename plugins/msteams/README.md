@@ -37,9 +37,10 @@ DASHBOARD_URL = 'http://try.alerta.io'
 ```
 
 The `MS_TEAMS_SUMMARY_FMT` configuration variable is a Jinja2 template
-string and accepts any Jinja2 syntax. The formatter has access to two
-variables in the template environment, 'alert' for all alert details
-and 'config' for access to the alerta configuration.
+string or filename to a template file and accepts any Jinja2 syntax.
+The formatter has access to two variables in the template environment,
+'alert' for all alert details and 'config' for access to the alerta
+configuration.
 
 If you have Jinja2 available you can try customizing the message like
 this:

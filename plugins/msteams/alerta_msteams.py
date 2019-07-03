@@ -34,7 +34,11 @@ class SendConnectorCardMessage(PluginBase):
 
         if MS_TEAMS_SUMMARY_FMT:
             try:
-                template = Template(MS_TEAMS_SUMMARY_FMT)
+                if os.path.exists(MS_TEAMS_SUMMARY_FMT):
+                    with open(MS_TEAMS_SUMMARY_FMT, 'r') as f:
+                        template = Template(f.read())
+                else:
+                    template = Template(MS_TEAMS_SUMMARY_FMT)
             except Exception as e:
                 LOG.error('MS Teams: ERROR - Template init failed: %s', e)
                 return
