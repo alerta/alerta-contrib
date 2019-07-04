@@ -1,7 +1,7 @@
 
 from setuptools import setup, find_packages
 
-version = '5.4.0'
+version = '5.5.0'
 
 setup(
     name="alerta-slack",
