@@ -51,7 +51,7 @@ MS_TEAMS_SUMMARY_FMT = '<b>[{{ alert.status|capitalize }}]</b> [{{ alert.severit
 References
 ----------
 
-  * HipChat room notification API: https://github.com/rveachkc/pymsteams
+  * Pymsteams API: https://github.com/rveachkc/pymsteams
   * Jinja2 templating language for Python: http://jinja.pocoo.org/docs/dev/
 
 License
