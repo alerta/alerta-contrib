@@ -162,7 +162,7 @@ class ServiceIntegration(PluginBase):
             return
 
         try:
-             r = requests.post(SLACK_WEBHOOK_URL,
+            r = requests.post(SLACK_WEBHOOK_URL,
                               data=json.dumps(payload), headers=SLACK_HEADERS, timeout=2)
         except Exception as e:
             raise RuntimeError("Slack connection error: %s", e)
