@@ -19,20 +19,14 @@ from alerta.plugins import PluginBase
 
 LOG = logging.getLogger('alerta.plugins.slack')
 
-SLACK_WEBHOOK_URL = os.environ.get(
-    'SLACK_WEBHOOK_URL') or app.config['SLACK_WEBHOOK_URL']
 SLACK_ATTACHMENTS = True if os.environ.get(
     'SLACK_ATTACHMENTS', 'False') == 'True' else app.config.get('SLACK_ATTACHMENTS', False)
-SLACK_CHANNEL = os.environ.get(
-    'SLACK_CHANNEL') or app.config.get('SLACK_CHANNEL', '')
 try:
     SLACK_CHANNEL_ENV_MAP = json.loads(
         os.environ.get('SLACK_CHANNEL_ENV_MAP'))
 except Exception as e:
     SLACK_CHANNEL_ENV_MAP = app.config.get('SLACK_CHANNEL_ENV_MAP', dict())
     
-ALERTA_USERNAME = os.environ.get(
-    'ALERTA_USERNAME') or app.config.get('ALERTA_USERNAME', 'alerta')
 SLACK_SEND_ON_ACK = os.environ.get(
     'SLACK_SEND_ON_ACK') or app.config.get('SLACK_SEND_ON_ACK', False)
 SLACK_SEVERITY_MAP = app.config.get('SLACK_SEVERITY_MAP', {})
@@ -45,19 +39,10 @@ SLACK_DEFAULT_SEVERITY_MAP = {'security': '#000000', # black
                               'debug': '#808080', # gray
                               'trace': '#808080', # gray
                               'ok': '#00CC00'} # green
-SLACK_SUMMARY_FMT = app.config.get('SLACK_SUMMARY_FMT', None)  # Message summary format
 SLACK_DEFAULT_SUMMARY_FMT='*[{status}] {environment} {service} {severity}* - _{event} on {resource}_ <{dashboard}/#/alert/{alert_id}|{short_id}>'
-ICON_EMOJI = os.environ.get('ICON_EMOJI') or app.config.get(
-    'ICON_EMOJI', ':rocket:')
-SLACK_PAYLOAD = app.config.get('SLACK_PAYLOAD', None)  # Full API control
-DASHBOARD_URL = os.environ.get(
-    'DASHBOARD_URL') or app.config.get('DASHBOARD_URL', '')
 SLACK_HEADERS = {
     'Content-Type': 'application/json'
 }
-SLACK_TOKEN = os.environ.get('SLACK_TOKEN') or app.config.get('SLACK_TOKEN',None)
-if SLACK_TOKEN:
-    SLACK_HEADERS['Authorization'] = 'Bearer ' + SLACK_TOKEN
 
 class ServiceIntegration(PluginBase):
 
@@ -87,7 +72,16 @@ class ServiceIntegration(PluginBase):
             LOG.error('SLACK: ERROR - Template render failed: %s', e)
             return
 
-    def _slack_prepare_payload(self, alert, status=None, text=None):
+    def _slack_prepare_payload(self, alert, status=None, text=None, **kwargs):
+        SLACK_CHANNEL = self.get_config('SLACK_CHANNEL', default='', type=str, **kwargs)
+        SLACK_SUMMARY_FMT = self.get_config('SLACK_SUMMARY_FMT', type=str, **kwargs)  # Message summary format
+        SLACK_PAYLOAD = self.get_config('SLACK_PAYLOAD', type=str, **kwargs)  # Full API control
+        ICON_EMOJI = self.get_config('ICON_EMOJI', default=':rocket:', type=str, **kwargs)
+        ALERTA_USERNAME = self.get_config('ALERTA_USERNAME', default='alerta', type=str, **kwargs)
+        DASHBOARD_URL = self.get_config('DASHBOARD_URL', default='', type=str, **kwargs)
+        SLACK_TOKEN = self.get_config('SLACK_TOKEN', type=str, **kwargs)
+        if SLACK_TOKEN:
+            SLACK_HEADERS['Authorization'] = 'Bearer ' + SLACK_TOKEN
 
         if alert.severity in self._severities:
             color = self._severities[alert.severity]
@@ -153,13 +147,14 @@ class ServiceIntegration(PluginBase):
 
         return payload
 
-    def post_receive(self, alert):
+    def post_receive(self, alert, **kwargs):
+        SLACK_WEBHOOK_URL = self.get_config('SLACK_WEBHOOK_URL', type=str, **kwargs)
 
         if alert.repeat:
             return
 
         try:
-            payload = self._slack_prepare_payload(alert)
+            payload = self._slack_prepare_payload(alert, **kwargs)
 
             LOG.debug('Slack payload: %s', payload)
         except Exception as e:
@@ -174,12 +169,14 @@ class ServiceIntegration(PluginBase):
 
         LOG.debug('Slack response: %s\n%s' % (r.status_code, r.text))
 
-    def status_change(self, alert, status, text):
+    def status_change(self, alert, status, text, **kwargs):
+        SLACK_WEBHOOK_URL = self.get_config('SLACK_WEBHOOK_URL', type=str, **kwargs)
+
         if SLACK_SEND_ON_ACK == False or status not in ['ack', 'assign']:
             return
 
         try:
-            payload = self._slack_prepare_payload(alert, status, text)
+            payload = self._slack_prepare_payload(alert, status, text, **kwargs)
 
             LOG.debug('Slack payload: %s', payload)
         except Exception as e:
