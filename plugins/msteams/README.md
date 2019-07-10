@@ -49,6 +49,11 @@ this:
 MS_TEAMS_SUMMARY_FMT = '<b>[{{ alert.status|capitalize }}]</b> [{{ alert.severity|upper }}] Event {{ alert.event }} on <b>{{ alert.resource }}</b><br>{{ alert.text }}'
 ```
 
+The `MS_TEAMS_TEXT_FMT` configuration variable is a Jinja2 template
+string or filename to a template file and accepts any Jinja2 syntax.
+`MS_TEAMS_TEXT_FMT` formats `msTeamsMessage.text(alert.text)`, if omitted
+no formatting is done on `alert.text`.
+
 References
 ----------
 

@@ -13,7 +13,8 @@ from alerta.plugins import PluginBase
 LOG = logging.getLogger('alerta.plugins.msteams')
 
 MS_TEAMS_WEBHOOK_URL = os.environ.get('MS_TEAMS_WEBHOOK_URL') or app.config.get('MS_TEAMS_WEBHOOK_URL')
-MS_TEAMS_SUMMARY_FMT = os.environ.get('MS_TEAMS_SUMMARY_FMT') or app.config.get('MS_TEAMS_SUMMARY_FMT', None)  # Message summary format
+MS_TEAMS_SUMMARY_FMT = os.environ.get('MS_TEAMS_SUMMARY_FMT') or app.config.get('MS_TEAMS_SUMMARY_FMT', None)  # Message summary(title) format
+MS_TEAMS_TEXT_FMT = os.environ.get('MS_TEAMS_TEXT_FMT') or app.config.get('MS_TEAMS_TEXT_FMT', None)  # Message text format
 DASHBOARD_URL = os.environ.get('DASHBOARD_URL') or app.config.get('DASHBOARD_URL', '')
 
 try:
@@ -64,6 +65,28 @@ class SendConnectorCardMessage(PluginBase):
 
         url = "%s/#/alert/%s" % (DASHBOARD_URL, alert.id)
 
+        if MS_TEAMS_TEXT_FMT:
+            try:
+                if os.path.exists(MS_TEAMS_TEXT_FMT):
+                    with open(MS_TEAMS_TEXT_FMT, 'r') as f:
+                        txt_template = Template(f.read())
+                else:
+                    txt_template = Template(MS_TEAMS_TEXT_FMT)
+            except Exception as e:
+                LOG.error('MS Teams: ERROR - Template(TEXT_FMT) init failed: %s', e)
+                return
+            try:
+                template_vars = {
+                    'alert': alert,
+                    'config': app.config
+                }
+                text = txt_template.render(**template_vars)
+            except Exception as e:
+                LOG.error('MS Teams: ERROR - Template(TEXT_FMT) render failed: %s', e)
+                return
+        else:
+            text = alert.text
+
         if alert.severity == 'critical':
             color = "D8122A"
         elif alert.severity == 'major':
@@ -80,7 +103,7 @@ class SendConnectorCardMessage(PluginBase):
         try:
             msTeamsMessage = pymsteams.connectorcard(MS_TEAMS_WEBHOOK_URL)
             msTeamsMessage.title(summary)
-            msTeamsMessage.text(alert.text)
+            msTeamsMessage.text(text)
             msTeamsMessage.addLinkButton("Open in Alerta", url)
             msTeamsMessage.color(color)
             msTeamsMessage.send()
