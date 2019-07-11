@@ -21,7 +21,7 @@ MS_TEAMS_COLORS_MAP = app.config.get('MS_TEAMS_COLORS_MAP', {})
 MS_TEAMS_DEFAULT_COLORS_MAP = {'critical': 'D8122A',
                               'major': 'EA680F',
                               'minor': 'FFBE1E',
-                              'warning': 'BA2222'}
+                              'warning': '1E90FF'}
 MS_TEAMS_DEFAULT_COLOR = '00AA5A'
 
 class SendConnectorCardMessage(PluginBase):
