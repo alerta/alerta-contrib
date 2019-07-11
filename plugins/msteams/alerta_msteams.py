@@ -12,11 +12,6 @@ from alerta.plugins import PluginBase
 
 LOG = logging.getLogger('alerta.plugins.msteams')
 
-MS_TEAMS_WEBHOOK_URL = os.environ.get('MS_TEAMS_WEBHOOK_URL') or app.config.get('MS_TEAMS_WEBHOOK_URL')
-MS_TEAMS_SUMMARY_FMT = os.environ.get('MS_TEAMS_SUMMARY_FMT') or app.config.get('MS_TEAMS_SUMMARY_FMT', None)  # Message summary(title) format
-MS_TEAMS_TEXT_FMT = os.environ.get('MS_TEAMS_TEXT_FMT') or app.config.get('MS_TEAMS_TEXT_FMT', None)  # Message text format
-DASHBOARD_URL = os.environ.get('DASHBOARD_URL') or app.config.get('DASHBOARD_URL', '')
-
 try:
     from jinja2 import Template
 except Exception as e:
@@ -25,10 +20,14 @@ except Exception as e:
 
 class SendConnectorCardMessage(PluginBase):
 
-    def pre_receive(self, alert):
+    def pre_receive(self, alert, **kwargs):
         return alert
 
-    def post_receive(self, alert):
+    def post_receive(self, alert, **kwargs):
+        MS_TEAMS_WEBHOOK_URL = self.get_config('MS_TEAMS_WEBHOOK_URL', default='', type=str, **kwargs)
+        MS_TEAMS_SUMMARY_FMT = self.get_config('MS_TEAMS_SUMMARY_FMT', default=None, type=str, **kwargs)  # Message summary(title) format
+        MS_TEAMS_TEXT_FMT = self.get_config('MS_TEAMS_TEXT_FMT', default=None, type=str, **kwargs)  # Message text format
+        DASHBOARD_URL = self.get_config('DASHBOARD_URL', default='', type=str, **kwargs)
 
         if alert.repeat:
             return
@@ -110,5 +109,5 @@ class SendConnectorCardMessage(PluginBase):
         except Exception as e:
             raise RuntimeError("MS Teams: ERROR - %s", e)
 
-    def status_change(self, alert, status, text):
+    def status_change(self, alert, status, text, **kwargs):
         return
