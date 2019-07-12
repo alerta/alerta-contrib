@@ -17,8 +17,21 @@ try:
 except Exception as e:
     LOG.error('MS Teams: ERROR - Jinja template error: %s, template functionality will be unavailable', e)
 
+MS_TEAMS_COLORS_MAP = app.config.get('MS_TEAMS_COLORS_MAP', {})
+MS_TEAMS_DEFAULT_COLORS_MAP = {'critical': 'D8122A',
+                              'major': 'EA680F',
+                              'minor': 'FFBE1E',
+                              'warning': '1E90FF'}
+MS_TEAMS_DEFAULT_COLOR = '00AA5A'
 
 class SendConnectorCardMessage(PluginBase):
+
+    def __init__(self, name=None):
+        # override user-defined severities(colors)
+        self._colors = MS_TEAMS_DEFAULT_COLORS_MAP
+        self._colors.update(MS_TEAMS_COLORS_MAP)
+
+        super(SendConnectorCardMessage, self).__init__(name)
 
     def pre_receive(self, alert, **kwargs):
         return alert
@@ -86,16 +99,7 @@ class SendConnectorCardMessage(PluginBase):
         else:
             text = alert.text
 
-        if alert.severity == 'critical':
-            color = "D8122A"
-        elif alert.severity == 'major':
-            color = "EA680F"
-        elif alert.severity == 'minor':
-            color = "FFBE1E"
-        elif alert.severity == 'warning':
-            color = "BA2222"
-        else:
-            color = "00AA5A"
+        color = self._colors.get(alert.severity, MS_TEAMS_DEFAULT_COLOR)
 
         LOG.debug('MS Teams payload: %s', summary)
 
