@@ -23,6 +23,7 @@ MS_TEAMS_DEFAULT_COLORS_MAP = {'critical': 'D8122A',
                               'minor': 'FFBE1E',
                               'warning': '1E90FF'}
 MS_TEAMS_DEFAULT_COLOR = '00AA5A'
+MS_TEAMS_DEFAULT_TIMEOUT = 7 # pymsteams http_timeout
 
 class SendConnectorCardMessage(PluginBase):
 
@@ -104,7 +105,7 @@ class SendConnectorCardMessage(PluginBase):
         LOG.debug('MS Teams payload: %s', summary)
 
         try:
-            msTeamsMessage = pymsteams.connectorcard(MS_TEAMS_WEBHOOK_URL)
+            msTeamsMessage = pymsteams.connectorcard(hookurl=MS_TEAMS_WEBHOOK_URL, http_timeout=MS_TEAMS_DEFAULT_TIMEOUT)
             msTeamsMessage.title(summary)
             msTeamsMessage.text(text)
             msTeamsMessage.addLinkButton("Open in Alerta", url)
