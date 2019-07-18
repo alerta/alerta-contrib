@@ -75,7 +75,7 @@ class SendConnectorCardMessage(PluginBase):
                 resource=alert.resource
             )
 
-        url = "%s/#/alert/%s" % (DASHBOARD_URL, alert.id)
+        url = "%s/alert/%s" % (DASHBOARD_URL, alert.id)
 
         if MS_TEAMS_TEXT_FMT:
             try:
