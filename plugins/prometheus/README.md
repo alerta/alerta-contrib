@@ -40,6 +40,13 @@ ALERTMANAGER_API_URL = 'http://localhost:9093'
 ALERTMANAGER_SILENCE_DAYS = 1
 ```
 
+Or, if you want to inherit silence timeout from ack timeout:
+
+```python
+ALERTMANAGER_API_URL = 'http://localhost:9093'
+ALERTMANAGER_SILENCE_FROM_ACK = True
+```
+
 **Robust Perception Demo Example**
 
 ```python
