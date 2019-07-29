@@ -15,9 +15,11 @@ LOG = logging.getLogger('alerta.plugins.amqp')
 
 DEFAULT_AMQP_URL = 'mongodb://localhost:27017/kombu'
 DEFAULT_AMQP_TOPIC = 'notify'
+DEFAULT_AMQP_SEND_ALERT_HISTORY = True
 
 AMQP_URL = os.environ.get('REDIS_URL') or os.environ.get('AMQP_URL') or app.config.get('AMQP_URL', DEFAULT_AMQP_URL)
 AMQP_TOPIC = os.environ.get('AMQP_TOPIC') or app.config.get('AMQP_TOPIC', DEFAULT_AMQP_TOPIC)
+AMQP_SEND_ALERT_HISTORY = os.environ.get('AMQP_SEND_ALERT_HISTORY') or app.config.get('AMQP_SEND_ALERT_HISTORY', DEFAULT_AMQP_SEND_ALERT_HISTORY)
 
 
 class FanoutPublisher(PluginBase):
@@ -48,7 +50,7 @@ class FanoutPublisher(PluginBase):
 
     def post_receive(self, alert):
         LOG.info('Sending message %s to AMQP topic "%s"', alert.get_id(), AMQP_TOPIC)
-        body = alert.get_body()
+        body = alert.get_body(history=AMQP_SEND_ALERT_HISTORY)
         LOG.debug('Message: %s', body)
         self.producer.publish(body, declare=[self.exchange], retry=True)
 
