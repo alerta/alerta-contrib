@@ -6,6 +6,7 @@ import logging
 import os
 import platform
 import re
+import signal
 import smtplib
 import socket
 import sys
@@ -424,6 +425,8 @@ def parse_group_rules(config_file):
         return rules_d
     return ()
 
+def on_sigterm(x, y):
+    raise SystemExit
 
 def main():
     global OPTIONS
@@ -489,6 +492,9 @@ def main():
         group_rules = parse_group_rules(config_file)
     if group_rules is not None:
         OPTIONS['group_rules'] = group_rules
+
+    # Registering action for SIGTERM signal handling
+    signal.signal(signal.SIGTERM, on_sigterm)
 
     try:
         mailer = MailSender()
