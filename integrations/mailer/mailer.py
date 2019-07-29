@@ -256,6 +256,13 @@ class MailSender(threading.Thread):
                                      ' adding for this rule only')
                             del contacts[:]
                             contacts.extend(new_contacts)
+        
+        # Don't loose time (and try to send an email) if there is no contact...
+        for contact in contacts:
+            if contact == '':
+                contacts.remove(contact)
+        if len(contacts) == 0:
+            return
 
         template_vars = {
             'alert': alert,
