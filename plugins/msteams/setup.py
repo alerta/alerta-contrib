@@ -1,7 +1,7 @@
 
 from setuptools import setup, find_packages
 
-version = '5.1.1'
+version = '5.2.0'
 
 setup(
     name="alerta-msteams",
