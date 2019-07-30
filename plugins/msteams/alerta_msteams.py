@@ -18,7 +18,8 @@ except Exception as e:
     LOG.error('MS Teams: ERROR - Jinja template error: %s, template functionality will be unavailable', e)
 
 MS_TEAMS_COLORS_MAP = app.config.get('MS_TEAMS_COLORS_MAP', {})
-MS_TEAMS_DEFAULT_COLORS_MAP = {'critical': 'D8122A',
+MS_TEAMS_DEFAULT_COLORS_MAP = {'security': '000000',
+                              'critical': 'D8122A',
                               'major': 'EA680F',
                               'minor': 'FFBE1E',
                               'warning': '1E90FF'}
