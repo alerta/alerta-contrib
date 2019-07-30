@@ -34,6 +34,18 @@ class SendConnectorCardMessage(PluginBase):
 
         super(SendConnectorCardMessage, self).__init__(name)
 
+    def _load_template(self, templateFmt):
+        try:
+            if os.path.exists(templateFmt):
+                with open(templateFmt, 'r') as f:
+                    template = Template(f.read())
+            else:
+                template = Template(templateFmt)
+            return template
+        except Exception as e:
+            LOG.error('MS Teams: ERROR - Template init failed: %s', e)
+            return
+
     def pre_receive(self, alert, **kwargs):
         return alert
 
@@ -46,22 +58,17 @@ class SendConnectorCardMessage(PluginBase):
         if alert.repeat:
             return
 
-        if MS_TEAMS_SUMMARY_FMT:
-            try:
-                if os.path.exists(MS_TEAMS_SUMMARY_FMT):
-                    with open(MS_TEAMS_SUMMARY_FMT, 'r') as f:
-                        template = Template(f.read())
-                else:
-                    template = Template(MS_TEAMS_SUMMARY_FMT)
-            except Exception as e:
-                LOG.error('MS Teams: ERROR - Template init failed: %s', e)
-                return
+        color = self._colors.get(alert.severity, MS_TEAMS_DEFAULT_COLOR)
+        url = "%s/#/alert/%s" % (DASHBOARD_URL, alert.id)
 
+        template_vars = {
+            'alert': alert,
+            'config': app.config
+        }
+
+        if MS_TEAMS_SUMMARY_FMT:
+            template = self._load_template(MS_TEAMS_SUMMARY_FMT)
             try:
-                template_vars = {
-                    'alert': alert,
-                    'config': app.config
-                }
                 summary = template.render(**template_vars)
             except Exception as e:
                 LOG.error('MS Teams: ERROR - Template render failed: %s', e)
@@ -76,31 +83,15 @@ class SendConnectorCardMessage(PluginBase):
                 resource=alert.resource
             )
 
-        url = "%s/#/alert/%s" % (DASHBOARD_URL, alert.id)
-
         if MS_TEAMS_TEXT_FMT:
+            txt_template = self._load_template(MS_TEAMS_TEXT_FMT)
             try:
-                if os.path.exists(MS_TEAMS_TEXT_FMT):
-                    with open(MS_TEAMS_TEXT_FMT, 'r') as f:
-                        txt_template = Template(f.read())
-                else:
-                    txt_template = Template(MS_TEAMS_TEXT_FMT)
-            except Exception as e:
-                LOG.error('MS Teams: ERROR - Template(TEXT_FMT) init failed: %s', e)
-                return
-            try:
-                template_vars = {
-                    'alert': alert,
-                    'config': app.config
-                }
                 text = txt_template.render(**template_vars)
             except Exception as e:
                 LOG.error('MS Teams: ERROR - Template(TEXT_FMT) render failed: %s', e)
                 return
         else:
             text = alert.text
-
-        color = self._colors.get(alert.severity, MS_TEAMS_DEFAULT_COLOR)
 
         LOG.debug('MS Teams payload: %s', summary)
 
