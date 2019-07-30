@@ -258,10 +258,7 @@ class MailSender(threading.Thread):
                             contacts.extend(new_contacts)
         
         # Don't loose time (and try to send an email) if there is no contact...
-        for contact in contacts:
-            if contact == '':
-                contacts.remove(contact)
-        if len(contacts) == 0:
+        if not contacts:
             return
 
         template_vars = {
@@ -471,7 +468,7 @@ def main():
             int: config.getint,
             float: config.getfloat,
             bool: config.getboolean,
-            list: lambda s, o: [e.strip() for e in config.get(s, o).split(',')]
+            list: lambda s, o: [e.strip() for e in config.get(s, o).split(',')] if len(config.get(s, o)) > 0 else []
         }
         for opt in DEFAULT_OPTIONS:
             # Convert the options to the expected type
