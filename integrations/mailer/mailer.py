@@ -257,6 +257,10 @@ class MailSender(threading.Thread):
                                      ' adding for this rule only')
                             del contacts[:]
                             contacts.extend(new_contacts)
+        
+        # Don't loose time (and try to send an email) if there is no contact...
+        if not contacts:
+            return
 
         template_vars = {
             'alert': alert,
@@ -467,7 +471,7 @@ def main():
             int: config.getint,
             float: config.getfloat,
             bool: config.getboolean,
-            list: lambda s, o: [e.strip() for e in config.get(s, o).split(',')]
+            list: lambda s, o: [e.strip() for e in config.get(s, o).split(',')] if len(config.get(s, o)) else []
         }
         for opt in DEFAULT_OPTIONS:
             # Convert the options to the expected type
