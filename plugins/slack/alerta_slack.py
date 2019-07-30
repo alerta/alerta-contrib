@@ -5,6 +5,8 @@ import os
 import requests
 import traceback
 
+from collections import OrderedDict
+
 try:
     from jinja2 import Template
 except Exception as e:
@@ -26,6 +28,13 @@ try:
         os.environ.get('SLACK_CHANNEL_ENV_MAP'))
 except Exception as e:
     SLACK_CHANNEL_ENV_MAP = app.config.get('SLACK_CHANNEL_ENV_MAP', dict())
+
+if SLACK_CHANNEL_ENV_MAP == dict():
+    try:
+        SLACK_CHANNEL_TAG_MAP = json.loads(
+            os.environ.get('SLACK_CHANNEL_TAG_MAP'))
+    except Exception as e:
+        SLACK_CHANNEL_TAG_MAP = app.config.get('SLACK_CHANNEL_TAG_MAP', OrderedDict())
     
 SLACK_SEND_ON_ACK = os.environ.get(
     'SLACK_SEND_ON_ACK') or app.config.get('SLACK_SEND_ON_ACK', False)
@@ -43,6 +52,18 @@ SLACK_DEFAULT_SUMMARY_FMT='*[{status}] {environment} {service} {severity}* - _{e
 SLACK_HEADERS = {
     'Content-Type': 'application/json'
 }
+
+# route_alert_by_tag returns channel name for alert based on tag_map
+# special 'default' route used if nothing other routes found
+def route_alert_by_tag(alertTags, routeTags, fallbackChannel = ""):
+    for channel, tags in routeTags.items():
+        if set(tags).issubset(alertTags):
+            return channel
+
+    try:
+        return(list(routeTags.keys())[list(routeTags.values()).index("default")])
+    except ValueError:
+        return(fallbackChannel)
 
 class ServiceIntegration(PluginBase):
 
@@ -87,7 +108,12 @@ class ServiceIntegration(PluginBase):
             color = self._severities[alert.severity]
         else:
             color = '#00CC00'  # green
-        channel = SLACK_CHANNEL_ENV_MAP.get(alert.environment, SLACK_CHANNEL)
+
+        if SLACK_CHANNEL_ENV_MAP == dict():
+            channel = route_alert_by_tag(alert.tags, SLACK_CHANNEL_TAG_MAP, SLACK_CHANNEL)
+        else:
+            channel = SLACK_CHANNEL_ENV_MAP.get(alert.environment, SLACK_CHANNEL)
+
         templateVars = {
             'alert': alert,
             'status': status if status else alert.status,

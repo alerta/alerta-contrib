@@ -48,6 +48,7 @@ ALERTA_USERNAME = '' # default alerta
 
 ```
 
+
 The `DASHBOARD_URL` setting should be configured to link Slack messages to
 the Alerta console:
 
@@ -73,6 +74,20 @@ this:
 ```python
 SLACK_SUMMARY_FMT = '*[{{ alert.status|capitalize }}]* [{{ alert.severity|capitalize }}] Event {{ alert.event }} on *{{ alert.environment }} - {{ alert.resource }}*: {{alert.value}}\n{{alert.text}}\nAlert Console: <{{ config.DASHBOARD_URL }}|click here> / Alert: <{{ config.DASHBOARD_URL }}/#/alert/{{ alert.id }}|{{ alert.id[:8] }}>'
 ```
+
+### Tag-based message routing
+
+Configuraton:
+
+```python
+from collections import OrderedDict
+
+SLACK_CHANNEL_TAG_MAP = OrderedDict({ '#application1-team': ['application=application1', 'severity=major'], '#default-alert-channel': 'default' })
+```
+
+If this parameter exists and `SLACK_CHANNEL_ENV_MAP` is not set, tag-based routing applies to the alerts. The plugin gets a set of alert tags and searches for the first occurrence in the `SLACK_CHANNEL_ENV_MAP`. If an occurrence doesn't found, `default` channel is used. If it not exist, `SLACK_CHANNEL` is used.
+
+For details, look at `test_slack.py`.
 
 Slack Payload
 -------------
