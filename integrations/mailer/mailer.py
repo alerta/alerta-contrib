@@ -468,7 +468,7 @@ def main():
             int: config.getint,
             float: config.getfloat,
             bool: config.getboolean,
-            list: lambda s, o: [e.strip() for e in config.get(s, o).split(',')] if len(config.get(s, o)) > 0 else []
+            list: lambda s, o: [e.strip() for e in config.get(s, o).split(',')] if len(config.get(s, o)) else []
         }
         for opt in DEFAULT_OPTIONS:
             # Convert the options to the expected type
