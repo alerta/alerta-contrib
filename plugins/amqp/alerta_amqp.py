@@ -19,7 +19,11 @@ DEFAULT_AMQP_SEND_ALERT_HISTORY = True
 
 AMQP_URL = os.environ.get('REDIS_URL') or os.environ.get('AMQP_URL') or app.config.get('AMQP_URL', DEFAULT_AMQP_URL)
 AMQP_TOPIC = os.environ.get('AMQP_TOPIC') or app.config.get('AMQP_TOPIC', DEFAULT_AMQP_TOPIC)
-AMQP_SEND_ALERT_HISTORY = os.environ.get('AMQP_SEND_ALERT_HISTORY') or app.config.get('AMQP_SEND_ALERT_HISTORY', DEFAULT_AMQP_SEND_ALERT_HISTORY)
+
+if "AMQP_SEND_ALERT_HISTORY" in os.environ:
+    AMQP_SEND_ALERT_HISTORY = False if os.environ.get("AMQP_SEND_ALERT_HISTORY") == "False" else True
+else:
+    AMQP_SEND_ALERT_HISTORY = app.config.get('AMQP_SEND_ALERT_HISTORY', DEFAULT_AMQP_SEND_ALERT_HISTORY)
 
 
 class FanoutPublisher(PluginBase):
