@@ -54,6 +54,14 @@ string or filename to a template file and accepts any Jinja2 syntax.
 `MS_TEAMS_TEXT_FMT` formats `msTeamsMessage.text(alert.text)`, if omitted
 no formatting is done on `alert.text`.
 
+Teams Payload
+-------------
+With `MS_TEAMS_PAYLOAD` it's possible to fully customize the alert.
+`MS_TEAMS_PAYLOAD` is Jinja2 template (string or filename) containing the full
+HTTP POST [payload](https://docs.microsoft.com/en-us/outlook/actionable-messages/message-card-reference)(json) that's sent to `MS_TEAMS_WEBHOOK_URL`.
+
+Example payload in [example-payload.json.j2](example-payload.json.j2) file.
+
 References
 ----------
 
