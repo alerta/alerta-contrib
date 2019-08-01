@@ -6,6 +6,7 @@ import logging
 import os
 import platform
 import re
+import signal
 import smtplib
 import socket
 import sys
@@ -48,6 +49,8 @@ DEFAULT_OPTIONS = {
     'key':           '',
     'amqp_url':      'redis://localhost:6379/',
     'amqp_topic':    'notify',
+    'amqp_queue_name':    '', # Name of the AMQP queue. Default is no name (default queue destination).
+    'amqp_queue_exclusive': True, # Exclusive queues may only be consumed by the current connection.
     'smtp_host':     'smtp.gmail.com',
     'smtp_port':     587,
     'smtp_username': '', # application-specific username if it differs from the specified 'mail_from' user
@@ -96,11 +99,11 @@ class FanoutConsumer(ConsumerMixin):
 
         queues = [
             Queue(
-                name='',
+                name=OPTIONS['amqp_queue_name'],
                 exchange=exchange,
                 routing_key='',
                 channel=self.channel,
-                exclusive=True
+                exclusive=OPTIONS['amqp_queue_exclusive']
             )
         ]
 
@@ -254,6 +257,10 @@ class MailSender(threading.Thread):
                                      ' adding for this rule only')
                             del contacts[:]
                             contacts.extend(new_contacts)
+        
+        # Don't loose time (and try to send an email) if there is no contact...
+        if not contacts:
+            return
 
         template_vars = {
             'alert': alert,
@@ -285,11 +292,10 @@ class MailSender(threading.Thread):
 
         # by default we are going to assume that the email is going to be text
         msg_text = MIMEText(text, 'plain', 'utf-8')
+        msg.attach(msg_text)
         if html:
             msg_html = MIMEText(html, 'html', 'utf-8')
             msg.attach(msg_html)
-
-        msg.attach(msg_text)
 
         try:
             self._send_email_message(msg, contacts)
@@ -423,6 +429,8 @@ def parse_group_rules(config_file):
         return rules_d
     return ()
 
+def on_sigterm(x, y):
+    raise SystemExit
 
 def main():
     global OPTIONS
@@ -463,7 +471,7 @@ def main():
             int: config.getint,
             float: config.getfloat,
             bool: config.getboolean,
-            list: lambda s, o: [e.strip() for e in config.get(s, o).split(',')]
+            list: lambda s, o: [e.strip() for e in config.get(s, o).split(',')] if len(config.get(s, o)) else []
         }
         for opt in DEFAULT_OPTIONS:
             # Convert the options to the expected type
@@ -488,6 +496,9 @@ def main():
         group_rules = parse_group_rules(config_file)
     if group_rules is not None:
         OPTIONS['group_rules'] = group_rules
+
+    # Registering action for SIGTERM signal handling
+    signal.signal(signal.SIGTERM, on_sigterm)
 
     try:
         mailer = MailSender()

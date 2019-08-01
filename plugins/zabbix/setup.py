@@ -1,7 +1,7 @@
 
 from setuptools import setup, find_packages
 
-version = '5.1.0'
+version = '5.1.1'
 
 setup(
     name="alerta-zabbix",
@@ -10,7 +10,7 @@ setup(
     url='https://github.com/alerta/alerta-contrib',
     license='MIT',
     author='Nick Satterly',
-    author_email='nick.satterly@theguardian.com',
+    author_email='nick.satterly@gmail.com',
     packages=find_packages(),
     py_modules=['alerta_zabbix'],
     install_requires=[

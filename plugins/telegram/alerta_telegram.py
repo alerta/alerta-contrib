@@ -37,6 +37,8 @@ TELEGRAM_PROXY_USERNAME = app.config.get('TELEGRAM_PROXY_USERNAME') \
                           or os.environ.get('TELEGRAM_PROXY_USERNAME')
 TELEGRAM_PROXY_PASSWORD = app.config.get('TELEGRAM_PROXY_PASSWORD') \
                           or os.environ.get('TELEGRAM_PROXY_PASSWORD')
+TELEGRAM_SOUND_NOTIFICATION_SEVERITY = app.config.get('TELEGRAM_SOUND_NOTIFICATION_SEVERITY') \
+                          or os.environ.get('TELEGRAM_SOUND_NOTIFICATION_SEVERITY')
 
 DASHBOARD_URL = app.config.get('DASHBOARD_URL', '') \
                 or os.environ.get('DASHBOARD_URL')
@@ -103,10 +105,20 @@ class TelegramBot(PluginBase):
         else:
             keyboard = None
 
+        if TELEGRAM_SOUND_NOTIFICATION_SEVERITY:
+            disable_notification = True
+            if alert.severity in TELEGRAM_SOUND_NOTIFICATION_SEVERITY:
+                disable_notification = False
+        else:
+            disable_notification = False
+
+        LOG.debug('Telegram: post_receive sendMessage disable_notification=%s', str(disable_notification))
+
         try:
             response = self.bot.sendMessage(TELEGRAM_CHAT_ID,
                                             text,
                                             parse_mode='Markdown',
+                                            disable_notification=disable_notification,
                                             reply_markup=keyboard)
         except telepot.exception.TelegramError as e:
             raise RuntimeError("Telegram: ERROR - %s, description= %s, json=%s",

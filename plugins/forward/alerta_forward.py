@@ -28,7 +28,7 @@ class ForwardAlert(PluginBase):
             return
         client = Client(endpoint=FORWARD_URL, key=FORWARD_API_KEY)
         fw_count = alert.attributes.get('fw_count') or 0
-        fw_count = int(fw_count)+1
+        fw_count = fw_count+1
         if fw_count >= FORWARD_MAX_LENGTH:
             LOG.debug('alert discarded by cycle overflow')
             return

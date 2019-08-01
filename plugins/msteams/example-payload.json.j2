@@ -1,0 +1,47 @@
+{
+  "@type": "MessageCard",
+  "@context": "https://schema.org/extensions",
+  "summary": "{{ alert.status|capitalize }} {{ alert.resource }} / {{ alert.service|join(',') }}",
+  "themeColor": "{{ color }}",
+  "title": "[{{ alert.status|capitalize }}] {{ alert.environment }} {{ alert.service|join(',') }} {{ alert.severity|upper }} - {{ alert.event }} on {{ alert.resource }}",
+  "sections": [
+    {
+      "facts": [
+        {
+          "name": "Resource:",
+           "value": "**{{ alert.resource }}**{% if alert.attributes['hostaddress'] or alert.attributes['hostaddress6'] %} ({{ alert.attributes['hostaddress'] }}{% if alert.attributes['hostaddress6'] %} / {{ alert.attributes['hostaddress6'] }}{% endif %}){% endif %}"
+        },
+        {
+          "name": "Service(s):",
+          "value": "**{{ alert.service|join(',') }}**"
+        }
+{%- if alert.origin %}
+        ,{
+           "name": "Origin:",
+           "value": "{{ alert.origin }}"
+        }{% endif %}
+      ]
+    }
+{%- if (alert.status and alert.status == 'open') and alert.text %}
+    ,{
+      "text": "```{{ alert.text }}```"
+    }{% endif %}
+  ]
+{%- if alert.status and alert.status in [ 'open', 'ack', 'assign' ] %}
+  ,"potentialAction": [
+{%- if headers and actions %}
+{%- for act in actions %}
+    {
+      "@type": "{{ act['type'] }}",
+      "name": "{{ act['name'] }}",
+      "target": "{{ act['target'] }}",
+      "headers": {{ headers }},
+      "body": {{ act['body'] }}
+    },{% endfor %}{% endif %}
+    {
+      "@type": "OpenUri",
+      "name": "View in Alerta",
+      "targets": [ { "os": "default", "uri": "{{ url }}" } ]
+    }
+  ]{% endif %}
+}

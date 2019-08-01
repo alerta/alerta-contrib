@@ -37,9 +37,10 @@ DASHBOARD_URL = 'http://try.alerta.io'
 ```
 
 The `MS_TEAMS_SUMMARY_FMT` configuration variable is a Jinja2 template
-string and accepts any Jinja2 syntax. The formatter has access to two
-variables in the template environment, 'alert' for all alert details
-and 'config' for access to the alerta configuration.
+string or filename to a template file and accepts any Jinja2 syntax.
+The formatter has access to two variables in the template environment,
+'alert' for all alert details and 'config' for access to the alerta
+configuration.
 
 If you have Jinja2 available you can try customizing the message like
 this:
@@ -48,10 +49,23 @@ this:
 MS_TEAMS_SUMMARY_FMT = '<b>[{{ alert.status|capitalize }}]</b> [{{ alert.severity|upper }}] Event {{ alert.event }} on <b>{{ alert.resource }}</b><br>{{ alert.text }}'
 ```
 
+The `MS_TEAMS_TEXT_FMT` configuration variable is a Jinja2 template
+string or filename to a template file and accepts any Jinja2 syntax.
+`MS_TEAMS_TEXT_FMT` formats `msTeamsMessage.text(alert.text)`, if omitted
+no formatting is done on `alert.text`.
+
+Teams Payload
+-------------
+With `MS_TEAMS_PAYLOAD` it's possible to fully customize the alert.
+`MS_TEAMS_PAYLOAD` is Jinja2 template (string or filename) containing the full
+HTTP POST [payload](https://docs.microsoft.com/en-us/outlook/actionable-messages/message-card-reference)(json) that's sent to `MS_TEAMS_WEBHOOK_URL`.
+
+Example payload in [example-payload.json.j2](example-payload.json.j2) file.
+
 References
 ----------
 
-  * HipChat room notification API: https://github.com/rveachkc/pymsteams
+  * Pymsteams API: https://github.com/rveachkc/pymsteams
   * Jinja2 templating language for Python: http://jinja.pocoo.org/docs/dev/
 
 License

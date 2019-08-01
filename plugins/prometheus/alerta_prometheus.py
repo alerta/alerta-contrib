@@ -18,7 +18,7 @@ ALERTMANAGER_API_URL = os.environ.get('ALERTMANAGER_API_URL') or app.config.get(
 ALERTMANAGER_USERNAME = os.environ.get('ALERTMANAGER_USERNAME') or app.config.get('ALERTMANAGER_USERNAME', None)
 ALERTMANAGER_PASSWORD = os.environ.get('ALERTMANAGER_PASSWORD') or app.config.get('ALERTMANAGER_PASSWORD', None)
 ALERTMANAGER_SILENCE_DAYS = os.environ.get('ALERTMANAGER_SILENCE_DAYS') or app.config.get('ALERTMANAGER_SILENCE_DAYS', 1)
-
+ALERTMANAGER_SILENCE_FROM_ACK = os.environ.get('ALERTMANAGER_SILENCE_FROM_ACK') or app.config.get('ALERTMANAGER_SILENCE_FROM_ACK', False)
 
 class AlertmanagerSilence(PluginBase):
 
@@ -39,17 +39,25 @@ class AlertmanagerSilence(PluginBase):
         if alert.event_type != 'prometheusAlert':
             return
 
-        try:
-            silence_days = int(ALERTMANAGER_SILENCE_DAYS)
-        except Exception as e:
-            LOG.error("Alertmanager: Could not parse 'ALERTMANAGER_SILENCE_DAYS': %s", e)
-            raise RuntimeError("Could not parse 'ALERTMANAGER_SILENCE_DAYS': %s" % e)
-
         if alert.status == status:
             return
 
         if status == 'ack':
-            LOG.debug('Alertmanager: Add silence for alertname=%s instance=%s', alert.event, alert.resource)
+
+            if ALERTMANAGER_SILENCE_FROM_ACK:
+                silence_seconds = int(alert.timeout)
+            else:
+                try:
+                    silence_days = int(ALERTMANAGER_SILENCE_DAYS)
+                except Exception as e:
+                    LOG.error(
+                        "Alertmanager: Could not parse 'ALERTMANAGER_SILENCE_DAYS': %s", e)
+                    raise RuntimeError(
+                        "Could not parse 'ALERTMANAGER_SILENCE_DAYS': %s" % e)
+                silence_seconds = silence_days * 86400
+
+            LOG.debug('Alertmanager: Add silence for alertname=%s instance=%s timeout=%s',
+                      alert.event, alert.resource, str(silence_seconds))
             data = {
                 "matchers": [
                     {
@@ -62,7 +70,7 @@ class AlertmanagerSilence(PluginBase):
                     }
                 ],
                 "startsAt": datetime.datetime.utcnow().replace(microsecond=0).isoformat() + ".000Z",
-                "endsAt": (datetime.datetime.utcnow() + datetime.timedelta(days=silence_days))
+                "endsAt": (datetime.datetime.utcnow() + datetime.timedelta(seconds=silence_seconds))
                               .replace(microsecond=0).isoformat() + ".000Z",
                 "createdBy": "alerta",
                 "comment": text if text != '' else "silenced by alerta"

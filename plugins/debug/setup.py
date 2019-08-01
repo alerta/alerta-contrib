@@ -1,27 +1,24 @@
 
 from setuptools import setup, find_packages
 
-version = '5.3.4'
+version = '7.0.0'
 
 setup(
-    name="alerta-hipchat",
+    name="alerta-debug",
     version=version,
-    description='Alerta plugin for HipChat',
+    description='Alerta plugin for debug & tracing',
     url='https://github.com/alerta/alerta-contrib',
     license='MIT',
     author='Nick Satterly',
-    author_email='nick.satterly@theguardian.com',
+    author_email='nick.satterly@gmail.com',
     packages=find_packages(),
-    py_modules=['alerta_hipchat'],
-    install_requires=[
-        'requests',
-        'jinja2'
-    ],
+    py_modules=['alerta_debug'],
     include_package_data=True,
     zip_safe=True,
     entry_points={
         'alerta.plugins': [
-            'hipchat = alerta_hipchat:SendRoomNotification'
+            'debug = alerta_debug:DebugTracing'
         ]
-    }
+    },
+    python_requires='>=3.5'
 )

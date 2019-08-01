@@ -27,7 +27,7 @@ class SentryWebhook(WebhookBase):
             value=payload['level'],
             text='{} {}'.format(payload['message'], payload['url']),
             tags=['{}={}'.format(k, v) for k, v in payload['event']['tags']],
-            attributes={'modules': payload['event']['modules']},
+            attributes={'modules': ['{}=={}'.format(k, v) for k, v in payload['event']['modules'].items()]},
             origin='sentry.io',
-            raw_data=payload
+            raw_data=str(payload)
         )

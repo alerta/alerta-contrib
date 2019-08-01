@@ -16,6 +16,7 @@ LOG.info('Initializing')
 OPSGENIE_EVENTS_CREATE_URL = 'https://api.opsgenie.com/v2/alerts'
 OPSGENIE_EVENTS_CLOSE_URL = 'https://api.opsgenie.com/v2/alerts/%s/close?identifierType=alias'
 OPSGENIE_SERVICE_KEY = os.environ.get('OPSGENIE_SERVICE_KEY') or app.config['OPSGENIE_SERVICE_KEY']
+OPSGENIE_TEAMS = os.environ.get('OPSGENIE_TEAMS', '') # comma separated list of teams
 SERVICE_KEY_MATCHERS = os.environ.get('SERVICE_KEY_MATCHERS') or app.config['SERVICE_KEY_MATCHERS']
 DASHBOARD_URL = os.environ.get('DASHBOARD_URL') or app.config.get('DASHBOARD_URL', '')
 LOG.info('Initialized: %s key, %s matchers' % (OPSGENIE_SERVICE_KEY, SERVICE_KEY_MATCHERS))
@@ -85,7 +86,7 @@ class TriggerEvent(PluginBase):
                 "alias": alert.id,
                 "message": "[ %s ]: %s: %s" % (alert.environment, alert.severity, alert.text),
                 "entity": alert.environment,
-                "teams" : [],
+                "responders" : self.get_opsgenie_teams(),
                 "tags": [alert.environment, alert.resource, alert.service[0], alert.event],
                 "details": details
             }
@@ -97,7 +98,15 @@ class TriggerEvent(PluginBase):
             except Exception as e:
                 raise RuntimeError("OpsGenie connection error: %s" % e)
 
-        LOG.debug('OpsGenie response: %s - %s', r.status_code, r.text)
+        LOG.debug('OpsGenie response: %s - %s' % (r.status_code, r.text))
+
+    # generate list of responders from OPSGENIE_TEAMS env var
+    def get_opsgenie_teams(self):
+        teams = OPSGENIE_TEAMS.replace(' ', '') # remove whitespace
+        if len(teams) == 0:
+            return [] # no teams specified
+        teams = teams.split(',')
+        return [{"name": team, "type": "team"} for team in teams]
 
     def status_change(self, alert, status, text):
         LOG.debug('Alert change %s to %s: %s' % (alert.id, status, alert.get_body(history=False)))
@@ -108,4 +117,4 @@ class TriggerEvent(PluginBase):
 
         r = self.opsgenie_close_alert(alert, 'STATUS-CLOSE')
 
-        LOG.debug('OpsGenie response: %s - %s', r.status_code, r.text)
+        LOG.debug('OpsGenie response: %s - %s' % (r.status_code, r.text))
