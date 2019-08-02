@@ -268,7 +268,7 @@ class WorkerThread(threading.Thread):
                         event='HttpSSLChecker',
                         correlate=correlate,
                         group=group,
-                        value='0',
+                        value='left %s day(s)' % days_left.days,
                         severity=severity,
                         environment=environment,
                         service=service,
