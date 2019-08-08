@@ -12,7 +12,7 @@ from alerta.plugins import PluginBase
 
 LOG = logging.getLogger('alerta.plugins.prometheus')
 
-DEFAULT_ALERTMANAGER_API_URL = 'http://localhost:9093'
+DEFAULT_ALERTMANAGER_API_URL = [ 'http://localhost:9093' ]
 
 ALERTMANAGER_API_URL = os.environ.get('ALERTMANAGER_API_URL') or app.config.get('ALERTMANAGER_API_URL', None)
 ALERTMANAGER_USERNAME = os.environ.get('ALERTMANAGER_USERNAME') or app.config.get('ALERTMANAGER_USERNAME', None)
@@ -75,45 +75,53 @@ class AlertmanagerSilence(PluginBase):
                 "createdBy": "alerta",
                 "comment": text if text != '' else "silenced by alerta"
             }
+           
+            silenceIds = '' 
+            base_urls = ALERTMANAGER_API_URL or alert.attributes.get('externalUrl', DEFAULT_ALERTMANAGER_API_URL)
+            for base_url in base_urls:
 
-            base_url = ALERTMANAGER_API_URL or alert.attributes.get('externalUrl', DEFAULT_ALERTMANAGER_API_URL)
-            url = base_url + '/api/v1/silences'
+              url = base_url + '/api/v1/silences'
 
-            LOG.debug('Alertmanager: URL=%s', url)
-            LOG.debug('Alertmanager: data=%s', data)
+              LOG.debug('Alertmanager: URL=%s', url)
+              LOG.debug('Alertmanager: data=%s', data)
+
+              try:
+                  r = requests.post(url, json=data, auth=self.auth, timeout=2)
+              except Exception as e:
+                  raise RuntimeError("Alertmanager: ERROR - %s" % e)
+              LOG.debug('Alertmanager: %s - %s', r.status_code, r.text)
+
+              # example r={"status":"success","data":{"silenceId":8}}
+              silenceId = r.json()['data']['silenceId']
+              silenceIds = silenceIds + silenceId + ','
 
             try:
-                r = requests.post(url, json=data, auth=self.auth, timeout=2)
+              alert.attributes['silenceId'] = silenceIds
+              text = text + ' (silenced in Alertmanager)'
             except Exception as e:
-                raise RuntimeError("Alertmanager: ERROR - %s" % e)
-            LOG.debug('Alertmanager: %s - %s', r.status_code, r.text)
-
-            # example r={"status":"success","data":{"silenceId":8}}
-            try:
-                silenceId = r.json()['data']['silenceId']
-                alert.attributes['silenceId'] = silenceId
-                text = text + ' (silenced in Alertmanager)'
-            except Exception as e:
-                raise RuntimeError("Alertmanager: ERROR - %s" % e)
-            LOG.debug('Alertmanager: Added silenceId %s to attributes', silenceId)
+                  raise RuntimeError("Alertmanager: ERROR - %s" % e)
+            LOG.debug('Alertmanager: Added silenceId %s to attributes', silenceIds)
 
         elif status == 'open':
             LOG.debug('Alertmanager: Remove silence for alertname=%s instance=%s', alert.event, alert.resource)
 
-            silenceId = alert.attributes.get('silenceId', None)
-            if silenceId:
-                base_url = ALERTMANAGER_API_URL or alert.attributes.get('externalUrl', DEFAULT_ALERTMANAGER_API_URL)
-                url = base_url + '/api/v1/silence/%s' % silenceId
-                try:
-                    r = requests.delete(url, auth=self.auth, timeout=2)
-                except Exception as e:
-                    raise RuntimeError("Alertmanager: ERROR - %s" % e)
-                LOG.debug('Alertmanager: %s - %s', r.status_code, r.text)
+            silenceIds = alert.attributes.get('silenceId', None)
+            if silenceIds:
+                silenceId = silenceIds.split(',')
+                base_urls = ALERTMANAGER_API_URL or alert.attributes.get('externalUrl', DEFAULT_ALERTMANAGER_API_URL)
+                for i in range(len(base_urls)):
 
-                try:
-                    alert.attributes['silenceId'] = None
-                except Exception as e:
-                    raise RuntimeError("Alertmanager: ERROR - %s" % e)
-                LOG.debug('Alertmanager: Removed silenceId %s from attributes', silenceId)
+                  url = base_urls[i] + '/api/v1/silence/%s' % silenceId[i]
+                  try:
+                      r = requests.delete(url, auth=self.auth, timeout=2)
+                  except Exception as e:
+                      raise RuntimeError("Alertmanager: ERROR - %s" % e)
+                  LOG.debug('Alertmanager: %s - %s', r.status_code, r.text)
+  
+                  try:
+                      alert.attributes['silenceId'] = None
+                  except Exception as e:
+                      raise RuntimeError("Alertmanager: ERROR - %s" % e)
+                  LOG.debug('Alertmanager: Removed silenceId %s from attributes', silenceId[i])
 
         return alert, status, text

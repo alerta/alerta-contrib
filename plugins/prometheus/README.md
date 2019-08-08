@@ -36,7 +36,7 @@ PLUGINS = ['prometheus']
 The below settings are configured with reasonable defaults:
 
 ```python
-ALERTMANAGER_API_URL = 'http://localhost:9093'
+ALERTMANAGER_API_URL = [ 'http://localhost:9093' ]
 ALERTMANAGER_SILENCE_DAYS = 1
 ```
 
@@ -51,7 +51,7 @@ ALERTMANAGER_SILENCE_FROM_ACK = True
 
 ```python
 PLUGINS = ['reject','prometheus']
-ALERTMANAGER_API_URL = 'http://demo.robustperception.io:9093'  # default=http://localhost:9093
+ALERTMANAGER_API_URL = [ 'http://demo.robustperception.io:9093' ]  # default=http://localhost:9093
 ALERTMANAGER_SILENCE_DAYS = 2  # default=1
 ```
 
@@ -66,7 +66,7 @@ authentication will require development work by the user.
 **Example of BasicAuth configuration**
 
 ```python
-ALERTMANAGER_API_URL = 'http://localhost:9093'
+ALERTMANAGER_API_URL = [ 'http://localhost:9093' ]
 ALERTMANAGER_USERNAME = 'promuser'
 ALERTMANAGER_PASSWORD = 'prompass'
 ```
