@@ -56,6 +56,8 @@ class SendConnectorCardMessage(PluginBase):
         MS_TEAMS_SUMMARY_FMT = self.get_config('MS_TEAMS_SUMMARY_FMT', default=None, type=str, **kwargs)  # Message summary(title) format
         MS_TEAMS_TEXT_FMT = self.get_config('MS_TEAMS_TEXT_FMT', default=None, type=str, **kwargs)  # Message text format
         MS_TEAMS_PAYLOAD = self.get_config('MS_TEAMS_PAYLOAD', default=None, type=str, **kwargs)  # json/Jinja2 MS teams messagecard payload
+        MS_TEAMS_INBOUNDWEBHOOK_URL = self.get_config('MS_TEAMS_INBOUNDWEBHOOK_URL', default=None, type=str, **kwargs)  # webhook url for connectorcard actions
+        MS_TEAMS_APIKEY = self.get_config('MS_TEAMS_APIKEY', default=None, type=str, **kwargs)  # X-API-Key (needs webhook.write permission)
         DASHBOARD_URL = self.get_config('DASHBOARD_URL', default='', type=str, **kwargs)
 
         if alert.repeat:
@@ -70,6 +72,11 @@ class SendConnectorCardMessage(PluginBase):
             'color': color,
             'url': url
         }
+
+        if MS_TEAMS_INBOUNDWEBHOOK_URL and MS_TEAMS_APIKEY:
+            # Add X-API-Key header for teams(webhook) HttpPOST actions
+            template_vars['headers'] =  '[ {{ "name": "X-API-Key", "value": "{}" }} ]'.format(MS_TEAMS_APIKEY)
+            template_vars['webhook_url'] = MS_TEAMS_INBOUNDWEBHOOK_URL
 
         if MS_TEAMS_PAYLOAD:
             # Use "raw" json ms teams message card format
