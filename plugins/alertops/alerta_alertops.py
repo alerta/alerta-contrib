@@ -14,7 +14,7 @@ from alerta.plugins import PluginBase
 
 LOG = logging.getLogger('alerta.plugins')
 
-ALERTOPS_WEBHOOK_URL = os.environ.get('AO_URL') or app.config['AO_URL']
+ALERTOPS_URL = os.environ.get('ALERTOPS_URL') or app.config['ALERTOPS_URL']
 DASHBOARD_URL = os.environ.get('DASHBOARD_URL') or app.config['DASHBOARD_URL']
 
 
@@ -46,7 +46,7 @@ class TriggerEvent(PluginBase):
         LOG.debug('AlertOps Payload: %s', payload)
 
         try:
-            r = requests.post(ALERTOPS_WEBHOOK_URL, json=payload, timeout=2)
+            r = requests.post(ALERTOPS_URL, json=payload, timeout=2)
         except Exception as e:
             raise RuntimeError("AlertOps connection error: %s" % e)
         LOG.debug('AlertOps response: %s - %s' % (r.status_code, r.text))
@@ -66,7 +66,7 @@ class TriggerEvent(PluginBase):
             "details": alert.get_body(history=False)}
 
         try:
-            r = requests.post(ALERTOPS_WEBHOOK_URL, json=payload, timeout=2)
+            r = requests.post(ALERTOPS_URL, json=payload, timeout=2)
         except Exception as e:
             raise RuntimeError("AlertOps connection error: %s" % e)
         LOG.debug('AlertOps response: %s - %s' % (r.status_code, r.text))

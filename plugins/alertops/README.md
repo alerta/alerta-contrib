@@ -29,11 +29,11 @@ Add `alertops` to the list of enabled `PLUGINS` in `alertad.conf` server
 configuration file and set plugin-specific variable in the
 server configuration file or the environment variables:
 
-The `AO_URL` variable is generated during integration configuration within the AlertOps console. This should be added to the server configuration file.
+The `ALERTOPS_URL` variable is generated during integration configuration within the AlertOps console. This should be added to the server configuration file.
 
 ```python
 PLUGINS = ['alertops'] 
-AO_URL = ''  # default="Not configured"
+ALERTOPS_URL = ''  # default="Not configured"
 ```
 The `DASHBOARD_URL` setting should be configured in the server configuration file to link pushover messages to the Alerta console through the AlertOps webhook: 
 
@@ -45,7 +45,7 @@ DASHBOARD_URL = '' # default="Not Set"
 
 ```python
 PLUGINS = ['reject', 'alertops']
-AO_URL = 'https://notify.alertops/POSTAlert/c8490f30-1r492-ceks85-c833els8f10cd/Alerta'
+ALERTOPS_URL = 'https://notify.alertops/POSTAlert/c8490f30-1r492-ceks85-c833els8f10cd/Alerta'
 DASHBOARD_URL = 'https://try.alerta.io'
 ```
 
