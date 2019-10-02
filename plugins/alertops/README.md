@@ -54,7 +54,7 @@ References
 ----------
 
   * AlertOps Integration Docs: 
-  https://help.alertops.com/en/collections/274084-integrations
+ https://help.alertops.com/integrations/pre-built-integration-guides/alerta
 
 License
 -------
