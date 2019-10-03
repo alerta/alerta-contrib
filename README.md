@@ -34,6 +34,7 @@ Integrations
 Plugins
 -------
 
+  * [AlertOps](plugins/alertops)
   * [AMQP](plugins/amqp)
   * [Cachet](plugins/cachet)
   * [Enhance](plugins/enhance)
