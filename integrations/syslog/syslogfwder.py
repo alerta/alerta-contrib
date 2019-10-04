@@ -65,6 +65,9 @@ SYSLOG_SEVERITY_MAP = {
     "debug":   "debug",
 }
 
+if sys.version_info[0] >= 3:
+    unicode = str
+    
 def priority_to_code(name):
     return SYSLOG_SEVERITY_MAP.get(name, "unknown")
 
