@@ -18,13 +18,13 @@
 {%- if alert.origin %}
         ,{
            "name": "Origin:",
-           "value": "{{ alert.origin }}"
+           "value": "{{ alert.origin|replace('\\', '\\\\') }}"
         }{% endif %}
       ]
     }
 {%- if (alert.status and alert.status == 'open') and alert.text %}
     ,{
-      "text": "```{{ alert.text }}```"
+      "text": "```{{ alert.text|replace('\\', '\\\\') }}```"
     }{% endif %}
   ]
 {%- if alert.status and alert.status in [ 'open', 'ack', 'assign' ] %}
