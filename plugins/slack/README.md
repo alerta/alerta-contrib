@@ -42,6 +42,8 @@ SLACK_WEBHOOK_URL = 'https://hooks.slack.com/services/T00000000/B00000000/XXXXXX
 SLACK_ATTACHMENTS = True  # default=False
 SLACK_CHANNEL = '' # if empty then uses channel from incoming webhook configuration
 SLACK_CHANNEL_ENV_MAP = { 'Production' : '#alert-prod' } # Default=None (optionnal) Allow to specify a channel on a per-environment basis. SLACK_CHANNEL is used a default value
+SLACK_CHANNEL_EVENT_MAP = { 'Node offline' : '#critical-alerts' } # Default=None (optionnal) Allow to specify a channel on a per-event basis. SLACK_CHANNEL is used a default value
+SLACK_CHANNEL_SEVERITY_MAP = { 'crtical' : '#critical-alerts', 'informational': '#noisy-feed' } # Default=None (optionnal) Allow to specify a channel on a per-severity basis. SLACK_CHANNEL is used a default value
 
 ICON_EMOJI = '' # default :rocket:
 ALERTA_USERNAME = '' # default alerta
