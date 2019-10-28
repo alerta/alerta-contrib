@@ -26,6 +26,18 @@ try:
         os.environ.get('SLACK_CHANNEL_ENV_MAP'))
 except Exception as e:
     SLACK_CHANNEL_ENV_MAP = app.config.get('SLACK_CHANNEL_ENV_MAP', dict())
+
+try:
+    SLACK_CHANNEL_EVENT_MAP = json.loads(
+        os.environ.get('SLACK_CHANNEL_EVENT_MAP'))
+except Exception as e:
+    SLACK_CHANNEL_EVENT_MAP = app.config.get('SLACK_CHANNEL_EVENT_MAP', dict())
+
+try:
+    SLACK_CHANNEL_SEVERITY_MAP = json.loads(
+        os.environ.get('SLACK_CHANNEL_SEVERITY_MAP'))
+except Exception as e:
+    SLACK_CHANNEL_SEVERITY_MAP = app.config.get('SLACK_CHANNEL_SEVERITY_MAP', dict())
     
 SLACK_SEND_ON_ACK = os.environ.get(
     'SLACK_SEND_ON_ACK') or app.config.get('SLACK_SEND_ON_ACK', False)
@@ -87,7 +99,22 @@ class ServiceIntegration(PluginBase):
             color = self._severities[alert.severity]
         else:
             color = '#00CC00'  # green
-        channel = SLACK_CHANNEL_ENV_MAP.get(alert.environment, SLACK_CHANNEL)
+        channel = SLACK_CHANNEL_SEVERITY_MAP.get(alert.severity, SLACK_CHANNEL)
+        if SLACK_CHANNEL_SEVERITY_MAP.get(alert.severity):
+            LOG.debug("Found severity mapping. Channel: %s" % channel)
+        else:
+            LOG.debug("No severity mapping. Channel: %s" % channel)
+        channel = SLACK_CHANNEL_ENV_MAP.get(alert.environment, channel)
+        if SLACK_CHANNEL_ENV_MAP.get(alert.environment):
+            LOG.debug("Found env mapping. Channel: %s" % channel)
+        else:
+            LOG.debug("No env mapping. Channel: %s" % channel)
+        channel = SLACK_CHANNEL_EVENT_MAP.get(alert.event, channel)
+        if SLACK_CHANNEL_EVENT_MAP.get(alert.event):
+            LOG.debug("Found event mapping. Channel: %s" % channel)
+        else:
+            LOG.debug("No event mapping. Channel: %s" % channel)
+
         templateVars = {
             'alert': alert,
             'status': status if status else alert.status,
