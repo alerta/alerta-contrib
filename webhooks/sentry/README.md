@@ -122,8 +122,7 @@ Example Output
       "method": "GET",
       "inferred_content_type": "application/json"
     },
-    "sentry.interfaces
-.Template": {
+    "sentry.interfaces.Template": {
       "abs_path": "/srv/example/templates/debug_toolbar/base.html",
       "pre_context": [
         "{% endif %}\n",
