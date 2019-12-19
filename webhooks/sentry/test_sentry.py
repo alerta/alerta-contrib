@@ -410,6 +410,7 @@ class SentryWebhookTestCase(unittest.TestCase):
         data = json.loads(response.data.decode('utf-8'))
         self.assertEqual(data['alert']['resource'], 'raven.scripts.runner in main')
         self.assertEqual(data['alert']['event'], '0476467adf8f499ea795a48fcc4bf290')
+        self.assertEqual(data['alert']['environment'], 'Production')
         self.assertEqual(data['alert']['value'], 'error')
         self.assertEqual(data['alert']['text'], 'This is an example Python exception https://sentry.io/alertaio/alerta5/issues/541485531/')
         self.assertEqual(sorted(data['alert']['tags']), ['browser=Chrome 28.0', 'device=Other', 'level=error', 'os=Windows 8', 'sentry:user=id:1', 'url=http://example.com/foo'])
