@@ -7,7 +7,7 @@ class SentryWebhook(WebhookBase):
 
     def incoming(self, query_string, payload):
 
-        if payload.get('event')['sentry.interfaces.Http']['env'] == 'prod':
+        if payload.get('event')['sentry.interfaces.Http']['env']['ENV'] == 'prod':
             environment = 'Production'
         else:
             environment = 'Development'
