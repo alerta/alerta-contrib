@@ -14,11 +14,11 @@ class MsteamsWebhook(WebhookBase):
         # instead we're relying on alerta to validate X-API-Key header
 
         action = payload.get('action', 'missing')
-        if action not in ( 'ack', 'close', 'blackout' ):
+        if action not in [ 'ack', 'close', 'blackout' ]:
             resp = make_response(jsonify(status='error', message='Invalid action'), 400)
             return resp
 
-        if action in ( 'ack', 'close' ):
+        if action in [ 'ack', 'close' ]:
             alert_id = payload.get('alert_id', None)
             err = make_response(jsonify(status='error', message='Missing/invalid alert_id'), 400)
             if not alert_id:
