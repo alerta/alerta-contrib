@@ -20,8 +20,6 @@ class MsteamsWebhookTestCase(unittest.TestCase):
         custom_webhooks.webhooks['msteams'] = alerta_msteamswebhook.MsteamsWebhook()
 
         self.headers = {
-            'X-API-Key': 'some_secret_string',
-            'Authentication': 'Bearer fakestring-here',
             'Content-Type': 'application/json'
         }
 
