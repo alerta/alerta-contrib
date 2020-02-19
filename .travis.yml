@@ -27,4 +27,7 @@ install:
   - pip install -r requirements-dev.txt
 
 script:
+  - pylint integrations/*/*.py
+  - pylint plugins/*/*.py
+  - pylint webhooks/*/*.py
   - pytest -v webhooks/*/test*
