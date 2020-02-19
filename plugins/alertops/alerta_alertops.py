@@ -22,22 +22,24 @@ class TriggerEvent(PluginBase):
 
 
     def pre_receive(self, alert, **kwargs):
-        
         return alert
+
+    @staticmethod
+    def _event_type(severity):
+        if severity in ['cleared', 'normal', 'ok']:
+                return "close"
+        else:
+                return "open"
 
     def post_receive(self, alert, **kwargs):
         if alert.repeat:
                 return
+
         message = "%s: %s alert for %s - %s" %( alert.environment, alert.severity.capitalize(), ','.join(alert.service), alert.resource)
         
-        if alert.severity in ['cleared', 'normal', 'ok']:
-                event_type = "close"
-        else:
-                event_type = "open"                
-
         payload = {
             "source_id": alert.id,
-            "source_status": event_type,
+            "source_status": TriggerEvent._event_type(alert.severity),
             "description": message,
             "resource": alert.resource,
             "source": "alerta",
@@ -54,11 +56,12 @@ class TriggerEvent(PluginBase):
 
     def status_change(self, alert, status, text, **kwargs):
         if status not in ['ack', 'assign']:
-                return 
+                return
+
         message = "%s: %s alert for %s - %s" %( alert.environment, alert.severity.capitalize(), ','.join(alert.service), alert.resource)
         payload = {
             "source_id": alert.id,
-            "source_status": event_type,
+            "source_status": TriggerEvent._event_type(alert.severity),
             "description": message,
             "resource": alert.resource,
             "source": "alerta",

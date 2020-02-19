@@ -5,6 +5,8 @@ import os
 import requests
 import traceback
 
+LOG = logging.getLogger('alerta.plugins.slack')
+
 try:
     from jinja2 import Template
 except Exception as e:
@@ -55,6 +57,7 @@ SLACK_DEFAULT_SUMMARY_FMT='*[{status}] {environment} {service} {severity}* - _{e
 SLACK_HEADERS = {
     'Content-Type': 'application/json'
 }
+
 
 class ServiceIntegration(PluginBase):
 

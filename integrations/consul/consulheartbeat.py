@@ -17,7 +17,7 @@ origin = client.kv.get('alerta/origin')[1]['Value']
 api = Client(endpoint=url, key=key)
 
 def createheartbeat():
-    for i in range(max_retries):
+    for _ in range(max_retries):
         try:
             print(api.heartbeat(origin=origin, timeout=timeout))
         except Exception as e:
