@@ -8,7 +8,7 @@ checks = [
         "resource": "www.google.com",
         "url": "http://www.google.com?q=foo#q=foo",
         "environment": "Production",
-        "service": ["Google", "Search"]
+        "service": ["Google", "Search"],
         "api_endpoint": "http://localhost:8080",
         "api_key": None,
     },

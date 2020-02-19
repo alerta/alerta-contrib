@@ -1,0 +1,5 @@
+[MESSAGES CONTROL]
+disable=R,C,W,import-error,broad-except
+
+[TYPECHECK]
+ignored-classes=_socketobject

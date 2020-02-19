@@ -1,20 +1,20 @@
-import platform
-import sys
-import time
-import urllib.request, urllib.error, urllib.parse
+import datetime
 import json
-import threading
+import logging
+import platform
 import queue
 import re
-import logging
-
-import datetime
-import ssl
 import socket
-
-from alertaclient.api import Client
-
+import ssl
+import threading
 from http.server import BaseHTTPRequestHandler as BHRH
+from urllib.error import URLError  # pylint: disable=no-name-in-module
+from urllib.parse import urlparse  # pylint: disable=no-name-in-module
+from urllib.request import build_opener, ProxyHandler, HTTPBasicAuthHandler, install_opener, Request, urlopen  # pylint: disable=no-name-in-module
+
+import sys
+import time
+from alertaclient.api import Client
 
 HTTP_RESPONSES = dict([(k, v[0]) for k, v in list(BHRH.responses.items())])
 
@@ -240,8 +240,8 @@ class WorkerThread(threading.Thread):
             if check_ssl:
                 ssl_date_fmt = r'%b %d %H:%M:%S %Y %Z'
                 context = ssl.create_default_context()
-                domain = '{uri.netloc}'.format(uri=urllib.parse.urlparse(check.get('url')))
-                port = urllib.parse.urlparse(check.get('url')).port or 443
+                domain = '{uri.netloc}'.format(uri=urlparse(check.get('url')))
+                port = urlparse(check.get('url')).port or 443
                 conn = context.wrap_socket(
                     socket.socket(socket.AF_INET),
                     server_hostname=domain
@@ -311,42 +311,42 @@ class WorkerThread(threading.Thread):
             start = time.time()
 
             if username and password:
-                auth_handler = urllib.request.HTTPBasicAuthHandler()
+                auth_handler = HTTPBasicAuthHandler()
                 auth_handler.add_password(realm=realm,
                                           uri=uri,
                                           user=username,
                                           passwd=password)
                 if proxy:
-                    opener = urllib.request.build_opener(auth_handler, urllib.request.ProxyHandler(proxy))
+                    opener = build_opener(auth_handler, ProxyHandler(proxy))
                 else:
-                    opener = urllib.request.build_opener(auth_handler)
+                    opener = build_opener(auth_handler)
             else:
                 if proxy:
-                    opener = urllib.request.build_opener(urllib.request.ProxyHandler(proxy))
+                    opener = build_opener(ProxyHandler(proxy))
                 else:
-                    opener = urllib.request.build_opener()
-            urllib.request.install_opener(opener)
+                    opener = build_opener()
+            install_opener(opener)
 
             if 'User-agent' not in headers:
                 headers['User-agent'] = 'alert-urlmon/%s' % (__version__)
 
             try:
                 if post:
-                    req = urllib.request.Request(url, json.dumps(post), headers=headers)
+                    req = Request(url, json.dumps(post), headers=headers)
                 else:
-                    req = urllib.request.Request(url, headers=headers)
-                response = urllib.request.urlopen(req, None, MAX_TIMEOUT)
+                    req = Request(url, headers=headers)
+                response = urlopen(req, None, MAX_TIMEOUT)
             except ValueError as e:
-                LOG.error('Request failed: %s', e)
-            except urllib.error.URLError as e:
+                LOG.error('Request failed: %s' % e)
+            except URLError as e:
                 if hasattr(e, 'reason'):
                     reason = str(e.reason)
                     status = None
                 elif hasattr(e, 'code'):
                     reason = None
-                    status = e.code
+                    status = e.code  # pylint: disable=no-member
             except Exception as e:
-                LOG.warning('Unexpected error: %s', e)
+                LOG.warning('Unexpected error: %s' % e)
             else:
                 status = response.getcode()
                 body = response.read()
@@ -412,7 +412,7 @@ class UrlmonDaemon(object):
                         event='big queue for http checks',
                         value=self.queue.qsize(),
                         severity=severity,
-                        text='URL check queue length is %d', self.queue.qsize(),
+                        text='URL check queue length is %d' % self.queue.qsize(),
                         event_type='serviceAlert',
                     )
                 except Exception as e:

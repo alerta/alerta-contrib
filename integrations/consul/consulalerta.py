@@ -1,12 +1,12 @@
 #!/usr/bin/env python
 
-from alertaclient.api import Client
-import sys
-import os
-import time
 import json
+import os
+
 import consul
+import sys
 import time
+from alertaclient.api import Client
 
 CONSUL_HOST = os.environ.get('CONSUL_HOST', '127.0.0.1')
 CONSUL_PORT = int(os.environ.get('CONSUL_PORT', 8500))
@@ -19,13 +19,13 @@ print(j)
 
 try:
     url = client.kv.get('alerta/apiurl')[1]['Value']
-except:
+except Exception:
     print("No URL defined, exiting")
     sys.exit(1)
 
 try:
     key = client.kv.get('alerta/apikey')[1]['Value']
-except:
+except Exception:
     print("No key defined, exiting")
     sys.exit(1)
 
@@ -72,13 +72,13 @@ SEVERITY_MAP = {
 def createalert( data ):
     try:
         environment = client.kv.get('alerta/env/{0}'.format(data['Node']))[1]['Value']
-    except:
+    except Exception:
         try:
-             environment = client.kv.get('alerta/defaultenv')[1]['Value']
-        except:
-             environment = "Production"
+            environment = client.kv.get('alerta/defaultenv')[1]['Value']
+        except Exception:
+            environment = "Production"
 
-    for i in range(max_retries):
+    for _ in range(max_retries):
         try:
             print("Response:")
             response = api.send_alert(
