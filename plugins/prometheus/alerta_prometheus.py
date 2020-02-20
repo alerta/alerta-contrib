@@ -91,7 +91,7 @@ class AlertmanagerSilence(PluginBase):
             # example r={"status":"success","data":{"silenceId":8}}
             try:
                 data = r.json().get('data', [])
-                if len(data) > 0:
+                if data:
                   silenceId = data['silenceId']
                   alert.attributes['silenceId'] = silenceId
                 else:
