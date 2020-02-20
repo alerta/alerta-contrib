@@ -90,8 +90,12 @@ class AlertmanagerSilence(PluginBase):
 
             # example r={"status":"success","data":{"silenceId":8}}
             try:
-                silenceId = r.json()['data']['silenceId']
-                alert.attributes['silenceId'] = silenceId
+                data = r.json().get('data', [])
+                if data:
+                  silenceId = data['silenceId']
+                  alert.attributes['silenceId'] = silenceId
+                else:
+                  silenceId = alert.attributes.get('silenceId', "unknown")
                 text = text + ' (silenced in Alertmanager)'
             except Exception as e:
                 raise RuntimeError("Alertmanager: ERROR - %s" % e)
