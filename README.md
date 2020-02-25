@@ -71,6 +71,7 @@ Webhooks
   * [Grafana](https://github.com/alerta/alerta/blob/master/alerta/webhooks/grafana.py)
   * [Graylog](https://github.com/alerta/alerta/blob/master/alerta/webhooks/graylog.py)
   * [Mailgun](webhooks/mailgun)
+  * [MS Teams](webhooks/msteams)
   * [New Relic](https://github.com/alerta/alerta/blob/master/alerta/webhooks/newrelic.py)
   * [PagerDuty](https://github.com/alerta/alerta/blob/master/alerta/webhooks/pagerduty.py)
   * [Pingdom](https://github.com/alerta/alerta/blob/master/alerta/webhooks/pingdom.py)
