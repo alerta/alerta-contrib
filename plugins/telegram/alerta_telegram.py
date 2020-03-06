@@ -96,9 +96,7 @@ class TelegramBot(PluginBase):
                         {'text': 'ack', 'callback_data': '/ack ' + alert.id},
                         {'text': 'close', 'callback_data': '/close ' + alert.id},
                         {'text': 'blackout',
-                         'callback_data': '/blackout %s|%s|%s' % (alert.environment,
-                                                                  alert.resource,
-                                                                  alert.event)}
+                         'callback_data': '/blackout ' + alert.id}
                     ]
                 ]
             }
