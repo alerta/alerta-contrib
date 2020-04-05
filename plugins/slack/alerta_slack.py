@@ -91,7 +91,7 @@ class ServiceIntegration(PluginBase):
         SLACK_CHANNEL = self.get_config('SLACK_CHANNEL', default='', type=str, **kwargs)
         SLACK_SUMMARY_FMT = self.get_config('SLACK_SUMMARY_FMT', type=str, **kwargs)  # Message summary format
         SLACK_PAYLOAD = self.get_config('SLACK_PAYLOAD', type=str, **kwargs)  # Full API control
-        ICON_EMOJI = self.get_config('ICON_EMOJI', default=':rocket:', type=str, **kwargs)
+        ICON_EMOJI = self.get_config('ICON_EMOJI', type=str, **kwargs)
         ALERTA_USERNAME = self.get_config('ALERTA_USERNAME', default='alerta', type=str, **kwargs)
         DASHBOARD_URL = self.get_config('DASHBOARD_URL', default='', type=str, **kwargs)
         SLACK_TOKEN = self.get_config('SLACK_TOKEN', type=str, **kwargs)
@@ -147,33 +147,26 @@ class ServiceIntegration(PluginBase):
                     short_id=alert.get_id(short=True),
                     dashboard=DASHBOARD_URL
                 )
-            if not SLACK_ATTACHMENTS:
-                payload = {
-                    "username": ALERTA_USERNAME,
-                    "channel": channel,
-                    "text": summary,
-                    "icon_emoji": ICON_EMOJI
-                }
-            else:
-                payload = {
-                    "username": ALERTA_USERNAME,
-                    "channel": channel,
-                    "icon_emoji": ICON_EMOJI,
-                    "text": summary,
-                    "attachments": [{
-                        "fallback": summary,
-                        "color": color,
-                        "fields": [
-                            {"title": "Status", "value": (status if status else alert.status).capitalize(),
-                             "short": True},
-                            {"title": "Environment",
-                                "value": alert.environment, "short": True},
-                            {"title": "Resource", "value": alert.resource, "short": True},
-                            {"title": "Services", "value": ", ".join(
-                                alert.service), "short": True}
-                        ]
-                    }]
-                }
+            payload = {}
+            payload.username = ALERTA_USERNAME
+            payload.channel = channel
+            payload.text = summary
+            if ICON_EMOJI:
+                payload.icon_emoji = ICON_EMOJI
+            if SLACK_ATTACHMENTS:
+                payload.attachments = [{
+                    "fallback": summary,
+                    "color": color,
+                    "fields": [
+                        {"title": "Status", "value": (status if status else alert.status).capitalize(),
+                            "short": True},
+                        {"title": "Environment",
+                            "value": alert.environment, "short": True},
+                        {"title": "Resource", "value": alert.resource, "short": True},
+                        {"title": "Services", "value": ", ".join(
+                            alert.service), "short": True}
+                    ]
+                }]
 
         return payload
 
