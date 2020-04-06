@@ -159,13 +159,13 @@ class ServiceIntegration(PluginBase):
                     dashboard=DASHBOARD_URL
                 )
             payload = {}
-            payload.username = ALERTA_USERNAME
-            payload.channel = channel
-            payload.text = summary
+            payload['username'] = ALERTA_USERNAME
+            payload['channel'] = channel
+            payload['text'] = summary
             if ICON_EMOJI:
-                payload.icon_emoji = ICON_EMOJI
+                payload['icon_emoji'] = ICON_EMOJI
             if SLACK_ATTACHMENTS:
-                payload.attachments = [{
+                payload['attachments'] = [{
                     "fallback": summary,
                     "color": color,
                     "fields": [
