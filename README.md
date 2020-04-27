@@ -37,6 +37,7 @@ Plugins
   * [AlertOps](plugins/alertops)
   * [AMQP](plugins/amqp)
   * [Cachet](plugins/cachet)
+  * [DingTalk](plugins/dingtalk)
   * [Enhance](plugins/enhance)
   * [Forward](plugins/forward)
   * [GeoIP](plugins/geoip)
@@ -60,7 +61,6 @@ Plugins
   * [Timeout](plugins/timeout)
   * [Twilio SMS](plugins/twilio)
   * [Zabbix](plugins/zabbix)
-  * [Forward](plugins/forward)
 
 Webhooks
 --------
@@ -95,5 +95,5 @@ To run the tests using a local Postgres database run:
 License
 -------
 
-Copyright (c) 2014-2019 Nick Satterly and [AUTHORS](AUTHORS). Available under the MIT License.
+Copyright (c) 2014-2020 Nick Satterly and [AUTHORS](AUTHORS). Available under the MIT License.
 
