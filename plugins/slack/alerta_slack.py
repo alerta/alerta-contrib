@@ -40,7 +40,13 @@ try:
         os.environ.get('SLACK_CHANNEL_SEVERITY_MAP'))
 except Exception as e:
     SLACK_CHANNEL_SEVERITY_MAP = app.config.get('SLACK_CHANNEL_SEVERITY_MAP', dict())
-    
+
+try:
+    SLACK_SEVERITY_FILTER = json.loads(
+        os.environ.get('SLACK_SEVERITY_FILTER'))
+except Exception as e:
+    SLACK_SEVERITY_FILTER = app.config.get('SLACK_SEVERITY_FILTER', list())
+
 SLACK_SEND_ON_ACK = os.environ.get(
     'SLACK_SEND_ON_ACK') or app.config.get('SLACK_SEND_ON_ACK', False)
 SLACK_SEVERITY_MAP = app.config.get('SLACK_SEVERITY_MAP', {})
@@ -183,9 +189,12 @@ class ServiceIntegration(PluginBase):
         if alert.repeat:
             return
 
+        if alert.severity not in SLACK_SEVERITY_FILTER:
+            LOG.debug("Alert severity %s is not included in SLACK_SEVERITY_FILTER, thus it will not be forwarded to Slack. %s" % alert.severity)
+            return
+
         try:
             payload = self._slack_prepare_payload(alert, **kwargs)
-
             LOG.debug('Slack payload: %s', payload)
         except Exception as e:
             LOG.error('Exception formatting payload: %s\n%s' % (e, traceback.format_exc()))
