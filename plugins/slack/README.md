@@ -44,7 +44,7 @@ SLACK_CHANNEL = '' # if empty then uses channel from incoming webhook configurat
 SLACK_CHANNEL_ENV_MAP = { 'Production' : '#alert-prod' } # Default=None (optionnal) Allow to specify a channel on a per-environment basis. SLACK_CHANNEL is used a default value
 SLACK_CHANNEL_EVENT_MAP = { 'Node offline' : '#critical-alerts' } # Default=None (optionnal) Allow to specify a channel on a per-event basis. SLACK_CHANNEL is used a default value
 SLACK_CHANNEL_SEVERITY_MAP = { 'critical' : '#critical-alerts', 'informational': '#noisy-feed' } # Default=None (optionnal) Allow to specify a channel on a per-severity basis. SLACK_CHANNEL is used a default value
-SLACK_SEVERITY_FILTER = ['critical', 'major'] # 
+SLACK_SEVERITY_FILTER = ['critical', 'major'] # only alerts with severity in this list will be forwarded to Slack
 ICON_EMOJI = '' # default :rocket:
 ALERTA_USERNAME = '' # default alerta
 
