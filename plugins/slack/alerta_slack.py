@@ -4,6 +4,7 @@ import logging
 import os
 import requests
 import traceback
+import ast
 
 LOG = logging.getLogger('alerta.plugins.slack')
 
@@ -42,7 +43,7 @@ except Exception as e:
     SLACK_CHANNEL_SEVERITY_MAP = app.config.get('SLACK_CHANNEL_SEVERITY_MAP', dict())
 
 try:
-    SLACK_SEVERITY_FILTER = json.loads(
+    SLACK_SEVERITY_FILTER = ast.literal_eval(
         os.environ.get('SLACK_SEVERITY_FILTER'))
 except Exception as e:
     SLACK_SEVERITY_FILTER = app.config.get('SLACK_SEVERITY_FILTER', list())
