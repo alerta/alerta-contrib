@@ -190,8 +190,8 @@ class ServiceIntegration(PluginBase):
         if alert.repeat:
             return
 
-        if alert.severity not in SLACK_SEVERITY_FILTER:
-            LOG.debug("Alert severity %s is not included in SLACK_SEVERITY_FILTER list, thus it will not be forwarded to Slack." % alert.severity)
+        if alert.severity in SLACK_SEVERITY_FILTER:
+            LOG.debug("Alert severity %s is included in SLACK_SEVERITY_FILTER list, thus it will not be forwarded to Slack." % alert.severity)
             return
 
         try:
