@@ -4,6 +4,7 @@ import logging
 import os
 import requests
 import traceback
+import ast
 
 LOG = logging.getLogger('alerta.plugins.slack')
 
@@ -46,7 +47,13 @@ try:
         os.environ.get('SLACK_CHANNEL_MAP'))
 except Exception as e:
     SLACK_CHANNEL_MAP = app.config.get('SLACK_CHANNEL_MAP', dict())
-    
+
+try:
+    SLACK_SEVERITY_FILTER = ast.literal_eval(
+        os.environ.get('SLACK_SEVERITY_FILTER'))
+except Exception as e:
+    SLACK_SEVERITY_FILTER = app.config.get('SLACK_SEVERITY_FILTER', list())
+
 SLACK_SEND_ON_ACK = os.environ.get(
     'SLACK_SEND_ON_ACK') or app.config.get('SLACK_SEND_ON_ACK', False)
 SLACK_SEVERITY_MAP = app.config.get('SLACK_SEVERITY_MAP', {})
@@ -187,9 +194,12 @@ class ServiceIntegration(PluginBase):
         if alert.repeat:
             return
 
+        if alert.severity in SLACK_SEVERITY_FILTER:
+            LOG.debug("Alert severity %s is included in SLACK_SEVERITY_FILTER list, thus it will not be forwarded to Slack." % alert.severity)
+            return
+
         try:
             payload = self._slack_prepare_payload(alert, **kwargs)
-
             LOG.debug('Slack payload: %s', payload)
         except Exception as e:
             LOG.error('Exception formatting payload: %s\n%s' % (e, traceback.format_exc()))

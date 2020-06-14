@@ -41,7 +41,7 @@ settings apply to the mailer script.
 
 ```
 [alerta-mailer]
-key = demo-key
+key = demo-key  ; must have "write:heartbeats" scope
 mail_to = john.doe@gmail.com,jane.doe@gmail.com
 mail_from = your.email@gmail.com
 amqp_url = redis://localhost:6379/
