@@ -41,7 +41,6 @@ Plugins
   * [Enhance](plugins/enhance)
   * [Forward](plugins/forward)
   * [GeoIP](plugins/geoip)
-  * [HipChat](plugins/hipchat)
   * [InfluxDB](plugins/influxdb)
   * [Logstash](plugins/logstash)
   * [Mattermost](plugins/mattermost)

@@ -6,7 +6,7 @@ from alerta.app import create_app, plugins
 from alerta_slack import ServiceIntegration
 
 
-class SlackPluginTestCase(unittest.TestCase):
+class ForwardPluginTestCase(unittest.TestCase):
 
     def setUp(self):
 
