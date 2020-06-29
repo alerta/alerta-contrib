@@ -289,7 +289,10 @@ class MailSender(threading.Thread):
         msg = MIMEMultipart('alternative')
         msg['Subject'] = Header(subject, 'utf-8').encode()
         msg['From'] = OPTIONS['mail_from']
-        msg['To'] = ", ".join(contacts)
+	if ('contacts' in alert.attributes):
+	    msg['To'] = alert.attributes['contacts']
+	else:
+            msg['To'] = ", ".join(contacts)
         msg.preamble = msg['Subject']
 
         # by default we are going to assume that the email is going to be text
