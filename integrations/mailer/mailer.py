@@ -289,7 +289,7 @@ class MailSender(threading.Thread):
         msg = MIMEMultipart('alternative')
         msg['Subject'] = Header(subject, 'utf-8').encode()
         msg['From'] = OPTIONS['mail_from']
-	if ('contacts' in alert.attributes):
+	if "contacts" in alert.attributes:
 	    msg['To'] = alert.attributes['contacts']
 	else:
             msg['To'] = ", ".join(contacts)
