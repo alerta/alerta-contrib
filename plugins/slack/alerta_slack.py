@@ -54,6 +54,9 @@ try:
 except Exception as e:
     SLACK_SEVERITY_FILTER = app.config.get('SLACK_SEVERITY_FILTER', list())
 
+SLACK_SKIP_FIRST = os.environ.get(
+    'SLACK_SKIP_FIRST') or app.config.get('SLACK_SKIP_FIRST', 0)
+
 SLACK_SEND_ON_ACK = os.environ.get(
     'SLACK_SEND_ON_ACK') or app.config.get('SLACK_SEND_ON_ACK', False)
 SLACK_SEVERITY_MAP = app.config.get('SLACK_SEVERITY_MAP', {})
@@ -192,6 +195,9 @@ class ServiceIntegration(PluginBase):
         SLACK_WEBHOOK_URL = self.get_config('SLACK_WEBHOOK_URL', type=str, **kwargs)
 
         if alert.repeat:
+            return
+
+        if alert.duplicateCount < SLACK_SKIP_FIRST:
             return
 
         if alert.severity in SLACK_SEVERITY_FILTER:

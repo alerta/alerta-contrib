@@ -40,6 +40,7 @@ for your Slack channel and adding the following configuration settings to `alert
 ```python
 SLACK_WEBHOOK_URL = 'https://hooks.slack.com/services/T00000000/B00000000/XXXXXXXXXXXXXXXXXXXXXXXX'
 SLACK_ATTACHMENTS = True  # default=False
+SLACK_SKIP_FIRST = 5  # default=0, ability to skip first N dublicates
 SLACK_CHANNEL = '' # if empty then uses channel from incoming webhook configuration
 SLACK_CHANNEL_ENV_MAP = { 'Production' : '#alert-prod' } # Default=None (optional) Allow specifying a channel on a per-environment basis. SLACK_CHANNEL is used as a default value.
 SLACK_CHANNEL_EVENT_MAP = { 'Node offline' : '#critical-alerts' } # Default=None (optional) Allow specifying a channel on a per-event basis. SLACK_CHANNEL is used as a default value.
