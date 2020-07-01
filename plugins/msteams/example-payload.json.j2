@@ -1,43 +1,50 @@
 {
   "@type": "MessageCard",
   "@context": "https://schema.org/extensions",
-  "summary": "{{ alert.status|capitalize }} {{ alert.resource }} / {{ alert.service|join(',') }}",
+  "summary": "{{ alert.status|capitalize }} {{ alert.resource|replace('\\', '\\\\') }} / {{ alert.service|join(',')|replace('\\', '\\\\') }}",
   "themeColor": "{{ color }}",
-  "title": "[{{ alert.status|capitalize }}] {{ alert.environment }} {{ alert.service|join(',') }} {{ alert.severity|upper }} - {{ alert.event }} on {{ alert.resource }}",
+  "title": "[{{ alert.status|capitalize }}] {{ alert.environment }} {{ alert.service|join(',')|replace('\\', '\\\\') }} {{ alert.severity|upper }} - {{ alert.event }} on {{ alert.resource|replace('\\', '\\\\') }}",
   "sections": [
     {
       "facts": [
         {
           "name": "Resource:",
-           "value": "**{{ alert.resource }}**{% if alert.attributes['hostaddress'] or alert.attributes['hostaddress6'] %} ({{ alert.attributes['hostaddress'] }}{% if alert.attributes['hostaddress6'] %} / {{ alert.attributes['hostaddress6'] }}{% endif %}){% endif %}"
+           "value": "**{{ alert.resource|replace('\\', '\\\\') }}**{% if alert.attributes['hostaddress'] or alert.attributes['hostaddress6'] %} ({{ alert.attributes['hostaddress'] }}{% if alert.attributes['hostaddress6'] %} / {{ alert.attributes['hostaddress6'] }}{% endif %}){% endif %}"
         },
         {
           "name": "Service(s):",
-          "value": "**{{ alert.service|join(',') }}**"
+          "value": "**{{ alert.service|join(',')|replace('\\', '\\\\') }}**"
         }
 {%- if alert.origin %}
         ,{
            "name": "Origin:",
-           "value": "{{ alert.origin }}"
+           "value": "{{ alert.origin|replace('\\', '\\\\') }}"
         }{% endif %}
       ]
     }
 {%- if (alert.status and alert.status == 'open') and alert.text %}
     ,{
-      "text": "```{{ alert.text }}```"
+      "text": "```{{ alert.text|replace('\\', '\\\\') }}```"
     }{% endif %}
   ]
 {%- if alert.status and alert.status in [ 'open', 'ack', 'assign' ] %}
   ,"potentialAction": [
-{%- if headers and actions %}
-{%- for act in actions %}
+{%- if headers and webhook_url %}
+{%- for act in [ 'ack', 'close' ] %}
     {
-      "@type": "{{ act['type'] }}",
-      "name": "{{ act['name'] }}",
-      "target": "{{ act['target'] }}",
+      "@type": "HttpPOST",
+      "name": "{{ act|capitalize }}",
+      "target": "{{ webhook_url }}",
       "headers": {{ headers }},
-      "body": {{ act['body'] }}
-    },{% endfor %}{% endif %}
+      "body": "{ \"action\": \"{{ act }}\", \"alert_id\": \"{{ alert.id }}\" }"
+    },{% endfor %}
+    {
+      "@type": "HttpPOST",
+      "name": "Blackout",
+      "target": "{{ webhook_url }}",
+      "headers": {{ headers }},
+      "body": "{ \"action\": \"blackout\", \"environment\": \"{{ alert.environment }}\", \"resource\": \"{{ alert.resource|replace('\\', '\\\\') }}\", \"event\": \"{{ alert.event }}\" }"
+    },{% endif %}
     {
       "@type": "OpenUri",
       "name": "View in Alerta",

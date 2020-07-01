@@ -9,6 +9,8 @@ import re
 import signal
 import smtplib
 import socket
+from functools import reduce
+
 import sys
 import threading
 import time
@@ -213,7 +215,7 @@ class MailSender(threading.Thread):
                     return True
             LOG.debug('Regex %s matches nothing', regex)
             return False
-        elif isinstance(value, str) or isinstance(value, unicode):
+        elif isinstance(value, str) or isinstance(value, unicode):  # pylint: disable=undefined-variable
             LOG.debug('Trying to match %s to %s',
                       value, regex)
             return re.search(regex, value) is not None
@@ -302,13 +304,13 @@ class MailSender(threading.Thread):
             LOG.debug('%s : Email sent to %s' % (alert.get_id(),
                                                  ','.join(contacts)))
             return (msg, contacts)
-        except (socket.error, socket.herror, socket.gaierror) as e:
-            LOG.error('Mail server connection error: %s', e)
-            return None
         except smtplib.SMTPException as e:
             LOG.error('Failed to send mail to %s on %s:%s : %s',
                       ", ".join(contacts),
                       OPTIONS['smtp_host'], OPTIONS['smtp_port'], e)
+            return None
+        except (socket.error, socket.herror, socket.gaierror) as e:
+            LOG.error('Mail server connection error: %s', e)
             return None
         except Exception as e:
             LOG.error('Unexpected error while sending email: {}'.format(str(e)))  # nopep8

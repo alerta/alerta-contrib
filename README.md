@@ -34,12 +34,13 @@ Integrations
 Plugins
 -------
 
+  * [AlertOps](plugins/alertops)
   * [AMQP](plugins/amqp)
   * [Cachet](plugins/cachet)
+  * [DingTalk](plugins/dingtalk)
   * [Enhance](plugins/enhance)
   * [Forward](plugins/forward)
   * [GeoIP](plugins/geoip)
-  * [HipChat](plugins/hipchat)
   * [InfluxDB](plugins/influxdb)
   * [Logstash](plugins/logstash)
   * [Mattermost](plugins/mattermost)
@@ -59,7 +60,6 @@ Plugins
   * [Timeout](plugins/timeout)
   * [Twilio SMS](plugins/twilio)
   * [Zabbix](plugins/zabbix)
-  * [Forward](plugins/forward)
 
 Webhooks
 --------
@@ -70,6 +70,7 @@ Webhooks
   * [Grafana](https://github.com/alerta/alerta/blob/master/alerta/webhooks/grafana.py)
   * [Graylog](https://github.com/alerta/alerta/blob/master/alerta/webhooks/graylog.py)
   * [Mailgun](webhooks/mailgun)
+  * [MS Teams](webhooks/msteams)
   * [New Relic](https://github.com/alerta/alerta/blob/master/alerta/webhooks/newrelic.py)
   * [PagerDuty](https://github.com/alerta/alerta/blob/master/alerta/webhooks/pagerduty.py)
   * [Pingdom](https://github.com/alerta/alerta/blob/master/alerta/webhooks/pingdom.py)
@@ -93,5 +94,5 @@ To run the tests using a local Postgres database run:
 License
 -------
 
-Copyright (c) 2014-2019 Nick Satterly and [AUTHORS](AUTHORS). Available under the MIT License.
+Copyright (c) 2014-2020 Nick Satterly and [AUTHORS](AUTHORS). Available under the MIT License.
 

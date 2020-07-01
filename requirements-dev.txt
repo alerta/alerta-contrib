@@ -1,2 +1,15 @@
-pytest
 alerta-server[postgres]
+alerta-server[mongodb]
+alerta
+kombu
+
+mock
+mypy
+pre-commit
+pylint
+pytest>=5.4.3
+pytest-cov
+python-dotenv
+requests_mock
+twine
+wheel

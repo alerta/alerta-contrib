@@ -5,6 +5,11 @@ Receive [Sentry](https://sentry.io) exception notifications via webhook callback
 
 For help, join [![Gitter chat](https://badges.gitter.im/alerta/chat.png)](https://gitter.im/alerta/chat)
 
+Sentry callback version support
+-------------------------------
+
+Sentry callbacks from version 8 and 9 are supported.
+
 Installation
 ------------
 

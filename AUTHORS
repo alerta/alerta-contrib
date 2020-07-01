@@ -1,31 +1,43 @@
 abenaguev <32957223+abenaguev@users.noreply.github.com>
+Abhishek Jaisingh <abhi2254015@gmail.com>
 Aivars Šterns <asterns@evolutiongaming.com>
 Aleksey Shirokih <shirokih@nocproject.org>
 Angel Velasquez <avelasquez@sangoma.com>
 Angel Velásquez <angvp@archlinux.org>
 Angel Velásquez <avelasquez@sangoma.com>
 Anton <anton@trugen.net>
+Anton Markelov <doublic@gmail.com>
 Arindam Choudhury <arindam@live.com>
 Ash McKenzie <ash@the-rebellion.net>
 Christian Blunden <christian.blunden@gmail.com>
 Damien Guihal <dguihal@restlet.com>
 Dan Walker <dan@danwalker.com>
 David Stephens <David.Stephens@man.com>
+FloSew <58476412+FloSew@users.noreply.github.com>
+fshaikh-eg <46223796+fshaikh-eg@users.noreply.github.com>
 Gerben Meijer <infernix@gmail.com>
+Haluk Tutuk <56925617+haluktutuk@users.noreply.github.com>
 i00171 <anton.delitsch@implema.se>
 int32bit <krystism@gmail.com>
+iYUYUE <admin@iyuyue.com>
 Jacek Grzechnik <jacek.grzechnik@mbank.pl>
 Jan Sokol <jan.sokol.glx@gmail.com>
+Jarno Huuskonen <jjh74@users.noreply.github.com>
 Joao Mesquita <jmesquita@sangoma.com>
 John Siegrist <john@complects.com>
+kamsrikanth <55290046+kamsrikanth@users.noreply.github.com>
+Komal Gupta <34086257+komalgupta2017@users.noreply.github.com>
 Konstantinos Kagkelidis <kaggis@gmail.com>
 Kurt Westerfeld <kurt@yellowbrick.io>
 Kurt Westerfeld <kwesterfeld@users.noreply.github.com>
 kwesterfeld2 <38136866+kwesterfeld2@users.noreply.github.com>
+Ky-Anh Huynh <icy@users.noreply.github.com>
+Levent Karakaş <levkar@users.noreply.github.com>
 Marco <marco@supino.org>
 Marco Supino <marco@drivenets.net>
 marksmyth <smythmark1980@gmail.com>
 Matteo Cerutti <matteo.cerutti@rkrepsilon.com>
+Matthieu Serrepuy <lotooo@gmail.com>
 max <3752128+maximilize@users.noreply.github.com>
 Miloš Bunčić <psyhomb@users.noreply.github.com>
 Minh Danh <minhdanh@hoiio.com>
@@ -36,7 +48,9 @@ Nick Satterly <nick.satterly@guardian.co.uk>
 Nick Satterly <nick.satterly@theguardian.com>
 Rafael Matias <rafael.matias@centralway.com>
 root <root@ubu001.pod01.secdo.net>
+Sam Hampton <sam.hampton@tif-plc.co.uk>
 Scott Mullaly <scott.mullaly@orionhealth.com>
+seasurfpete <34428275+seasurfpete@users.noreply.github.com>
 SK <skobolo@gmail.com>
 skob <skob@me.com>
 thehill <thehill@users.noreply.github.com>
@@ -45,6 +59,8 @@ Tomeu Canyelles Escarrer <bcanyelles@apsl.net>
 wanggenyi <genyiwang@gmail.com>
 Yann Cézard <eesprit@users.noreply.github.com>
 Yoshiharu Mori <y-mori@sraoss.co.jp>
+Øyvind Horneland <oyvind.horneland@gmail.com>
 Карамышев Степан <karamyshev@corp.sputnik.ru>
 
 $ git log --format='%aN <%aE>' | sort -f | uniq
+

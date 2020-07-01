@@ -7,24 +7,44 @@ python:
   - "3.5"
   - "3.6"
   - "3.7"
+  - "3.8"
 
 env:
-  - DB=mongodb DATABASE_URL=mongodb://localhost:27017/alerta5
-  - DB=postgres DATABASE_URL=postgres://localhost:5432/alerta5
+  - DB=mongodb DATABASE_URL=mongodb://localhost:27017/alerta
+  - DB=postgres DATABASE_URL=postgres://localhost:5432/alerta
 
 services:
   - mongodb
   - postgresql
 
 addons:
-  postgresql: "9.5"
+  postgresql: "9.6"
 
 before_script:
-  - sh -c "if [ '$DB' = 'postgres' ]; then psql -c 'DROP DATABASE IF EXISTS alerta5;' -U postgres; fi"
-  - sh -c "if [ '$DB' = 'postgres' ]; then psql -c 'CREATE DATABASE alerta5;' -U postgres; fi"
+  - sh -c "if [ '$DB' = 'postgres' ]; then psql -c 'DROP DATABASE IF EXISTS alerta;' -U postgres; fi"
+  - sh -c "if [ '$DB' = 'postgres' ]; then psql -c 'CREATE DATABASE alerta;' -U postgres; fi"
 
 install:
   - pip install -r requirements-dev.txt
 
 script:
-  - pytest -v webhooks/*/test*
+  - pytest -v integrations/*/test*.py --cov=integrations
+  - pytest -v plugins/*/test*.py --cov=plugins
+  - pytest -v webhooks/*/test*.py --cov=webhooks
+
+stages:
+  - Checks
+  - Test
+
+jobs:
+  include:
+    - stage: Checks
+      name:  Integrations
+      script: pylint -v integrations/*/*.py
+    - name: Plugins
+      script: pylint -v plugins/*/*.py
+    - name: Web Hooks
+      script: pylint -v webhooks/*/*.py
+
+after_success:
+  - coveralls

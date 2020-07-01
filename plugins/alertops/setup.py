@@ -1,18 +1,17 @@
-
 from setuptools import setup, find_packages
 
-version = '5.5.1'
+version = '1.0.0.1'
 
 setup(
-    name="alerta-slack",
+    name="alerta-alertops",
     version=version,
-    description='Alerta plugin for Slack',
+    description='Alerta plugin for AlertOps',
     url='https://github.com/alerta/alerta-contrib',
-    license='MIT',
-    author='Nick Satterly',
-    author_email='nick.satterly@theguardian.com',
+    license='AlertOps',
+    author='Kam Srikanth',
+    author_email='kamleshs@alertops.com',
     packages=find_packages(),
-    py_modules=['alerta_slack'],
+    py_modules=['alerta_alertops'],
     install_requires=[
         'requests'
     ],
@@ -20,7 +19,7 @@ setup(
     zip_safe=True,
     entry_points={
         'alerta.plugins': [
-            'slack = alerta_slack:ServiceIntegration'
+            'alertops = alerta_alertops:TriggerEvent'
         ]
     }
 )

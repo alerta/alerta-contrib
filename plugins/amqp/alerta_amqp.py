@@ -19,7 +19,6 @@ DEFAULT_AMQP_SEND_ALERT_HISTORY = True
 
 AMQP_URL = os.environ.get('REDIS_URL') or os.environ.get('AMQP_URL') or app.config.get('AMQP_URL', DEFAULT_AMQP_URL)
 AMQP_TOPIC = os.environ.get('AMQP_TOPIC') or app.config.get('AMQP_TOPIC', DEFAULT_AMQP_TOPIC)
-AMQP_SEND_ALERT_HISTORY = os.environ.get('AMQP_SEND_ALERT_HISTORY') or app.config.get('AMQP_SEND_ALERT_HISTORY', DEFAULT_AMQP_SEND_ALERT_HISTORY)
 
 
 class FanoutPublisher(PluginBase):
@@ -45,14 +44,14 @@ class FanoutPublisher(PluginBase):
 
         LOG.info('Configured fanout publisher on topic "%s"', AMQP_TOPIC)
 
-    def pre_receive(self, alert):
+    def pre_receive(self, alert, **kwargs):
         return alert
 
-    def post_receive(self, alert):
+    def post_receive(self, alert, **kwargs):
         LOG.info('Sending message %s to AMQP topic "%s"', alert.get_id(), AMQP_TOPIC)
-        body = alert.get_body(history=AMQP_SEND_ALERT_HISTORY)
+        body = alert.get_body(history=self.get_config('AMQP_SEND_ALERT_HISTORY', default=DEFAULT_AMQP_SEND_ALERT_HISTORY, type=bool, **kwargs))
         LOG.debug('Message: %s', body)
         self.producer.publish(body, declare=[self.exchange], retry=True)
 
-    def status_change(self, alert, status, text):
+    def status_change(self, alert, status, text, **kwargs):
         return

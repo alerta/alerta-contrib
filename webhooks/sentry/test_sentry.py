@@ -410,7 +410,425 @@ class SentryWebhookTestCase(unittest.TestCase):
         data = json.loads(response.data.decode('utf-8'))
         self.assertEqual(data['alert']['resource'], 'raven.scripts.runner in main')
         self.assertEqual(data['alert']['event'], '0476467adf8f499ea795a48fcc4bf290')
+        self.assertEqual(data['alert']['environment'], 'Production')
         self.assertEqual(data['alert']['value'], 'error')
         self.assertEqual(data['alert']['text'], 'This is an example Python exception https://sentry.io/alertaio/alerta5/issues/541485531/')
         self.assertEqual(sorted(data['alert']['tags']), ['browser=Chrome 28.0', 'device=Other', 'level=error', 'os=Windows 8', 'sentry:user=id:1', 'url=http://example.com/foo'])
+        self.assertEqual(data['alert']['attributes']['modules'], ['my.package==1.0.0'])
+
+
+    def test_sentry_webhook_v9(self):
+
+        custom_webhooks.webhooks['sentry'] = alerta_sentry.SentryWebhook()
+
+        payload_v9 = r"""
+            {
+            "project_name": "Internal",
+            "message": "This is an example Python exception",
+            "id": "5",
+            "culprit": "raven.scripts.runner in main",
+            "project_slug": "internal",
+            "url": "https://sentry.io/alertaio/alerta5/issues/541485531/",
+            "level": "error",
+            "triggering_rules": [],
+            "event": {
+                "stacktrace": {
+                    "frames": [
+                        {
+                            "function": "build_msg",
+                            "abs_path": "/home/ubuntu/.virtualenvs/getsentry/src/raven/raven/base.py",
+                            "pre_context": [
+                                "                frames = stack",
+                                "",
+                                "            data.update({",
+                                "                'sentry.interfaces.Stacktrace': {",
+                                "                    'frames': get_stack_info(frames,"
+                            ],
+                            "post_context": [
+                                "                },",
+                                "            })",
+                                "",
+                                "        if 'sentry.interfaces.Stacktrace' in data:",
+                                "            if self.include_paths:"
+                            ],
+                            "vars": {
+                                "'frames'": "<generator object iter_stack_frames at 0x107bcc3c0>",
+                                "'culprit'": null,
+                                "'event_type'": "'raven.events.Message'",
+                                "'date'": "datetime.datetime(2013, 8, 13, 3, 8, 24, 880386)",
+                                "'extra'": {
+                                    "'go_deeper'": [
+                                        [
+                                            "{\"'bar'\":[\"'baz'\"],\"'foo'\":\"'bar'\"}"
+                                        ]
+                                    ],
+                                    "'user'": "'dcramer'",
+                                    "'loadavg'": [
+                                        0.37255859375,
+                                        0.5341796875,
+                                        0.62939453125
+                                    ]
+                                },
+                                "'v'": {
+                                    "'message'": "u'This is a test message generated using ``raven test``'",
+                                    "'params'": []
+                                },
+                                "'kwargs'": {
+                                    "'message'": "'This is a test message generated using ``raven test``'",
+                                    "'level'": 20
+                                },
+                                "'event_id'": "'54a322436e1b47b88e239b78998ae742'",
+                                "'tags'": null,
+                                "'data'": {
+                                    "'sentry.interfaces.Message'": {
+                                        "'message'": "u'This is a test message generated using ``raven test``'",
+                                        "'params'": []
+                                    },
+                                    "'message'": "u'This is a test message generated using ``raven test``'"
+                                },
+                                "'self'": "<raven.base.Client object at 0x107bb8210>",
+                                "'time_spent'": null,
+                                "'result'": {
+                                    "'sentry.interfaces.Message'": {
+                                        "'message'": "u'This is a test message generated using ``raven test``'",
+                                        "'params'": []
+                                    },
+                                    "'message'": "u'This is a test message generated using ``raven test``'"
+                                },
+                                "'stack'": true,
+                                "'handler'": "<raven.events.Message object at 0x107bd0890>",
+                                "'k'": "'sentry.interfaces.Message'",
+                                "'public_key'": null
+                            },
+                            "module": "raven.base",
+                            "filename": "raven/base.py",
+                            "lineno": 303,
+                            "in_app": false,
+                            "data": {},
+                            "context_line": "                        transformer=self.transform)"
+                        },
+                        {
+                            "function": "capture",
+                            "abs_path": "/home/ubuntu/.virtualenvs/getsentry/src/raven/raven/base.py",
+                            "pre_context": [
+                                "        if not self.is_enabled():",
+                                "            return",
+                                "",
+                                "        data = self.build_msg(",
+                                "            event_type, data, date, time_spent, extra, stack, tags=tags,"
+                            ],
+                            "post_context": [
+                                "",
+                                "        self.send(**data)",
+                                "",
+                                "        return (data.get('event_id'),)",
+                                ""
+                            ],
+                            "vars": {
+                                "'event_type'": "'raven.events.Message'",
+                                "'date'": null,
+                                "'extra'": {
+                                    "'go_deeper'": [
+                                        [
+                                            "{\"'bar'\":[\"'baz'\"],\"'foo'\":\"'bar'\"}"
+                                        ]
+                                    ],
+                                    "'user'": "'dcramer'",
+                                    "'loadavg'": [
+                                        0.37255859375,
+                                        0.5341796875,
+                                        0.62939453125
+                                    ]
+                                },
+                                "'stack'": true,
+                                "'tags'": null,
+                                "'data'": null,
+                                "'self'": "<raven.base.Client object at 0x107bb8210>",
+                                "'time_spent'": null,
+                                "'kwargs'": {
+                                    "'message'": "'This is a test message generated using ``raven test``'",
+                                    "'level'": 20
+                                }
+                            },
+                            "module": "raven.base",
+                            "filename": "raven/base.py",
+                            "lineno": 459,
+                            "in_app": false,
+                            "data": {},
+                            "context_line": "            **kwargs)"
+                        },
+                        {
+                            "function": "captureMessage",
+                            "abs_path": "/home/ubuntu/.virtualenvs/getsentry/src/raven/raven/base.py",
+                            "pre_context": [
+                                "        \"\"\"",
+                                "        Creates an event from ``message``.",
+                                "",
+                                "        >>> client.captureMessage('My event just happened!')",
+                                "        \"\"\""
+                            ],
+                            "post_context": [
+                                "",
+                                "    def captureException(self, exc_info=None, **kwargs):",
+                                "        \"\"\"",
+                                "        Creates an event from an exception.",
+                                ""
+                            ],
+                            "vars": {
+                                "'message'": "'This is a test message generated using ``raven test``'",
+                                "'kwargs'": {
+                                    "'extra'": {
+                                        "'go_deeper'": [
+                                            "[{\"'bar'\":[\"'baz'\"],\"'foo'\":\"'bar'\"}]"
+                                        ],
+                                        "'user'": "'dcramer'",
+                                        "'loadavg'": [
+                                            0.37255859375,
+                                            0.5341796875,
+                                            0.62939453125
+                                        ]
+                                    },
+                                    "'tags'": null,
+                                    "'data'": null,
+                                    "'level'": 20,
+                                    "'stack'": true
+                                },
+                                "'self'": "<raven.base.Client object at 0x107bb8210>"
+                            },
+                            "module": "raven.base",
+                            "filename": "raven/base.py",
+                            "lineno": 577,
+                            "in_app": false,
+                            "data": {},
+                            "context_line": "        return self.capture('raven.events.Message', message=message, **kwargs)"
+                        },
+                        {
+                            "function": "send_test_message",
+                            "abs_path": "/home/ubuntu/.virtualenvs/getsentry/src/raven/raven/scripts/runner.py",
+                            "pre_context": [
+                                "        level=logging.INFO,",
+                                "        stack=True,",
+                                "        tags=options.get('tags', {}),",
+                                "        extra={",
+                                "            'user': get_uid(),"
+                            ],
+                            "post_context": [
+                                "        },",
+                                "    ))",
+                                "",
+                                "    if client.state.did_fail():",
+                                "        print('error!')"
+                            ],
+                            "vars": {
+                                "'client'": "<raven.base.Client object at 0x107bb8210>",
+                                "'options'": {
+                                    "'tags'": null,
+                                    "'data'": null
+                                },
+                                "'data'": null,
+                                "'k'": "'secret_key'"
+                            },
+                            "module": "raven.scripts.runner",
+                            "filename": "raven/scripts/runner.py",
+                            "lineno": 77,
+                            "in_app": false,
+                            "data": {},
+                            "context_line": "            'loadavg': get_loadavg(),"
+                        },
+                        {
+                            "function": "main",
+                            "abs_path": "/home/ubuntu/.virtualenvs/getsentry/src/raven/raven/scripts/runner.py",
+                            "pre_context": [
+                                "    print(\"Using DSN configuration:\")",
+                                "    print(\" \", dsn)",
+                                "    print()",
+                                "",
+                                "    client = Client(dsn, include_paths=['raven'])"
+                            ],
+                            "vars": {
+                                "'root'": "<logging.Logger object at 0x107ba5b10>",
+                                "'parser'": "<optparse.OptionParser instance at 0x107ba3368>",
+                                "'dsn'": "'https://ebc35f33e151401f9deac549978bda11:f3403f81e12e4c24942d505f086b2cad@sentry.io/1'",
+                                "'opts'": "<Values at 0x107ba3b00: {'data': None, 'tags': None}>",
+                                "'client'": "<raven.base.Client object at 0x107bb8210>",
+                                "'args'": [
+                                    "'test'",
+                                    "'https://ebc35f33e151401f9deac549978bda11:f3403f81e12e4c24942d505f086b2cad@sentry.io/1'"
+                                ]
+                            },
+                            "module": "raven.scripts.runner",
+                            "filename": "raven/scripts/runner.py",
+                            "lineno": 112,
+                            "in_app": false,
+                            "data": {},
+                            "context_line": "    send_test_message(client, opts.__dict__)"
+                        }
+                    ]
+                },
+                "use_rust_normalize": true,
+                "extra": {
+                    "emptyList": [],
+                    "unauthorized": false,
+                    "emptyMap": {},
+                    "url": "http://example.org/foo/bar/",
+                    "results": [
+                        1,
+                        2,
+                        3,
+                        4,
+                        5
+                    ],
+                    "length": 10837790,
+                    "session": {
+                        "foo": "bar"
+                    }
+                },
+                "modules": {
+                    "my.package": "1.0.0"
+                },
+                "_ref_version": 2,
+                "_ref": 1,
+                "culprit": "raven.scripts.runner in main",
+                "title": "This is an example Python exception",
+                "event_id": "2c02659ec60b48f3b31f8de77e1a2510",
+                "platform": "python",
+                "version": "5",
+                "location": null,
+                "template": {
+                    "abs_path": "/srv/example/templates/debug_toolbar/base.html",
+                    "pre_context": [
+                        "{% endif %}\n",
+                        "<script src=\"{% static 'debug_toolbar/js/toolbar.js' %}\"></script>\n",
+                        "<div id=\"djDebug\" hidden=\"hidden\" dir=\"ltr\"\n"
+                    ],
+                    "post_context": [
+                        "     {{ toolbar.config.ROOT_TAG_EXTRA_ATTRS|safe }}>\n",
+                        "\t<div hidden=\"hidden\" id=\"djDebugToolbar\">\n",
+                        "\t\t<ul id=\"djDebugPanelList\">\n"
+                    ],
+                    "filename": "debug_toolbar/base.html",
+                    "lineno": 14,
+                    "context_line": "     data-store-id=\"{{ toolbar.store_id }}\" data-render-panel-url=\"{% url 'djdt:render_panel' %}\"\n"
+                },
+                "logger": "",
+                "type": "default",
+                "metadata": {
+                    "title": "This is an example Python exception"
+                },
+                "tags": [
+                    [
+                        "browser",
+                        "Chrome 28.0.1500"
+                    ],
+                    [
+                        "browser.name",
+                        "Chrome"
+                    ],
+                    [
+                        "level",
+                        "error"
+                    ],
+                    [
+                        "os.name",
+                        "Windows 8"
+                    ],
+                    [
+                        "sentry:user",
+                        "id:1"
+                    ],
+                    [
+                        "url",
+                        "http://example.com/foo"
+                    ]
+                ],
+                "timestamp": 1576578404.933,
+                "user": {
+                    "username": "sentry",
+                    "name": "Sentry",
+                    "ip_address": "127.0.0.1",
+                    "email": "sentry@example.com",
+                    "geo": {
+                        "city": "San Francisco",
+                        "region": "CA",
+                        "country_code": "US"
+                    },
+                    "id": "1"
+                },
+                "fingerprint": [
+                    "{{ default }}"
+                ],
+                "hashes": [
+                    "c4a4d06bc314205bb3b6bdb612dde7f1"
+                ],
+                "received": 1576578404.933,
+                "level": "error",
+                "contexts": {
+                    "os": {
+                        "version": null,
+                        "name": "Windows 8"
+                    },
+                    "browser": {
+                        "version": "28.0.1500",
+                        "name": "Chrome"
+                    }
+                },
+                "request": {
+                    "cookies": [
+                        [
+                            "foo",
+                            "bar"
+                        ],
+                        [
+                            "biz",
+                            "baz"
+                        ]
+                    ],
+                    "url": "http://example.com/foo",
+                    "headers": [
+                        [
+                            "Content-Type",
+                            "application/json"
+                        ],
+                        [
+                            "Referer",
+                            "http://example.com"
+                        ],
+                        [
+                            "User-Agent",
+                            "Mozilla/5.0 (Windows NT 6.2; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/28.0.1500.72 Safari/537.36"
+                        ]
+                    ],
+                    "env": {
+                        "ENV": "prod"
+                    },
+                    "query_string": [
+                        [
+                            "foo",
+                            "bar"
+                        ]
+                    ],
+                    "data": {
+                        "hello": "world"
+                    },
+                    "method": "GET",
+                    "inferred_content_type": "application/json"
+                },
+                "logentry": {
+                    "formatted": "This is an example Python exception"
+                }
+            },
+            "project": "internal",
+            "logger": null
+        }
+        """
+
+        response = self.client.post('/webhooks/sentry', data=payload_v9, content_type='application/json')
+        self.assertEqual(response.status_code, 201)
+        data = json.loads(response.data.decode('utf-8'))
+        self.assertEqual(data['alert']['resource'], 'raven.scripts.runner in main')
+        self.assertEqual(data['alert']['event'], '2c02659ec60b48f3b31f8de77e1a2510')
+        self.assertEqual(data['alert']['environment'], 'Production')
+        self.assertEqual(data['alert']['value'], 'error')
+        self.assertEqual(data['alert']['text'], 'This is an example Python exception https://sentry.io/alertaio/alerta5/issues/541485531/')
+        self.assertEqual(sorted(data['alert']['tags']), ['browser.name=Chrome', 'browser=Chrome 28.0.1500', 'level=error', 'os.name=Windows 8', 'sentry:user=id:1', 'url=http://example.com/foo'])
         self.assertEqual(data['alert']['attributes']['modules'], ['my.package==1.0.0'])

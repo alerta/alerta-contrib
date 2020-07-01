@@ -22,15 +22,12 @@ MATTERMOST_USERNAME = os.environ.get(
 
 class ServiceIntegration(PluginBase):
 
-    def __init__(self, name=None):
-
-        super().__init__(name)
-
     def pre_receive(self, alert):
-        return alert
         LOG.debug('Mattermost: %s', alert)
+        return alert
 
     def get_icon(self, status):
+        LOG.debug('Mattermost: %s', status)
         return {
             'security': ':closed_lock_with_key:',
             'critical': ':bangbang:',
@@ -42,9 +39,9 @@ class ServiceIntegration(PluginBase):
             'trace': ':signal_strength:',
             'ok': ':ok:'
         }.get(status, ':ok:')
-        LOG.debug('Mattermost: %s', status)
 
     def _prepare_payload(self, alert):
+        LOG.debug('Mattermost: %s', alert)
         return "{} **{}** **{}**\n`{}` ```{}```".format(
             self.get_icon(alert.severity),
             alert.severity,
@@ -52,7 +49,6 @@ class ServiceIntegration(PluginBase):
             alert.event,
             alert.text,
         )
-        LOG.debug('Mattermost: %s', alert)
 
     def post_receive(self, alert):
         if alert.repeat:
