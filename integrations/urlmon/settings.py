@@ -1,24 +1,54 @@
 
 # ENDPOINT = "http://10.0.2.2:8080"
-ENDPOINT = "http://localhost:8080"
-API_KEY = None
+ENDPOINT = "https://data-organizer.dunzo.in/api/webhooks/urlmon"
+API_KEY = fIYYPOeP2CvVixqe8np7IG7TKI0sjU3CgRBSbeaB
 
 checks = [
     {
-        "resource": "www.google.com",
-        "url": "http://www.google.com?q=foo#q=foo",
+        "resource": "url-monitor",
+        "url": "https://data-organizer.dunzo.in",
         "environment": "Production",
-        "service": ["Google", "Search"],
-        "api_endpoint": "http://localhost:8080",
-        "api_key": None,
+        "service": ["data-organizer", "alerta"],
+        "tags": ["data-eng"],
+        "check_ssl": True,
+        "status_regex": "200",
     },
     {
-        "resource": "guardian-football",
-        "url": "https://www.guardian.co.uk/football",
+        "resource": "url-monitor",
+        "url": "https://data-organizer.dunzo.in/sonar",
         "environment": "Production",
-        "service": ["theguardian.com", "Sport"],
-        "tags": ["football"],
-        "check_ssl": True
+        "service": ["data-organizer", "sonar"],
+        "tags": ["data-eng"],
+        "check_ssl": True,
+        "status_regex": "200|301|302"
+    },
+{
+        "resource": "url-monitor",
+        "url": "https://prod-airflow.dunzo.in/health",
+        "environment": "Production",
+        "service": ["airflow"],
+        "tags": ["data-eng", "analytics"],
+        "check_ssl": True,
+        "status_regex": "200",
+        "search": "healthy"
+    },
+{
+        "resource": "url-monitor",
+        "url": "https://redash.dunzo.in/",
+        "environment": "Production",
+        "service": ["redash"],
+        "tags": ["data-eng", "analytics"],
+        "check_ssl": True,
+        "status_regex": "200|301|302"
+    },
+{
+        "resource": "url-monitor",
+        "url": "https://tableau-dev.dunzo.in",
+        "environment": "Production",
+        "service": ["tableau"],
+        "tags": ["data-eng", "analytics"],
+        "check_ssl": True,
+        "status_regex": "200"
     },
 ]
 

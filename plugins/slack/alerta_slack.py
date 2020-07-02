@@ -66,7 +66,7 @@ SLACK_DEFAULT_SEVERITY_MAP = {'security': '#000000', # black
                               'debug': '#808080', # gray
                               'trace': '#808080', # gray
                               'ok': '#00CC00'} # green
-SLACK_DEFAULT_SUMMARY_FMT='*[{status}] {environment} {service} {severity}* - _{event} on {resource}_ <{dashboard}/#/alert/{alert_id}|{short_id}>'
+SLACK_DEFAULT_SUMMARY_FMT="*[{{ alert.status|capitalize }}]* [{{ alert.severity|capitalize }}] Event {{ alert.event }} on *{{ alert.environment }} - {{ alert.resource }}*: {{alert.value}}\n{{alert.text}}\nAlert Console: <{{ config.DASHBOARD_URL }}|click here> / Alert: <{{ config.DASHBOARD_URL }}/#/alert/{{ alert.id }}|{{ alert.id[:8] }}>"
 SLACK_HEADERS = {
     'Content-Type': 'application/json'
 }
