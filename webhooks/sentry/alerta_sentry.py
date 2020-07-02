@@ -25,16 +25,16 @@ class SentryWebhook(WebhookBase):
             severity = 'ok'
 
         return Alert(
-            resource=payload[['data']'culprit'],
-            event=payload[['data']'event']['event_id'],
+            resource=payload['data']['culprit'],
+            event=payload['data']['event']['event_id'],
             environment=environment,
             severity=severity,
             service=[payload['data']['project']],
             group='Application',
-            value=payload[['data']'level'],
-            text='{} {}'.format(payload[['data']'message'], payload[['data']'url']),
-            tags=['{}={}'.format(k, v) for k, v in payload[['data']'event']['tags']],
-            attributes={'modules': ['{}=={}'.format(k, v) for k, v in payload[['data']'event']['modules'].items()]},
+            value=payload['data']['level'],
+            text='{} {}'.format(payload['data']['message'], payload['data']['url']),
+            tags=['{}={}'.format(k, v) for k, v in payload['data']['event']['tags']],
+            attributes={'modules': ['{}=={}'.format(k, v) for k, v in payload['data']['event']['modules'].items()]},
             origin='sentry.io',
             raw_data=str(payload)
         )
