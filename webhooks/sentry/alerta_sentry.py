@@ -9,32 +9,32 @@ class SentryWebhook(WebhookBase):
 
         # For Sentry v9
         # Defaults to value before Sentry v9
-        if 'request' in payload['data'].get('event'):
+        if 'request' in payload.get('event'):
             key = 'request'
         else:
             key = 'sentry.interfaces.Http'
 
-        if payload['data'].get('event')[key]['env']['ENV'] == 'prod':
+        if payload.get('event')[key]['env']['ENV'] == 'prod':
             environment = 'Production'
         else:
             environment = 'Development'
 
-        if payload['data']['level'] == 'error':
+        if payload['level'] == 'error':
             severity = 'critical'
         else:
             severity = 'ok'
 
         return Alert(
-            resource=payload['data']['culprit'],
-            event=payload['data']['event']['event_id'],
+            resource=payload['culprit'],
+            event=payload['event']['event_id'],
             environment=environment,
             severity=severity,
-            service=[payload['data']['project']],
+            service=[payload['project']],
             group='Application',
-            value=payload['data']['level'],
-            text='{} {}'.format(payload['data']['message'], payload['data']['url']),
-            tags=['{}={}'.format(k, v) for k, v in payload['data']['event']['tags']],
-            attributes={'modules': ['{}=={}'.format(k, v) for k, v in payload['data']['event']['modules'].items()]},
+            value=payload['level'],
+            text='{} {}'.format(payload['message'], payload['url']),
+            tags=['{}={}'.format(k, v) for k, v in payload['event']['tags']],
+            attributes={'modules': ['{}=={}'.format(k, v) for k, v in payload['event']['modules'].items()]},
             origin='sentry.io',
             raw_data=str(payload)
         )
