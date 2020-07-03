@@ -14,7 +14,7 @@ class SentryWebhook(WebhookBase):
         else:
             key = 'sentry.interfaces.Http'
 
-        if payload.get('event')[key]['env']['ENV'] == 'prod':
+        if payload.get('event')[key]['env'].get('ENV', 'prod') == 'prod':
             environment = 'Production'
         else:
             environment = 'Development'
@@ -32,7 +32,7 @@ class SentryWebhook(WebhookBase):
             service=[payload['project']],
             group='Application',
             value=payload['level'],
-            text='{}\n{}'.format(payload['message'], payload['url']),
+            text='{}\n{}\n{}'.format(payload['message'], payload['event'].get('title', ''), payload['url']),
             tags=['{}={}'.format(k, v) for k, v in payload['event']['tags']],
             attributes={'modules': ['{}=={}'.format(k, v) for k, v in payload['event']['modules'].items()]},
             origin='sentry.io',
