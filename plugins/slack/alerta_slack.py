@@ -1,4 +1,3 @@
-
 import json
 import logging
 import os
@@ -57,16 +56,16 @@ except Exception as e:
 SLACK_SEND_ON_ACK = os.environ.get(
     'SLACK_SEND_ON_ACK') or app.config.get('SLACK_SEND_ON_ACK', False)
 SLACK_SEVERITY_MAP = app.config.get('SLACK_SEVERITY_MAP', {})
-SLACK_DEFAULT_SEVERITY_MAP = {'security': '#000000', # black
-                              'critical': '#FF0000', # red
-                              'major': '#FFA500', # orange
-                              'minor': '#FFFF00', # yellow
-                              'warning': '#1E90FF', #blue
-                              'informational': '#808080', #gray
-                              'debug': '#808080', # gray
-                              'trace': '#808080', # gray
-                              'ok': '#00CC00'} # green
-SLACK_DEFAULT_SUMMARY_FMT = '*[{{ alert.status|capitalize }}]* [{{ alert.severity|capitalize }}] Event {{ alert.event }} on *{{ alert.environment }} - {{ alert.resource }}*: {{alert.value}}\n{{alert.text}}\nAlert Console: <{{ config.DASHBOARD_URL }}|click here> / Alert: <{{ config.DASHBOARD_URL }}/#/alert/{{ alert.id }}|{{ alert.id[:8] }}>'
+SLACK_DEFAULT_SEVERITY_MAP = {'security': '#000000',  # black
+                              'critical': '#FF0000',  # red
+                              'major': '#FFA500',  # orange
+                              'minor': '#FFFF00',  # yellow
+                              'warning': '#1E90FF',  # blue
+                              'informational': '#808080',  # gray
+                              'debug': '#808080',  # gray
+                              'trace': '#808080',  # gray
+                              'ok': '#00CC00'}  # green
+SLACK_DEFAULT_SUMMARY_FMT = "Mayday! New Alert detected. *[{{ alert.severity|capitalize }}]*\n {{alert.value}}\n \n*<{{ dashboard }}| Alert console>*"
 SLACK_HEADERS = {
     'Content-Type': 'application/json'
 }
@@ -143,6 +142,7 @@ class ServiceIntegration(PluginBase):
             'color': color,
             'channel': channel,
             'emoji': ICON_EMOJI,
+            'dashboard': DASHBOARD_URL
         }
 
         if SLACK_PAYLOAD:
@@ -155,10 +155,7 @@ class ServiceIntegration(PluginBase):
                 summary = self._format_template(SLACK_SUMMARY_FMT, templateVars)
             else:
                 summary = self._format_template(SLACK_DEFAULT_SUMMARY_FMT, templateVars)
-            payload = {}
-            payload['username'] = ALERTA_USERNAME
-            payload['channel'] = channel
-            payload['text'] = summary
+            payload = {'username': ALERTA_USERNAME, 'channel': channel, 'text': summary}
             if ICON_EMOJI:
                 payload['icon_emoji'] = ICON_EMOJI
             if SLACK_ATTACHMENTS:
@@ -167,12 +164,16 @@ class ServiceIntegration(PluginBase):
                     "color": color,
                     "fields": [
                         {"title": "Status", "value": (status if status else alert.status).capitalize(),
-                            "short": True},
+                         "short": True},
                         {"title": "Environment",
-                            "value": alert.environment, "short": True},
+                         "value": alert.environment, "short": True},
                         {"title": "Resource", "value": alert.resource, "short": True},
                         {"title": "Services", "value": ", ".join(
-                            alert.service), "short": True}
+                            alert.service), "short": True},
+                        {"title": "Description", "value": alert.text},
+                        {"title": "Event", "value": alert.event},
+                        {"title": "Alert link", "value": "<{dashboard}/#/alert/{alert_id}|{alert_short_id}>"
+                            .format(dashboard=DASHBOARD_URL, alert_id=alert.id, alert_short_id=alert.id[:8])}
                     ]
                 }]
 
@@ -185,7 +186,8 @@ class ServiceIntegration(PluginBase):
             return
 
         if alert.severity in SLACK_SEVERITY_FILTER:
-            LOG.debug("Alert severity %s is included in SLACK_SEVERITY_FILTER list, thus it will not be forwarded to Slack." % alert.severity)
+            LOG.debug(
+                "Alert severity %s is included in SLACK_SEVERITY_FILTER list, thus it will not be forwarded to Slack." % alert.severity)
             return
 
         try:

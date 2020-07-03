@@ -49,11 +49,11 @@ DEFAULT_OPTIONS = {
     'profile':       None,
     'endpoint':      'http://localhost:8080',
     'key':           '',
-    'amqp_url':      'redis://localhost:6379/',
+    'amqp_url':      'redis://prod-vpc-dataeng-redash-broker.slutb6.ng.0001.apse1.cache.amazonaws.com:6379',
     'amqp_topic':    'notify',
     'amqp_queue_name':    '', # Name of the AMQP queue. Default is no name (default queue destination).
     'amqp_queue_exclusive': True, # Exclusive queues may only be consumed by the current connection.
-    'smtp_host':     'smtp.gmail.com',
+    'smtp_host':     'email-smtp.eu-west-1.amazonaws.com',
     'smtp_port':     587,
     'smtp_username': '', # application-specific username if it differs from the specified 'mail_from' user
     'smtp_password': '',  # application-specific password if gmail used
@@ -61,8 +61,8 @@ DEFAULT_OPTIONS = {
     'smtp_use_ssl': False,  # whether or not SSL is being used for the SMTP connection
     'ssl_key_file': None, # a PEM formatted private key file for the SSL connection
     'ssl_cert_file': None, # a certificate chain file for the SSL connection
-    'mail_from':     '',  # alerta@example.com
-    'mail_to':       [],  # devops@example.com, support@example.com
+    'mail_from':     'dataengineering@dunzo.in',  # alerta@example.com
+    'mail_to':       ['dataengineering@dunzo.in'],  # devops@example.com, support@example.com
     'mail_localhost': None,  # fqdn to use in the HELO/EHLO command
     'mail_template':  os.path.dirname(__file__) + os.sep + 'email.tmpl',
     'mail_template_html': os.path.dirname(__file__) + os.sep + 'email.html.tmpl',  # nopep8
