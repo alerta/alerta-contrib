@@ -198,6 +198,10 @@ class ServiceIntegration(PluginBase):
             LOG.debug("Alert severity %s is included in SLACK_SEVERITY_FILTER list, thus it will not be forwarded to Slack." % alert.severity)
             return
 
+        if alert.severity in ['ok', 'normal', 'cleared', app.config.get('DEFAULT_NORMAL_SEVERITY')] and alert.previous_severity in SLACK_SEVERITY_FILTER:
+            LOG.debug("Alert severity is %s but previous_severity was %s (included in SLACK_SEVERITY_FILTER list), thus it will not be forwarded to Slack." % (alert.severity, alert.previous_severity))
+            return
+
         try:
             payload = self._slack_prepare_payload(alert, **kwargs)
             LOG.debug('Slack payload: %s', payload)
