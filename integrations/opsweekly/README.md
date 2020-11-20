@@ -3,7 +3,7 @@ Opsweekly Integration
 
 [Opsweekly](https://codeascraft.com/2014/06/19/opsweekly-measuring-on-call-experience-with-alert-classification/) is a tool developed by Etsy to generate weekly oncall support reports.
 
-For help, join [![Gitter chat](https://badges.gitter.im/alerta/chat.png)](https://gitter.im/alerta/chat)
+For help, join [![Slack chat](https://img.shields.io/badge/chat-on%20slack-blue?logo=slack)](https://slack.alerta.dev)
 
 Installation
 ------------

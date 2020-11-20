@@ -3,7 +3,7 @@ Forward Plugin
 
 This is an plugin that forward alert from one server to another.
 
-For help, join [![Gitter chat](https://badges.gitter.im/alerta/chat.png)](https://gitter.im/alerta/chat)
+For help, join [![Slack chat](https://img.shields.io/badge/chat-on%20slack-blue?logo=slack)](https://slack.alerta.dev)
 
 Installation
 ------------

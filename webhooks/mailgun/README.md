@@ -3,7 +3,7 @@ Mailgun incomming email Webhook
 
 Receive Emails using [Mailgun](https://documentation.mailgun.com/en/latest/quickstart-receiving.html) webhook callbacks.
 
-For help, join [![Gitter chat](https://badges.gitter.im/alerta/chat.png)](https://gitter.im/alerta/chat)
+For help, join [![Slack chat](https://img.shields.io/badge/chat-on%20slack-blue?logo=slack)](https://slack.alerta.dev)
 
 Installation
 ------------

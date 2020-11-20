@@ -5,7 +5,7 @@ Two-way integration with Prometheus which will silence alerts in
 Alertmanager when alerts are ack'ed in the Alerta console and delete
 silences if those alerts are manually re-opened.
 
-For help, join [![Gitter chat](https://badges.gitter.im/alerta/chat.png)](https://gitter.im/alerta/chat)
+For help, join [![Slack chat](https://img.shields.io/badge/chat-on%20slack-blue?logo=slack)](https://slack.alerta.dev)
 
 Installation
 ------------

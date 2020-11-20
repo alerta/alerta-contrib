@@ -3,7 +3,7 @@ Sentry Webhook
 
 Receive [Sentry](https://sentry.io) exception notifications via webhook callbacks.
 
-For help, join [![Gitter chat](https://badges.gitter.im/alerta/chat.png)](https://gitter.im/alerta/chat)
+For help, join [![Slack chat](https://img.shields.io/badge/chat-on%20slack-blue?logo=slack)](https://slack.alerta.dev)
 
 Sentry callback version support
 -------------------------------

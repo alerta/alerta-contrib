@@ -6,7 +6,7 @@ Send PagerDuty messages for new alerts.
 **Tip: Use this plugin in conjunciton with the PagerDuty webhook which will notify
 Alerta when a PagerDuty notification has been acknowledged or closed.**
 
-For help, join [![Gitter chat](https://badges.gitter.im/alerta/chat.png)](https://gitter.im/alerta/chat)
+For help, join [![Slack chat](https://img.shields.io/badge/chat-on%20slack-blue?logo=slack)](https://slack.alerta.dev)
 
 Installation
 ------------
