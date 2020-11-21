@@ -3,7 +3,7 @@ Google Cloud Pub/Sub Plugin
 
 Send alerts to Google Cloud Pub/Sub.
 
-For help, join [Gitter chat](https://gitter.im/alerta/chat)
+For help, join [![Slack chat](https://img.shields.io/badge/chat-on%20slack-blue?logo=slack)](https://slack.alerta.dev)
 
 Installation
 ------------
