@@ -84,7 +84,7 @@ class ZabbixEventAck(PluginBase):
         elif status == 'closed':
 
             try:
-                r = self.zapi.event.get(objectids=trigger_id, acknowledged=True, output='extend', sortfield='clock', sortorder='DESC', limit=10)
+                r = self.zapi.event.get(objectids=trigger_id, output='extend', sortfield='clock', sortorder='DESC', limit=10)
                 event_ids = [e['eventid'] for e in r]
             except ZabbixAPIException:
                 event_ids = None
