@@ -36,7 +36,7 @@ class MsteamsWebhook(WebhookBase):
             if not alert:
                 return err
             else:
-                alert.set_status(status=action, text='status changed via MS Teams webhook')
+                alert.from_action(action, text='status changed via MS Teams webhook')
                 resp = make_response(jsonify(status='ok', message='status changed'), 200)
                 resp.headers['CARD-ACTION-STATUS'] = 'Alert {}d'.format(action.capitalize())
 
