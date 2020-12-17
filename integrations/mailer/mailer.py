@@ -32,7 +32,7 @@ try:
     import dns.resolver
     DNS_RESOLVER_AVAILABLE = True
 except:
-    sys.stdout.write('Python dns.resolver unavailable. The skip_mta option will be forced to False')  # nopep8
+    sys.stdout.write('Python dns.resolver unavailable. The skip_mta option will be forced to False\n')  # nopep8
 
 try:
     import configparser
