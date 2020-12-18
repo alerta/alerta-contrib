@@ -32,7 +32,7 @@ server configuration file or as environment variables.
 ```python
 PLUGINS = ['telegram']
 TELEGRAM_TOKEN = ''  # default="not set"
-TELEGRAM_CHAT_ID = ''  # default="not set"
+TELEGRAM_CHAT_ID = ''  # default="not set", specify multiple ID's separated by comma
 TELEGRAM_TEMPLATE = '' # default will use hardcoded one (can be a filename to template file)
 TELEGRAM_PROXY = '' # default="not set", URL must start from http://, socks5 not supported
 TELEGRAM_PROXY_USERNAME = '' # default="not set"
