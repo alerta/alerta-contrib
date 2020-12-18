@@ -13,7 +13,7 @@ ensuring that alerts meet the following criteria:
 
   * must not be a duplicate alert (ie. ``repeat != True``)
   * must have status of ``open`` or ``closed``
-  * must have a current severity *OR* previous severity of ``critical`` or ``major``
+  * must have a current severity *OR* previous severity of ``critical`` or ``major`` by default
   * must not have been cleared down within 30 seconds (to prevent flapping alerts spamming)
 
 To achieve the above, alerts are actually held for a minimum of 30 seconds
