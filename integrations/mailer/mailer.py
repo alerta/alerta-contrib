@@ -35,6 +35,7 @@ try:
 except:
     sys.stdout.write('Python dns.resolver unavailable. The skip_mta option will be forced to False\n')  # nopep8
 
+
 logging.basicConfig(level=logging.DEBUG)
 LOG = logging.getLogger(__name__)
 root = logging.getLogger()
