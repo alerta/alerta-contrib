@@ -10,6 +10,7 @@ import signal
 import smtplib
 import socket
 from functools import reduce
+import six
 
 import sys
 import threading
@@ -215,7 +216,7 @@ class MailSender(threading.Thread):
                     return True
             LOG.debug('Regex %s matches nothing', regex)
             return False
-        elif isinstance(value, str) or isinstance(value, unicode):  # pylint: disable=undefined-variable
+        elif isinstance(value, six.string_types):  # pylint: disable=undefined-variable
             LOG.debug('Trying to match %s to %s',
                       value, regex)
             return re.search(regex, value) is not None
