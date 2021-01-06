@@ -9,6 +9,7 @@ import re
 import signal
 import smtplib
 import socket
+from configparser import RawConfigParser
 from functools import reduce
 import six
 
@@ -34,11 +35,6 @@ try:
     DNS_RESOLVER_AVAILABLE = True
 except:
     sys.stdout.write('Python dns.resolver unavailable. The skip_mta option will be forced to False\n')  # nopep8
-
-try:
-    import configparser
-except ImportError:
-    import ConfigParser as configparser
 
 
 logging.basicConfig(level=logging.DEBUG)
@@ -73,7 +69,8 @@ DEFAULT_OPTIONS = {
     'dashboard_url': 'http://try.alerta.io',
     'debug':         False,
     'skip_mta':      False,
-    'email_type':    'text'  # options are: text, html
+    'email_type':    'text',  # options are: text, html
+    'severities': []
 }
 
 OPTIONS = {}
@@ -116,6 +113,9 @@ class FanoutConsumer(ConsumerMixin):
         ]
 
     def on_message(self, body, message):
+        sevs = list(OPTIONS['severities'])
+        if not sevs:
+            sevs = ['critical', 'major']
 
         try:
             alert = Alert.parse(body)
@@ -133,8 +133,8 @@ class FanoutConsumer(ConsumerMixin):
             return
 
         if (
-            alert.severity not in ['critical', 'major'] and
-            alert.previous_severity not in ['critical', 'major']
+            alert.severity not in sevs and
+            alert.previous_severity not in sevs
         ):
             message.ack()
             return
@@ -432,8 +432,10 @@ def parse_group_rules(config_file):
         return rules_d
     return ()
 
+
 def on_sigterm(x, y):
     raise SystemExit
+
 
 def main():
     global OPTIONS
@@ -443,7 +445,7 @@ def main():
 
     # Convert default booleans to its string type, otherwise config.getboolean fails  # nopep8
     defopts = {k: str(v) if type(v) is bool else v for k, v in DEFAULT_OPTIONS.items()}  # nopep8
-    config = configparser.RawConfigParser(defaults=defopts)
+    config = RawConfigParser(defaults=defopts)
 
     if os.path.exists("{}.d".format(config_file)):
         config_path = "{}.d".format(config_file)
