@@ -1,7 +1,7 @@
 AWS SNS Plugin
 ==============
 
-Send alerts to AWS SNS topic.
+Send alerts to AWS SNS topic, with support for Fifo.
 
 For help, join [![Slack chat](https://img.shields.io/badge/chat-on%20slack-blue?logo=slack)](https://slack.alerta.dev)
 
@@ -29,8 +29,6 @@ server configuration file or as environment variables.
 
 ```python
 PLUGINS = ['sns']
-AWS_ACCESS_KEY_ID = ''  # default="not set"
-AWS_SECRET_ACCESS_KEY = ''  # default="not set"
 ```
 
 **Default Configuration**
@@ -53,4 +51,4 @@ References
 License
 -------
 
-Copyright (c) 2016 Nick Satterly. Available under the MIT License.
+Copyright (c) 2016,2021 Nick Satterly. Available under the MIT License.
