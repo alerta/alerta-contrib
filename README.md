@@ -43,6 +43,7 @@ Plugins
   * [GeoIP](plugins/geoip)
   * [InfluxDB](plugins/influxdb)
   * [Logstash](plugins/logstash)
+  * [Matrix](plugins/matrix)
   * [Mattermost](plugins/mattermost)
   * [MS Teams](plugins/msteams)
   * [Normalise](plugins/normalise)
