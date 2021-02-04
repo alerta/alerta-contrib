@@ -44,6 +44,13 @@ the Alerta console:
 DASHBOARD_URL = ''  # default="not set"
 ```
 
+The `OPSGENIE_SEND_WARN` setting should be configured if you would like to send
+informational and warning alerts onto OpsGenie.
+
+```python
+OPSGENIE_SEND_WARN = True   # default=True
+```
+
 **Example**
 
 ```python
@@ -51,6 +58,7 @@ PLUGINS = ['reject', 'opsgenie']
 OPSGENIE_SERVICE_KEY = '54A634B1-FB0C-4758-840F-5D808C89E70E'
 SERVICE_KEY_MATCHERS = [ {"regex":"proxy[\\d+]","api_key":"6b982ii3l8p834566oo13zx9477p1zxd"} ]
 DASHBOARD_URL = 'https://try.alerta.io'
+OPSGENIE_SEND_WARN = False
 ```
 
 References
