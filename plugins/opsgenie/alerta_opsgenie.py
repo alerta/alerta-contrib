@@ -62,7 +62,7 @@ class TriggerEvent(PluginBase):
         LOG.debug('OpsGenie ack %s: %s %s' % (why, alert.id, ackUrl))
 
         try:
-            r = requests.post(closeUrl, json={}, headers=headers, timeout=2)
+            r = requests.post(ackUrl, json={}, headers=headers, timeout=2)
         except Exception as e:
             raise RuntimeError("OpsGenie connection error: %s" % e)
         return r
