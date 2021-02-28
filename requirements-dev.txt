@@ -6,7 +6,7 @@ six
 mock
 mypy
 pre-commit
-PyJWT==1.7.1
+PyJWT>=2.0.0
 pylint
 pytest>=5.4.3
 pytest-cov
