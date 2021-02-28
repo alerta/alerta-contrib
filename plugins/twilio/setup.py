@@ -14,7 +14,7 @@ setup(
     packages=find_packages(),
     py_modules=['alerta_twilio_sms'],
     install_requires=[
-        'twilio>=6.0.0'
+        'twilio>=6.0.0,<6.51.0'  # See https://github.com/twilio/twilio-python/issues/556
     ],
     include_package_data=True,
     zip_safe=True,
