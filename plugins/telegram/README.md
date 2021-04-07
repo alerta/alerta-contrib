@@ -64,7 +64,7 @@ Templating
 ----------
 
 There can be defined template to send data to telegram it have to be defined in `TELEGRAM_TEMPLATE`. `TELEGRAM_TEMPLATE` can be a filename pointing to [Jinja2](http://jinja.pocoo.org/docs/2.10/) template file.
-Template have to be writen in [Jinja2](http://jinja.pocoo.org/docs/2.10/)
+Template have to be written in [Jinja2](http://jinja.pocoo.org/docs/2.10/)
 Alert data will be passed to it as context. So you can modify tg message as you wish. Example can be found in [Explorer](http://explorer.alerta.io/#/send)
 
 Troubleshooting
