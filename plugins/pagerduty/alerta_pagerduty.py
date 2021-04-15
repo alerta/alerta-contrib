@@ -76,7 +76,7 @@ class TriggerEvent(PluginBase):
         except Exception as e:
             raise RuntimeError("PagerDuty connection error: %s" % e)
 
-        # LOG.debug('PagerDuty response: %s - %s', r.status_code, r.text)
+        LOG.warn('PagerDuty notice sent')
 
     def status_change(self, alert, status, text):
 
@@ -91,7 +91,7 @@ class TriggerEvent(PluginBase):
         #     "custom_details": alert.get_body(history=False)
         # }
 
-        LOG.debug('PagerDuty payload: %s', payload)
+        LOG.warn('PagerDuty status change ignored.')
 
         try:
             # r = requests.post(PAGERDUTY_EVENTS_URL, json=payload, timeout=2)
