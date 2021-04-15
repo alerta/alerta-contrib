@@ -1,7 +1,7 @@
 
 from setuptools import setup, find_packages
 
-version = '5.3.3'
+version = '5.3.4'
 
 setup(
     name="alerta-pagerduty",
