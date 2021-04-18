@@ -12,6 +12,9 @@ You need to install following python packages:
 
     $ sudo pip install --upgrade google-cloud
     $ sudo pip install --upgrade oauth2client
+    $ sudo pip install grpcio==1.30.0
+
+There are issues running never versions of grpcio (Confirmed stable and working with grpcio 1.30.0). 
 
 Follow this to configure [authentication](https://googlecloudplatform.github.io/google-cloud-python/stable/pubsub-usage.html#authentication-configuration)
 
@@ -53,3 +56,4 @@ License
 -------
 
 Copyright (c) 2017 Arindam Choudhury. Available under the MIT License.
+Copyright (c) 2021 Lasse Hjorth. Available under the MIT License.
