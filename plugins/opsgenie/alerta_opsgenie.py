@@ -1,4 +1,3 @@
-
 import logging
 import os
 import re
@@ -15,8 +14,10 @@ LOG.info('Initializing')
 
 OPSGENIE_EVENTS_CREATE_URL = 'https://api.opsgenie.com/v2/alerts'
 OPSGENIE_EVENTS_CLOSE_URL = 'https://api.opsgenie.com/v2/alerts/%s/close?identifierType=alias'
+OPSGENIE_EVENTS_ACK_URL = 'https://api.opsgenie.com/v2/alerts/%s/acknowledge?identifierType=alias'
 OPSGENIE_SERVICE_KEY = os.environ.get('OPSGENIE_SERVICE_KEY') or app.config['OPSGENIE_SERVICE_KEY']
 OPSGENIE_TEAMS = os.environ.get('OPSGENIE_TEAMS', '') # comma separated list of teams
+OPSGENIE_SEND_WARN = os.environ.get('OPSGENIE_SEND_WARN') or app.config.get('OPSGENIE_SEND_WARN', False)
 SERVICE_KEY_MATCHERS = os.environ.get('SERVICE_KEY_MATCHERS') or app.config['SERVICE_KEY_MATCHERS']
 DASHBOARD_URL = os.environ.get('DASHBOARD_URL') or app.config.get('DASHBOARD_URL', '')
 LOG.info('Initialized: %s key, %s matchers' % (OPSGENIE_SERVICE_KEY, SERVICE_KEY_MATCHERS))
@@ -51,6 +52,21 @@ class TriggerEvent(PluginBase):
             raise RuntimeError("OpsGenie connection error: %s" % e)
         return r
 
+    def opsgenie_ack_alert(self, alert, why):
+
+        headers = {
+            "Authorization": 'GenieKey ' + self.opsgenie_service_key(alert.resource)
+        }
+
+        ackUrl = OPSGENIE_EVENTS_ACK_URL % alert.id
+        LOG.debug('OpsGenie ack %s: %s %s' % (why, alert.id, ackUrl))
+
+        try:
+            r = requests.post(ackUrl, json={}, headers=headers, timeout=2)
+        except Exception as e:
+            raise RuntimeError("OpsGenie connection error: %s" % e)
+        return r
+
     def pre_receive(self, alert):
         return alert
 
@@ -63,7 +79,8 @@ class TriggerEvent(PluginBase):
         # If alerta has cleared or status is closed, send the close to opsgenie
         if (alert.severity in ['cleared', 'normal', 'ok']) or (alert.status == 'closed'):
             r = self.opsgenie_close_alert(alert, 'CREATE-CLOSE')
-
+        elif (alert.severity in ['warning', 'informational']) and not OPSGENIE_SEND_WARN:
+            LOG.info('Just informational or warning not sending to OpsGenie')
         else:
             headers = {
                 "Authorization": 'GenieKey ' + self.opsgenie_service_key(alert.resource)
@@ -98,7 +115,7 @@ class TriggerEvent(PluginBase):
             except Exception as e:
                 raise RuntimeError("OpsGenie connection error: %s" % e)
 
-        LOG.debug('OpsGenie response: %s - %s' % (r.status_code, r.text))
+            LOG.debug('OpsGenie response: %s - %s' % (r.status_code, r.text))
 
     # generate list of responders from OPSGENIE_TEAMS env var
     def get_opsgenie_teams(self):
@@ -112,9 +129,12 @@ class TriggerEvent(PluginBase):
         LOG.debug('Alert change %s to %s: %s' % (alert.id, status, alert.get_body(history=False)))
 
         if status not in ['ack', 'assign', 'closed']:
-            LOG.debug('Not sending status change to opsgenie: %s to %s' % (alert.id, status)) 
+            LOG.debug('Not sending status change to opsgenie: %s to %s' % (alert.id, status))
             return
 
-        r = self.opsgenie_close_alert(alert, 'STATUS-CLOSE')
+        if status == 'closed':
+            r = self.opsgenie_close_alert(alert, 'STATUS-CLOSE')
+        elif status == 'ack':
+            r = self.opsgenie_ack_alert(alert, 'STATUS-ACK')
 
         LOG.debug('OpsGenie response: %s - %s' % (r.status_code, r.text))
