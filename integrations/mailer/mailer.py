@@ -245,6 +245,7 @@ class MailSender(threading.Thread):
                     if self._rule_matches(field['regex'], value):
                         is_matching = True
                     else:
+                        is_matching = False
                         break
                 if is_matching:
                     # Add up any new contacts
