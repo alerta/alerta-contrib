@@ -245,6 +245,7 @@ class MailSender(threading.Thread):
                     if self._rule_matches(field['regex'], value):
                         is_matching = True
                     else:
+                        is_matching = False
                         break
                 if is_matching:
                     # Add up any new contacts
@@ -406,6 +407,13 @@ def validate_rules(rules):
                                 rule, key)
                     valid = False
                     break
+            try:
+                re.compile(field['regex'])
+            except re.error:
+                LOG.warning('Invalid rule %s, regex %s is not legal',
+                            rule, field['regex'])
+                valid = False
+                break
         if valid is False:
             continue
 

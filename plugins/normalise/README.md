@@ -55,7 +55,7 @@ entries similar to below:
 References
 ----------
 
-  * Normalize Monitoring Traps: https://docops.ca.com/ca-service-operations-insight/3-2/en/administrating/event-management/event-management-example-scenarios/event-management-example-5-normalize-monitoring-traps
+  * Normalize Monitoring Traps: https://techdocs.broadcom.com/us/en/ca-enterprise-software/it-operations-management/service-operations-insight/4-2/administrating/event-management/event-management-example-scenarios/event-management-example-5-normalize-monitoring-traps.html
 
 License
 -------
