@@ -60,6 +60,12 @@ TELEGRAM_SOUND_NOTIFICATION_SEVERITY = ['security', 'critical', 'major']
 If `TELEGRAM_SOUND_NOTIFICATION_SEVERITY` is unset then all telegram
 notifications have [disable_notification](https://core.telegram.org/bots/api#sendmessage)=False
 
+To disable notifications on severity on your chose use `TELEGRAM_DISABLE_NOTIFICATION_SEVERITY`:
+```python
+# Severity `warning` is disabled notification in telegram
+# all other severeties have notifications
+TELEGRAM_DISABLE_NOTIFICATION_SEVERITY = ['warning']
+```
 Templating
 ----------
 
