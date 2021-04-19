@@ -4,19 +4,19 @@ use the `ALERT_TIMEOUT` setting without installing this plugin.**
 
 ---
 
-Customize Global Alert Timeout Plugin
+Customise Global Alert Timeout Plugin
 =====================================
 
-This plugin provides the capability to set the global alert timeout via
+This plugin provides the capabilijty to set the global alert timeout via
 Alerta configuration or an environment variable named `ALERT_TIMEOUT`.
 
 This plugin is useful in scenarios where the source of an alert (e.g.
-Prometheus AlertManager) does not specifically include an explicit timeout
+Prometheus AlertManager) does not specifically include an explict timeout
 setting and the default global timeout value may not be too large.
 
 
 Timeout actions:
-
+ 
   * The alert 'timeout' attribute is (re)set for each alert to the value specified
 
 
@@ -57,3 +57,4 @@ Restart Alerta API and confirm that the plugin has been loaded and enabled.
 
 Set `DEBUG=True` in the `alertad.conf` configuration file and look for log
 entries referencing `Setting timeout for alert to 2400`
+

@@ -6,7 +6,7 @@ are received by the Alerta API before being saved to the database.
 
 Two alert attributes are added to all incoming alerts received by Alerta:
 
-  * `isOutOfHours` - a boolean indicating whether the alert occurred during or outside of business hours
+  * `isOutOfHours` - a boolean indicating whether the alert occured during or outside of business hours
   * `runBookUrl` - a dynamically generated link to a Run Book wiki based on the alert event name
 
 This repo should be forked or copied and the python plugin modified to suit

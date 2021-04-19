@@ -68,7 +68,7 @@ in the template environment:
 | `config`        | alerta configuration        |
 | `color`         | The computed severity color |
 | `channel`       | The computed channel        |
-| `emoji`         | The computed emoji          |
+| `emoji`         | The computed emojii         |
 
 If you have Jinja2 available you can try customizing the message like
 this:
@@ -115,8 +115,8 @@ SLACK_PAYLOAD = {
 
 Slack Apps API
 --------------
-To use the Slack "Apps" API instead of an Incoming Webhook, create an application and
-obtain its OAuth token.  Use that to set ```SLACK_TOKEN``` and specify the
+To use the Slack "Apps" API instead of an Incoming Webhook, create an application and 
+obtain its OAuth token.  Use that to set ```SLACK_TOKEN``` and specify the 
 URL endpoint to the new API entrypoint this way:
 
 ```python
