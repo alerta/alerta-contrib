@@ -1,12 +1,12 @@
 from setuptools import setup, find_packages
 
-version = '0.0.1'
+version = '0.0.2'
 
 setup(
-    name="routing",
+    name="alerta-routing",
     version=version,
     description='Alerta routing rules for plugins',
-    url='https://github.com/demshin/alerta-routing-plugin',
+    url='https://github.com/demshin/alerta-contrib',
     license='Apache License 2.0',
     author='Aleksandr Demshin ',
     author_email='demshin@gmail.com',
