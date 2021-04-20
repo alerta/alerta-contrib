@@ -112,9 +112,9 @@ class TelegramBot(PluginBase):
         else:
             disable_notification = False
 
-        if TELEGRAM_DISABLE_NOTIFICATION_SEVERITY:
-            if alert.severity in TELEGRAM_DISABLE_NOTIFICATION_SEVERITY:
-                return
+        # if TELEGRAM_DISABLE_NOTIFICATION_SEVERITY:
+        #     if alert.severity in TELEGRAM_DISABLE_NOTIFICATION_SEVERITY:
+        #         return
 
         LOG.debug('Telegram: post_receive sendMessage disable_notification=%s', str(disable_notification))
 
