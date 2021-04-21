@@ -3,11 +3,14 @@ import datetime
 import logging
 import os
 import requests
+from typing import Any
 
 try:
     from alerta.plugins import app  # alerta >= 5.0
 except ImportError:
     from alerta.app import app  # alerta < 5.0
+
+from alerta.models.alert import Alert
 from alerta.plugins import PluginBase
 
 LOG = logging.getLogger('alerta.plugins.prometheus')
@@ -35,17 +38,20 @@ class AlertmanagerSilence(PluginBase):
         return
 
     def status_change(self, alert, status, text):
+        return alert
+
+    def take_action(self, alert: Alert, action: str, text: str, **kwargs) -> Any:
+        '''
+        Set silence in alertmanager.
+        '''
 
         if alert.event_type != 'prometheusAlert':
-            return
+            return alert
 
-        if alert.status == status:
-            return
-
-        if status == 'ack':
+        if action == 'ack':
 
             if ALERTMANAGER_SILENCE_FROM_ACK:
-                silence_seconds = int(alert.timeout)
+                silence_seconds = kwargs.get('timeout', alert.timeout)
             else:
                 try:
                     silence_days = int(ALERTMANAGER_SILENCE_DAYS)
@@ -101,7 +107,7 @@ class AlertmanagerSilence(PluginBase):
                 raise RuntimeError("Alertmanager: ERROR - %s" % e)
             LOG.debug('Alertmanager: Added silenceId %s to attributes', silenceId)
 
-        elif status == 'open':
+        elif action == 'unack':
             LOG.debug('Alertmanager: Remove silence for alertname=%s instance=%s', alert.event, alert.resource)
 
             silenceId = alert.attributes.get('silenceId', None)
@@ -120,4 +126,4 @@ class AlertmanagerSilence(PluginBase):
                     raise RuntimeError("Alertmanager: ERROR - %s" % e)
                 LOG.debug('Alertmanager: Removed silenceId %s from attributes', silenceId)
 
-        return alert, status, text
+        return alert
