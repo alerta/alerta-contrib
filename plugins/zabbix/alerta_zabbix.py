@@ -1,6 +1,8 @@
 
 import logging
 import os
+import re
+
 
 try:
     from alerta.plugins import app  # alerta >= 5.0
@@ -45,11 +47,22 @@ class ZabbixEventAck(PluginBase):
 
         event_id = alert.attributes.get('eventId', None)
         trigger_id = alert.attributes.get('triggerId', None)
+        more_info = alert.attributes.get('moreInfo',None)
 
         if not event_id:
-            LOG.error('Zabbix: eventId missing from alert attributes')
-            return
+            if more_info:  # try to get event_id from re
+                searchObj = re.search( r'eventid=(\d+)', more_info)
+                if searchObj and searchObj.group(1):
+                    LOG.info('Zabbix: setting eventId to {} from moreInfo'.format(searchObj.group(1)))
+                    event_id = searchObj.group(1)
+                else:
+                    LOG.error('Zabbix: eventId missing from alert attributes')
+                    LOG.error('{}'.format(alert.attributes))
+                    return
+            else:
+                return
 
+        
         # login to zabbix
         zabbix_api_url = ZABBIX_API_URL or alert.attributes.get('zabbixUrl', DEFAULT_ZABBIX_API_URL)
         self.zapi = ZabbixAPI(zabbix_api_url)
