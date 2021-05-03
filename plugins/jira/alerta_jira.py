@@ -39,8 +39,6 @@ class JiraCreate(PluginBase):
                 "issuetype": {
                     "name": "Bug"
                 },
-                "customfield_11412": "%s" %(severity.upper()),
-                "customfield_11413": "%s" %(event.upper())
             }
         }
         payload = json.dumps(payload_dict, indent = 4)
