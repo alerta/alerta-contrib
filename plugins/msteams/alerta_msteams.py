@@ -59,6 +59,11 @@ class SendConnectorCardMessage(PluginBase):
         MS_TEAMS_INBOUNDWEBHOOK_URL = self.get_config('MS_TEAMS_INBOUNDWEBHOOK_URL', default=None, type=str, **kwargs)  # webhook url for connectorcard actions
         MS_TEAMS_APIKEY = self.get_config('MS_TEAMS_APIKEY', default=None, type=str, **kwargs)  # X-API-Key (needs webhook.write permission)
         DASHBOARD_URL = self.get_config('DASHBOARD_URL', default='', type=str, **kwargs)
+        MS_TEAMS_ALERT_WEBHOOK_MAPPING = self.get_config("MS_TEAMS_ALERT_WEBHOOK_MAPPING", default=[], type=list, **kwargs)
+
+        ms_teams_webhooks = self._get_ms_teams_webhooks(MS_TEAMS_ALERT_WEBHOOK_MAPPING, alert)
+        if len(ms_teams_webhooks) <= 0 and not MS_TEAMS_WEBHOOK_URL:
+            return alert
 
         if alert.repeat:
             return
@@ -123,19 +128,52 @@ class SendConnectorCardMessage(PluginBase):
         try:
             if MS_TEAMS_PAYLOAD:
                 # Use requests.post to send raw json message card
-                LOG.debug("MS Teams sending(json payload) POST to %s", MS_TEAMS_WEBHOOK_URL)
-                r = requests.post(MS_TEAMS_WEBHOOK_URL, data=card_json, timeout=MS_TEAMS_DEFAULT_TIMEOUT)
-                LOG.debug('MS Teams response: %s / %s' % (r.status_code, r.text))
+                if MS_TEAMS_WEBHOOK_URL:
+                    LOG.debug("MS Teams sending(json payload) POST to %s", MS_TEAMS_WEBHOOK_URL)
+                    r = requests.post(MS_TEAMS_WEBHOOK_URL, data=card_json, timeout=MS_TEAMS_DEFAULT_TIMEOUT)
+                    LOG.debug('MS Teams response: %s / %s' % (r.status_code, r.text))
+                if ms_teams_webhooks:
+                    for webhook in ms_teams_webhooks:
+                        LOG.debug("MS Teams sending(json payload) POST to %s", webhook)
+                        r = requests.post(webhook, data=card_json, timeout=MS_TEAMS_DEFAULT_TIMEOUT)
+                        LOG.debug('MS Teams response: %s / %s' % (r.status_code, r.text))
             else:
                 # Use pymsteams to send card
-                msTeamsMessage = pymsteams.connectorcard(hookurl=MS_TEAMS_WEBHOOK_URL, http_timeout=MS_TEAMS_DEFAULT_TIMEOUT)
-                msTeamsMessage.title(summary)
-                msTeamsMessage.text(text)
-                msTeamsMessage.addLinkButton("Open in Alerta", url)
-                msTeamsMessage.color(color)
-                msTeamsMessage.send()
+                if MS_TEAMS_WEBHOOK_URL:
+                    self._send_card(MS_TEAMS_WEBHOOK_URL, summary, text, url, color)
+                if ms_teams_webhooks:
+                    for webhook in ms_teams_webhooks:
+                        self._send_card(webhook, summary, text, url, color)
         except Exception as e:
             raise RuntimeError("MS Teams: ERROR - %s", e)
 
+    def _send_card(self, webhook_url, summary, text, url, color):
+        msTeamsMessage = pymsteams.connectorcard(hookurl=webhook_url, http_timeout=MS_TEAMS_DEFAULT_TIMEOUT)
+        msTeamsMessage.title(summary)
+        msTeamsMessage.text(text)
+        msTeamsMessage.addLinkButton("Open in Alerta", url)
+        msTeamsMessage.color(color)
+        msTeamsMessage.send()
+
     def status_change(self, alert, status, text, **kwargs):
         return
+
+    def _get_ms_teams_webhooks(self, webhook_mappings, alert):
+        webhooks = list()
+        for mapping in webhook_mappings:
+            LOG.debug(mapping['attributes'])
+            attributes_match = self._match_attributes(mapping, alert)
+            if attributes_match:
+                webhooks.append(mapping['ms_teams_webhook'])
+        return webhooks
+
+    def _match_attributes(self, mapping, alert):
+        for k, v in mapping['attributes'].items():
+            if not hasattr(alert, k) and k not in alert.attributes:
+                LOG.debug(f"Attribute {k} does not exist!")
+                return False
+            if hasattr(alert, k) and getattr(alert, k) == v:
+                return True
+            if  alert.attributes.get(k) == v:
+                return True
+        return False
