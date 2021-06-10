@@ -50,7 +50,7 @@ MS_TEAMS_ALERT_WEBHOOK_MAPPING = [
     },
         {
         "attributes" : {
-            "custom_attribute_1": "custom_value_1",
+            "custom_attribute_1": "=~custom_value_1",
             "custom_attribute_2": "custom_value_2",
             "severity": "critical",
         },
@@ -58,8 +58,12 @@ MS_TEAMS_ALERT_WEBHOOK_MAPPING = [
     }
 ]
 ```
-If all attributes of an alarm are matched for multiple mappings, 
-the alarm is sent to each matching channel.
+### Regex support
+
+If the value of an attribute is prefixed with __=~__ the expression will be evaluated as RegEx.
+ 
+If all attributes of the alert are matched for multiple mappings, 
+the alert is sent to each matching channel.
 
 
 The `MS_TEAMS_SUMMARY_FMT` configuration variable is a Jinja2 template
@@ -67,6 +71,7 @@ string or filename to a template file and accepts any Jinja2 syntax.
 The formatter has access to two variables in the template environment,
 'alert' for all alert details and 'config' for access to the alerta
 configuration.
+
 
 If you have Jinja2 available you can try customizing the message like
 this:
