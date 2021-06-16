@@ -116,7 +116,7 @@ class TelegramBot(PluginBase):
             if alert.severity in TELEGRAM_DISABLE_NOTIFICATION_SEVERITY:
                 return
 
-        if alert.severity in ['ok', 'normal', 'cleared', 'closed', app.config.get('DEFAULT_NORMAL_SEVERITY')] and alert.previous_severity in TELEGRAM_DISABLE_NOTIFICATION_SEVERITY:
+        if alert.severity in ['ok', 'normal', 'cleared', app.config.get('DEFAULT_NORMAL_SEVERITY')] and alert.previous_severity in TELEGRAM_DISABLE_NOTIFICATION_SEVERITY:
             LOG.debug("Alert severity is %s but previous_severity was %s (included in DEFAULT_NORMAL_SEVERITY list), thus it will not be forwarded to Telegram." % (alert.severity, alert.previous_severity))
             return
 
