@@ -65,6 +65,10 @@ If the value of an attribute is prefixed with __=~__ the expression will be eval
 If all attributes of the alert are matched for multiple mappings, 
 the alert is sent to each matching channel.
 
+### Default Channel
+
+The `MS_TEAMS_WEBHOOK_URL` configuration variable can be used to set a default MS Teams webhook, wich will catch all alerts. It will not affect the mappings defined in  `MS_TEAMS_ALERT_WEBHOOK_MAPPING`.
+
 
 The `MS_TEAMS_SUMMARY_FMT` configuration variable is a Jinja2 template
 string or filename to a template file and accepts any Jinja2 syntax.

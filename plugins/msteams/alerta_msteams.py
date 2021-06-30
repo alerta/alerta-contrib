@@ -64,9 +64,9 @@ class SendConnectorCardMessage(PluginBase):
         MS_TEAMS_APIKEY = self.get_config('MS_TEAMS_APIKEY', default=None, type=str, **kwargs)  # X-API-Key (needs webhook.write permission)
         DASHBOARD_URL = self.get_config('DASHBOARD_URL', default='', type=str, **kwargs)
 
-        MS_TEAMS_ALERT_WEBHOOK_MAPPING = self.get_config("MS_TEAMS_ALERT_WEBHOOK_MAPPING", default=[], type=list, **kwargs)
+        MS_TEAMS_ALERT_WEBHOOK_MAP = self.get_config("MS_TEAMS_ALERT_WEBHOOK_MAP", default=[], type=list, **kwargs)
 
-        ms_teams_webhooks = self._get_ms_teams_webhooks(MS_TEAMS_ALERT_WEBHOOK_MAPPING, alert)
+        ms_teams_webhooks = self._get_ms_teams_webhooks(MS_TEAMS_ALERT_WEBHOOK_MAP, alert)
 
         if len(ms_teams_webhooks) <= 0 and not MS_TEAMS_WEBHOOK_URL:
             return alert
