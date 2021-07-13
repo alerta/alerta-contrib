@@ -28,7 +28,8 @@ class TriggerEvent(PluginBase):
         json = {
             "token": GOALERT_TOKEN,
             "dedup": alert.id,
-            "action": "close"
+            "action": "close",
+            "details": why
         }
         LOG.debug('goalert close %s: %s %s' % (why, alert.id, closeUrl))
 
@@ -81,12 +82,14 @@ class TriggerEvent(PluginBase):
     def status_change(self, alert, status, text):
         LOG.debug('Alert change %s to %s: %s' % (alert.id, status, alert.get_body(history=False)))
 
-        if status not in ['ack', 'assign', 'closed']:
+        if status not in ['ack', 'assign', 'closed', 'expired']:
             LOG.debug('Not sending status change to goalert: %s to %s' % (alert.id, status))
             return
 
         if status == 'closed':
             r = self.goalert_close_alert(alert, 'STATUS-CLOSE')
+        elif status == 'expired':
+            r = self.goalert_close_alert(alert, 'STATUS-EXPIRED')
         # elif status == 'ack':
         #     r = self.goalert_ack_alert(alert, 'STATUS-ACK')
 
