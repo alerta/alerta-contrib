@@ -1,8 +1,8 @@
-
 import datetime
 import logging
 import os
 import requests
+import json
 from typing import Any
 
 try:
@@ -22,6 +22,8 @@ ALERTMANAGER_USERNAME = os.environ.get('ALERTMANAGER_USERNAME') or app.config.ge
 ALERTMANAGER_PASSWORD = os.environ.get('ALERTMANAGER_PASSWORD') or app.config.get('ALERTMANAGER_PASSWORD', None)
 ALERTMANAGER_SILENCE_DAYS = os.environ.get('ALERTMANAGER_SILENCE_DAYS') or app.config.get('ALERTMANAGER_SILENCE_DAYS', 1)
 ALERTMANAGER_SILENCE_FROM_ACK = os.environ.get('ALERTMANAGER_SILENCE_FROM_ACK') or app.config.get('ALERTMANAGER_SILENCE_FROM_ACK', False)
+ALERTMANAGER_USE_EXTERNALURL_FOR_SILENCES =  os.environ.get('ALERTMANAGER_USE_EXTERNALURL_FOR_SILENCES') or app.config.get('ALERTMANAGER_USE_EXTERNALURL_FOR_SILENCES',False)
+
 
 class AlertmanagerSilence(PluginBase):
 
@@ -38,6 +40,30 @@ class AlertmanagerSilence(PluginBase):
         return
 
     def status_change(self, alert, status, text):
+        '''
+        If a silence exists for an open or closed alert we probably want to remove it
+        '''
+        if status in ('open', 'closed'):
+
+            silenceId = alert.attributes.get('silenceId', None)
+            if silenceId:
+                LOG.debug('Alertmanager: Remove silence for alertname=%s instance=%s', alert.event, alert.resource)
+                base_url = ALERTMANAGER_API_URL or alert.attributes.get('externalUrl', DEFAULT_ALERTMANAGER_API_URL)
+                url = base_url + '/api/v1/silence/%s' % silenceId
+                try:
+                    r = requests.delete(url, auth=self.auth, timeout=2)
+                except Exception as e:
+                    raise RuntimeError("Alertmanager: ERROR - %s" % e)
+                LOG.debug('Alertmanager: %s - %s', r.status_code, r.text)
+
+                try:
+                    alert.attributes['silenceId'] = None
+                except Exception as e:
+                    raise RuntimeError("Alertmanager: ERROR - %s" % e)
+                LOG.debug('Alertmanager: Removed silenceId %s from attributes', silenceId)
+            if status == 'closed':
+                LOG.warning("Status is now closed")
+
         return alert
 
     def take_action(self, alert: Alert, action: str, text: str, **kwargs) -> Any:
@@ -48,9 +74,26 @@ class AlertmanagerSilence(PluginBase):
         if alert.event_type != 'prometheusAlert':
             return alert
 
-        if action == 'ack':
 
-            if ALERTMANAGER_SILENCE_FROM_ACK:
+        base_url = ALERTMANAGER_API_URL or alert.attributes.get('externalUrl', DEFAULT_ALERTMANAGER_API_URL)
+        if action == 'close':
+            LOG.warning("Got a close action so trying to close this in alertmanager too")
+            url = base_url + '/api/v1/alerts'
+            raw_data_string = alert.raw_data
+            raw_data = json.loads(raw_data_string)
+            # set the endsAt to now so alertmanager will consider it expired or whatever
+            raw_data["endsAt"] = (datetime.datetime.utcnow() - datetime.timedelta(minutes=5)).replace(microsecond=0).isoformat() + ".000Z"
+            LOG.debug("Raw data type:  {}, Raw data contents: {}".format(type(raw_data),raw_data))
+            data = [ raw_data ]
+            try:
+                r = requests.post(url, json=data, auth=self.auth, timeout=2)
+            except Exception as e:
+                raise RuntimeError("Alertmanager: ERROR - %s" % e)
+            LOG.debug('Alertmanager response was: %s - %s', r.status_code, r.text)
+
+        elif action == 'ack' and ALERTMANAGER_SILENCE_FROM_ACK:
+
+            if not ALERTMANAGER_SILENCE_DAYS:
                 silence_seconds = kwargs.get('timeout', alert.timeout)
             else:
                 try:
@@ -82,11 +125,15 @@ class AlertmanagerSilence(PluginBase):
                 "comment": text if text != '' else "silenced by alerta"
             }
 
-            base_url = ALERTMANAGER_API_URL or alert.attributes.get('externalUrl', DEFAULT_ALERTMANAGER_API_URL)
+            # if alertmanager is clustered behind a load balancer that mirrors requests we should prefer to create one silence 
+            # rather than many 
+            if USE_AM_EXTERNALURL_FOR_SILENCES:
+                base_url = alert.attributes.get('externalUrl', DEFAULT_ALERTMANAGER_API_URL) or ALERTMANAGER_API_URL 
+            else: 
+                base_url = ALERTMANAGER_API_URL or alert.attributes.get('externalUrl', DEFAULT_ALERTMANAGER_API_URL)
+
             url = base_url + '/api/v1/silences'
 
-            LOG.debug('Alertmanager: URL=%s', url)
-            LOG.debug('Alertmanager: data=%s', data)
 
             try:
                 r = requests.post(url, json=data, auth=self.auth, timeout=2)
@@ -98,10 +145,10 @@ class AlertmanagerSilence(PluginBase):
             try:
                 data = r.json().get('data', [])
                 if data:
-                  silenceId = data['silenceId']
-                  alert.attributes['silenceId'] = silenceId
+                    silenceId = data['silenceId']
+                    alert.attributes['silenceId'] = silenceId
                 else:
-                  silenceId = alert.attributes.get('silenceId', "unknown")
+                    silenceId = alert.attributes.get('silenceId', "unknown")
                 text = text + ' (silenced in Alertmanager)'
             except Exception as e:
                 raise RuntimeError("Alertmanager: ERROR - %s" % e)
