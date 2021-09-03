@@ -124,11 +124,14 @@ class FanoutConsumer(ConsumerMixin):
             LOG.warn(e)
             return
 
+        LOG.debug('Alert received from the queue (id: %s)', alertid)
         if alert.repeat:
+            LOG.debug('Ignored alert %s: repeat state', alertid)
             message.ack()
             return
 
         if alert.status not in ['open', 'closed']:
+            LOG.debug('Ignored alert %s: not in open or closed state', alertid)
             message.ack()
             return
 
@@ -136,6 +139,8 @@ class FanoutConsumer(ConsumerMixin):
             alert.severity not in sevs and
             alert.previous_severity not in sevs
         ):
+            LOG.debug('Ignored alert %s: severity or previous_severity does not matche the severities configuration (%s)',
+                      alertid, sevs)
             message.ack()
             return
 
