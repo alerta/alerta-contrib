@@ -108,77 +108,79 @@ Remove some things that OEC installs by default
 
 Here is the the full config we use in prod ( templatized)
 
-{
-  "apiKey": "{{ alerta_oec_api_key }}",
-  "baseUrl": "https://api.opsgenie.com",
-  "logLevel": "WARN",
-  "globalArgs": ["--alertaApiUrl", "{{ alerta_api_url }}",
-                 "--alertaApiKey", "{{ alerta_stg_opsgenie_api_key}}" ],
-  "globalFlags": {},
-  "actionMappings": {
-    "Acknowledge": {
-      "filepath": "/home/opsgenie/oec/scripts/oecAlertaExecutor.py",
-      "sourceType": "local",
-      "env": [],
-      "stderr": "/var/log/opsgenie/oecAlertaExecutor-errors.log",
-      "stdout": "/var/log/opsgenie/oecAlertaExecutor.log"
-    },
-    "AddNote": {
-      "filepath": "/home/opsgenie/oec/scripts/oecAlertaExecutor.py",
-      "sourceType": "local",
-      "env": [],
-      "stderr": "/var/log/opsgenie/oecAlertaExecutor-errors.log",
-      "stdout": "/var/log/opsgenie/oecAlertaExecutor.log"
-    },
-    "Close": {
-      "filepath": "/home/opsgenie/oec/scripts/oecAlertaExecutor.py",
-      "sourceType": "local",
-      "env": [],
-      "stderr": "/var/log/opsgenie/oecAlertaExecutor-errors.log",
-      "stdout": "/var/log/opsgenie/oecAlertaExecutor.log"
-    },
-    "AssignOwnership": {
-      "filepath": "/home/opsgenie/oec/scripts/oecAlertaExecutor.py",
-      "sourceType": "local",
-      "env": [],
-      "stderr": "/var/log/opsgenie/oecAlertaExecutor-errors.log",
-      "stdout": "/var/log/opsgenie/oecAlertaExecutor.log"
-    },
-    "Snooze": {
-      "filepath": "/home/opsgenie/oec/scripts/oecAlertaExecutor.py",
-      "sourceType": "local",
-      "env": [],
-      "stderr": "/var/log/opsgenie/oecAlertaExecutor-errors.log",
-      "stdout": "/var/log/opsgenie/oecAlertaExecutor.log"
-    },
-    "TakeOwnership": {
-      "filepath": "/home/opsgenie/oec/scripts/oecAlertaExecutor.py",
-      "sourceType": "local",
-      "env": [],
-      "stderr": "/var/log/opsgenie/oecAlertaExecutor-errors.log",
-      "stdout": "/var/log/opsgenie/oecAlertaExecutor.log"
-    },
-    "UnAcknowledge": {
-      "filepath": "/home/opsgenie/oec/scripts/oecAlertaExecutor.py",
-      "sourceType": "local",
-      "env": [],
-      "stderr": "/var/log/opsgenie/oecAlertaExecutor-errors.log",
-      "stdout": "/var/log/opsgenie/oecAlertaExecutor.log"
-    }
-  },
-  "pollerConf": {
-    "pollingWaitIntervalInMillis": 100,
-    "visibilityTimeoutInSec": 30,
-    "maxNumberOfMessages": 10
-  },
-  "poolConf": {
-    "maxNumberOfWorker": 12,
-    "minNumberOfWorker": 4,
-    "monitoringPeriodInMillis": 15000,
-    "keepAliveTimeInMillis": 6000,
-    "queueSize": 0
-  }
-}
 
+    ```
+    {
+      "apiKey": "{{ alerta_oec_api_key }}",
+      "baseUrl": "https://api.opsgenie.com",
+      "logLevel": "WARN",
+      "globalArgs": ["--alertaApiUrl", "{{ alerta_api_url }}",
+                     "--alertaApiKey", "{{ alerta_stg_opsgenie_api_key}}" ],
+      "globalFlags": {},
+      "actionMappings": {
+        "Acknowledge": {
+          "filepath": "/home/opsgenie/oec/scripts/oecAlertaExecutor.py",
+          "sourceType": "local",
+          "env": [],
+          "stderr": "/var/log/opsgenie/oecAlertaExecutor-errors.log",
+          "stdout": "/var/log/opsgenie/oecAlertaExecutor.log"
+        },
+        "AddNote": {
+          "filepath": "/home/opsgenie/oec/scripts/oecAlertaExecutor.py",
+          "sourceType": "local",
+          "env": [],
+          "stderr": "/var/log/opsgenie/oecAlertaExecutor-errors.log",
+          "stdout": "/var/log/opsgenie/oecAlertaExecutor.log"
+        },
+        "Close": {
+          "filepath": "/home/opsgenie/oec/scripts/oecAlertaExecutor.py",
+          "sourceType": "local",
+          "env": [],
+          "stderr": "/var/log/opsgenie/oecAlertaExecutor-errors.log",
+          "stdout": "/var/log/opsgenie/oecAlertaExecutor.log"
+        },
+        "AssignOwnership": {
+          "filepath": "/home/opsgenie/oec/scripts/oecAlertaExecutor.py",
+          "sourceType": "local",
+          "env": [],
+          "stderr": "/var/log/opsgenie/oecAlertaExecutor-errors.log",
+          "stdout": "/var/log/opsgenie/oecAlertaExecutor.log"
+        },
+        "Snooze": {
+          "filepath": "/home/opsgenie/oec/scripts/oecAlertaExecutor.py",
+          "sourceType": "local",
+          "env": [],
+          "stderr": "/var/log/opsgenie/oecAlertaExecutor-errors.log",
+          "stdout": "/var/log/opsgenie/oecAlertaExecutor.log"
+        },
+        "TakeOwnership": {
+          "filepath": "/home/opsgenie/oec/scripts/oecAlertaExecutor.py",
+          "sourceType": "local",
+          "env": [],
+          "stderr": "/var/log/opsgenie/oecAlertaExecutor-errors.log",
+          "stdout": "/var/log/opsgenie/oecAlertaExecutor.log"
+        },
+        "UnAcknowledge": {
+          "filepath": "/home/opsgenie/oec/scripts/oecAlertaExecutor.py",
+          "sourceType": "local",
+          "env": [],
+          "stderr": "/var/log/opsgenie/oecAlertaExecutor-errors.log",
+          "stdout": "/var/log/opsgenie/oecAlertaExecutor.log"
+        }
+      },
+      "pollerConf": {
+        "pollingWaitIntervalInMillis": 100,
+        "visibilityTimeoutInSec": 30,
+        "maxNumberOfMessages": 10
+      },
+      "poolConf": {
+        "maxNumberOfWorker": 12,
+        "minNumberOfWorker": 4,
+        "monitoringPeriodInMillis": 15000,
+        "keepAliveTimeInMillis": 6000,
+        "queueSize": 0
+      }
+    }
+    ```
 
 
