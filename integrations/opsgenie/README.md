@@ -33,7 +33,9 @@ Set up OpsGenie Edge Connector (oec)
 Set up an API user and key for Alerta. This is the key that OEC needs to auth into Alerta with.
 
     Set up a user and api key. This integration is currently set to use the api as a single user. In our setup we chose to use a local Alerta user 'opsgenie' and assigned an API key.
-[Alerta api key docs here:]( https://docs.alerta.io/en/latest/webui/apikeys.html#webui-api-keys)
+
+[Alerta api key docs]( https://docs.alerta.io/en/latest/webui/apikeys.html#webui-api-keys)
+
         Set the Alerta API key you will use aside for configuration later.
 
 ![Configuring OpsGenie Edge Connector API key for Alerta](./images/3.png)
@@ -45,8 +47,11 @@ As mentioned all actions will be shown to be executed by the user you chose to a
 Install and configure OpsGenie Edge Connector on a host in your network. Alerta has been tested with OEC version 1.1.3
 ------------------
 
-[Installation docs are provided by Atlassian here:](https://support.atlassian.com/opsgenie/docs/opsgenie-edge-connector-installation-packs/)
-[Basic configuration information is provided by Atlassian here:](https://support.atlassian.com/opsgenie/docs/configure-opsgenie-edge-connector/)
+    Some links to OpsGenie OEC documentation: 
+
+[Installation docs for OEC provided by Atlassian](https://support.atlassian.com/opsgenie/docs/opsgenie-edge-connector-installation-packs/)
+
+[Basic OEC  configuration information is provided by Atlassian](https://support.atlassian.com/opsgenie/docs/configure-opsgenie-edge-connector/)
 
     By default OEC installs into /home/opsgenie. Ensure that the following directories are created and owned by opsgenie:opsgenie
 
