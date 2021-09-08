@@ -109,7 +109,6 @@ Remove some things that OEC installs by default
 Here is the the full config we use in prod ( templatized)
 
 
-    ```
     {
       "apiKey": "{{ alerta_oec_api_key }}",
       "baseUrl": "https://api.opsgenie.com",
@@ -181,6 +180,3 @@ Here is the the full config we use in prod ( templatized)
         "queueSize": 0
       }
     }
-    ```
-
-
