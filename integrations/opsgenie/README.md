@@ -110,6 +110,35 @@ Remove some things that OEC installs by default
 
     If Alerta is configured to send alerts to OpsGenie then OEC should get updates and be able to update alerts in Alerta from any of the OpsGenie interfaces (web/phone etc..)
 
+Troubleshooting 
+------------------
+    If alerts are not firing it could be due to the alert source not being set.  This requires an update to the OpsGenie plugin that hasn't been accepted yet. 
+    Including a line in the plugin to set the source from the config or a reasonable default should address this. 
+
+    ```OPSGENIE_ALERT_SOURCE = os.environ.get('OPSGENIE_ALERT_SOURCE') or app.config.get('OPSGENIE_ALERT_SOURCE', 'Alerta'```
+
+    and later in the plugin include that in your payload
+
+    ```
+            payload = {
+                "alias": alert.id,
+                "message": "{}: {} -> {}".format(alert.severity, alert.text, alert.value),
+                "entity": "{}-{}".format("-".join(alert.service), alert.environment),
+                "responders": teams,
+                "tags": tags,
+                "source": "{}".format(OPSGENIE_ALERT_SOURCE),
+                "details": details
+            }
+    ```
+
+   This is useful for OpsGenie Edge Connector to not update ALL Edge connector integrations if you have more than one running in your env.  This will send updates to Alerta when the 
+   source was Alerta.  So if JIRA is also integrated through OEC it won't be trying to send any updates to Alerta etc. 
+
+![Limiting which integrations can update Alerta in OpsGenie](./images/alert-filter.png)
+
+
+
+
 
 Here is the the full config we use in prod ( templatized)
 
