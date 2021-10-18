@@ -1,31 +1,27 @@
 #!/usr/bin/env python
 
-import datetime
 import json
 import logging
 import os
-import platform
 import re
 import signal
 import smtplib
 import socket
-from configparser import RawConfigParser
-from functools import reduce
-import six
-
 import sys
 import threading
 import time
 from email.header import Header
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
+from functools import reduce
 
 import jinja2
+import six
+import sqlalchemy
 from alertaclient.api import Client
 from alertaclient.models.alert import Alert
 from kombu import Connection, Exchange, Queue
 from kombu.mixins import ConsumerMixin
-import sqlalchemy
 
 __version__ = '5.2.0'
 
@@ -42,7 +38,7 @@ logging.basicConfig(level=logging.DEBUG)
 LOG = logging.getLogger(__name__)
 root = logging.getLogger()
 
-DEFAULT_OPTIONS = {
+OPTIONS = {
     'config_file': '~/.alerta.conf',
     'profile': None,
     'endpoint': 'http://localhost:8080',
@@ -74,7 +70,8 @@ DEFAULT_OPTIONS = {
     'severities': []
 }
 
-OPTIONS = {}
+if os.environ.get('DEBUG'):
+    OPTIONS['debug'] = True
 
 # seconds (hold alert until sending, delete if cleared before end of hold time)
 HOLD_TIME = 30
@@ -313,52 +310,6 @@ class MailSender(threading.Thread):
             mx.close()
 
 
-def validate_rules(rules):
-    '''
-    Validates that rules are correct
-    '''
-    if not isinstance(rules, list):
-        LOG.warning('Invalid rules, must be list')
-        return
-    valid_rules = []
-    for rule in rules:
-        if not isinstance(rule, dict):
-            LOG.warning('Invalid rule %s, must be dict', rule)
-            continue
-        valid = True
-        # TODO: This could be optimized to use sets instead
-        for key in ['name', 'fields', 'contacts']:
-            if key not in rule:
-                LOG.warning('Invalid rule %s, must have %s', rule, key)
-                valid = False
-                break
-        if valid is False:
-            continue
-        if not isinstance(rule['fields'], list) or len(rule['fields']) == 0:
-            LOG.warning('Rule fields must be a list and not empty')
-            continue
-        for field in rule['fields']:
-            for key in ['regex', 'field']:
-                if key not in field:
-                    LOG.warning('Invalid rule %s, must have %s on fields',
-                                rule, key)
-                    valid = False
-                    break
-            try:
-                re.compile(field['regex'])
-            except re.error:
-                LOG.warning('Invalid rule %s, regex %s is not legal',
-                            rule, field['regex'])
-                valid = False
-                break
-        if valid is False:
-            continue
-
-        LOG.info('Adding rule %s to list of rules to be evaluated', rule)
-        valid_rules.append(rule)
-    return valid_rules
-
-
 def get_rules_for_customer_id(customer_id):
     postgres_connection_url = os.environ.get('POSTGRES_CONNECTION_URL')
     engine = sqlalchemy.create_engine(postgres_connection_url)
@@ -376,58 +327,6 @@ def on_sigterm(x, y):
 
 
 def main():
-    global OPTIONS
-    CONFIG_SECTION = 'alerta-mailer'
-    config_file = os.environ.get('ALERTA_CONF_FILE') or DEFAULT_OPTIONS['config_file']  # nopep8
-    # Convert default booleans to its string type, otherwise config.getboolean fails  # nopep8
-    defopts = {k: str(v) if type(v) is bool else v for k, v in DEFAULT_OPTIONS.items()}  # nopep8
-    config = RawConfigParser(defaults=defopts)
-    if os.path.exists("{}.d".format(config_file)):
-        config_path = "{}.d".format(config_file)
-        config_list = []
-        for files in os.walk(config_path):
-            for filename in files[2]:
-                config_list.append("{}/{}".format(config_path, filename))
-
-        config_list.append(os.path.expanduser(config_file))
-        config_file = config_list
-
-    try:
-        # No need to expanduser if we got a list (already done sooner)
-        # Morever expanduser does not accept a list.
-        if isinstance(config_file, list):
-            config.read(config_file)
-        else:
-            config.read(os.path.expanduser(config_file))
-    except Exception as e:
-        LOG.warning("Problem reading configuration file %s - is this an ini file?", config_file)  # nopep8
-        sys.exit(1)
-
-    if config.has_section(CONFIG_SECTION):
-        NoneType = type(None)
-        config_getters = {
-            NoneType: config.get,
-            str: config.get,
-            int: config.getint,
-            float: config.getfloat,
-            bool: config.getboolean,
-            list: lambda s, o: [e.strip() for e in config.get(s, o).split(',')] if len(config.get(s, o)) else []
-        }
-        for opt in DEFAULT_OPTIONS:
-            # Convert the options to the expected type
-            OPTIONS[opt] = config_getters[type(DEFAULT_OPTIONS[opt])](CONFIG_SECTION, opt)  # nopep8
-    else:
-        sys.stderr.write('Alerta configuration section not found in configuration file\n')  # nopep8
-        OPTIONS = defopts.copy()
-
-    OPTIONS['endpoint'] = os.environ.get('ALERTA_ENDPOINT') or OPTIONS['endpoint']  # nopep8
-    OPTIONS['key'] = os.environ.get('ALERTA_API_KEY') or OPTIONS['key']
-    OPTIONS['smtp_username'] = os.environ.get('SMTP_USERNAME') or OPTIONS['smtp_username'] or OPTIONS['mail_from']
-    OPTIONS['smtp_password'] = os.environ.get('SMTP_PASSWORD') or OPTIONS['smtp_password']  # nopep8
-
-    if os.environ.get('DEBUG'):
-        OPTIONS['debug'] = True
-
     # Registering action for SIGTERM signal handling
     signal.signal(signal.SIGTERM, on_sigterm)
 
