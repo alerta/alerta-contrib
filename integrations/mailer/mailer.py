@@ -25,6 +25,7 @@ from alertaclient.api import Client
 from alertaclient.models.alert import Alert
 from kombu import Connection, Exchange, Queue
 from kombu.mixins import ConsumerMixin
+import sqlalchemy
 
 __version__ = '5.2.0'
 
@@ -32,44 +33,44 @@ DNS_RESOLVER_AVAILABLE = False
 
 try:
     import dns.resolver
+
     DNS_RESOLVER_AVAILABLE = True
 except:
     sys.stdout.write('Python dns.resolver unavailable. The skip_mta option will be forced to False\n')  # nopep8
-
 
 logging.basicConfig(level=logging.DEBUG)
 LOG = logging.getLogger(__name__)
 root = logging.getLogger()
 
 DEFAULT_OPTIONS = {
-    'config_file':   '~/.alerta.conf',
-    'profile':       None,
-    'endpoint':      'http://localhost:8080',
-    'key':           '',
-    'amqp_url':      'redis://localhost:6379/',
-    'amqp_topic':    'notify',
-    'amqp_queue_name':    '', # Name of the AMQP queue. Default is no name (default queue destination).
-    'amqp_queue_exclusive': True, # Exclusive queues may only be consumed by the current connection.
-    'smtp_host':     'smtp.gmail.com',
-    'smtp_port':     587,
-    'smtp_username': '', # application-specific username if it differs from the specified 'mail_from' user
+    'config_file': '~/.alerta.conf',
+    'profile': None,
+    'endpoint': 'http://localhost:8080',
+    'key': '',
+    'amqp_url': 'redis://localhost:6379/',
+    'amqp_topic': 'notify',
+    'amqp_queue_name': '',  # Name of the AMQP queue. Default is no name (default queue destination).
+    'amqp_queue_exclusive': True,  # Exclusive queues may only be consumed by the current connection.
+    'smtp_host': 'smtp.gmail.com',
+    'smtp_port': 587,
+    'smtp_username': '',  # application-specific username if it differs from the specified 'mail_from' user
     'smtp_password': '',  # application-specific password if gmail used
     'smtp_starttls': True,  # use the STARTTLS SMTP extension
     'smtp_use_ssl': False,  # whether or not SSL is being used for the SMTP connection
-    'ssl_key_file': None, # a PEM formatted private key file for the SSL connection
-    'ssl_cert_file': None, # a certificate chain file for the SSL connection
-    'mail_from':     '',  # alerta@example.com
-    'mail_to':       [],  # devops@example.com, support@example.com
+    'ssl_key_file': None,  # a PEM formatted private key file for the SSL connection
+    'ssl_cert_file': None,  # a certificate chain file for the SSL connection
+    'mail_from': '',  # alerta@example.com
+    'mail_to': [],  # devops@example.com, support@example.com
     'mail_localhost': None,  # fqdn to use in the HELO/EHLO command
-    'mail_template':  os.path.dirname(__file__) + os.sep + 'email.tmpl',
+    'mail_template': os.path.dirname(__file__) + os.sep + 'email.tmpl',
     'mail_template_html': os.path.dirname(__file__) + os.sep + 'email.html.tmpl',  # nopep8
-    'mail_subject':  ('[{{ alert.status|capitalize }}] {{ alert.environment }}: '
-                      '{{ alert.severity|capitalize }} {{ alert.event }} on '
-                      '{{ alert.service|join(\',\') }} {{ alert.resource }}'),
+    'mail_subject': ('[{{ alert.status|capitalize }}] {{ alert.environment }}: '
+                     '{{ alert.severity|capitalize }} {{ alert.event }} on '
+                     '{{ alert.service|join(\',\') }} {{ alert.resource }}'),
     'dashboard_url': 'http://try.alerta.io',
-    'debug':         False,
-    'skip_mta':      False,
-    'email_type':    'text',  # options are: text, html
+    'debug': False,
+    'skip_mta': False,
+    'email_type': 'text',  # options are: text, html
     'severities': []
 }
 
@@ -89,7 +90,6 @@ class FanoutConsumer(ConsumerMixin):
         self.channel = self.connection.channel()
 
     def get_consumers(self, Consumer, channel):
-
         exchange = Exchange(
             name=OPTIONS['amqp_topic'],
             type='fanout',
@@ -133,8 +133,8 @@ class FanoutConsumer(ConsumerMixin):
             return
 
         if (
-            alert.severity not in sevs and
-            alert.previous_severity not in sevs
+                alert.severity not in sevs and
+                alert.previous_severity not in sevs
         ):
             message.ack()
             return
@@ -157,25 +157,11 @@ class FanoutConsumer(ConsumerMixin):
 class MailSender(threading.Thread):
 
     def __init__(self):
-
         self.should_stop = False
-        self._template_dir = os.path.dirname(
-            os.path.realpath(OPTIONS['mail_template']))
-        self._template_name = os.path.basename(OPTIONS['mail_template'])
         self._subject_template = jinja2.Template(OPTIONS['mail_subject'])
-        self._template_env = jinja2.Environment(
-            loader=jinja2.FileSystemLoader(self._template_dir),
-            extensions=['jinja2.ext.autoescape'],
-            autoescape=True
-        )
-        if OPTIONS['mail_template_html']:
-            self._template_name_html = os.path.basename(
-                OPTIONS['mail_template_html'])
-
         super(MailSender, self).__init__()
 
     def run(self):
-
         api = Client(endpoint=OPTIONS['endpoint'], key=OPTIONS['key'])
         keep_alive = 0
 
@@ -224,99 +210,49 @@ class MailSender(threading.Thread):
         return False
 
     def send_email(self, alert):
-        """Attempt to send an email for the provided alert, compiling
-        the subject and text template and using all the other smtp settings
-        that were specified in the configuration file
         """
-        contacts = list(OPTIONS['mail_to'])
-        LOG.debug('Initial contact list: %s', contacts)
-        if 'group_rules' in OPTIONS and len(OPTIONS['group_rules']) > 0:
-            LOG.debug('Checking %d group rules' % len(OPTIONS['group_rules']))
-            for rule in OPTIONS['group_rules']:
-                LOG.info('Evaluating rule %s', rule['name'])
-                is_matching = False
-                for field in rule['fields']:
-                    LOG.debug('Evaluating rule field %s', field)
-                    value = getattr(alert, field['field'], None)
-                    if value is None:
-                        LOG.warning('Alert has no attribute %s',
-                                    field['field'])
-                        break
-                    if self._rule_matches(field['regex'], value):
-                        is_matching = True
-                    else:
-                        is_matching = False
-                        break
-                if is_matching:
-                    # Add up any new contacts
-                    new_contacts = [x.strip() for x in rule['contacts']
-                                    if x.strip() not in contacts]
-                    if len(new_contacts) > 0:
-                        if not rule.get('exclude', False):
-                            LOG.debug('Extending contact to include %s' % (
-                                new_contacts))
-                            contacts.extend(new_contacts)
-                        else:
-                            LOG.info('Clearing initial list of contacts and'
-                                     ' adding for this rule only')
-                            del contacts[:]
-                            contacts.extend(new_contacts)
-        
-        # Don't loose time (and try to send an email) if there is no contact...
-        if not contacts:
-            return
-
-        template_vars = {
-            'alert': alert,
-            'mail_to': contacts,
-            'dashboard_url': OPTIONS['dashboard_url'],
-            'program': os.path.basename(sys.argv[0]),
-            'hostname': platform.uname()[1],
-            'now': datetime.datetime.utcnow()
-        }
-
-        subject = self._subject_template.render(alert=alert)
-        text = self._template_env.get_template(
-            self._template_name).render(**template_vars)
-
-        if (
-            OPTIONS['email_type'] == 'html' and
-            self._template_name_html
-        ):
-            html = self._template_env.get_template(
-                self._template_name_html).render(**template_vars)
-        else:
-            html = None
-
-        msg = MIMEMultipart('alternative')
-        msg['Subject'] = Header(subject, 'utf-8').encode()
-        msg['From'] = OPTIONS['mail_from']
-        msg['To'] = ", ".join(contacts)
-        msg.preamble = msg['Subject']
-
-        # by default we are going to assume that the email is going to be text
-        msg_text = MIMEText(text, 'plain', 'utf-8')
-        msg.attach(msg_text)
-        if html:
-            msg_html = MIMEText(html, 'html', 'utf-8')
-            msg.attach(msg_html)
-
-        try:
-            self._send_email_message(msg, contacts)
-            LOG.debug('%s : Email sent to %s' % (alert.get_id(),
-                                                 ','.join(contacts)))
-            return (msg, contacts)
-        except smtplib.SMTPException as e:
-            LOG.error('Failed to send mail to %s on %s:%s : %s',
-                      ", ".join(contacts),
-                      OPTIONS['smtp_host'], OPTIONS['smtp_port'], e)
-            return None
-        except (socket.error, socket.herror, socket.gaierror) as e:
-            LOG.error('Mail server connection error: %s', e)
-            return None
-        except Exception as e:
-            LOG.error('Unexpected error while sending email: {}'.format(str(e)))  # nopep8
-            return None
+        Load the forward rules based on alert.customer
+        """
+        customer_forward_rules = get_rules_for_customer_id(alert.customer)
+        LOG.info(f"Obtained {len(customer_forward_rules)} for customer {alert.customer}")
+        for rule in customer_forward_rules:
+            LOG.info('Evaluating rule %s', rule['name'])
+            is_matching = False
+            for field in rule['fields']:
+                LOG.debug('Evaluating rule field %s', field)
+                value = getattr(alert, field['field'], None)
+                if value is None:
+                    LOG.warning('Alert has no attribute %s',
+                                field['field'])
+                    break
+                if self._rule_matches(field['regex'], value):
+                    is_matching = True
+                else:
+                    is_matching = False
+                    break
+            if is_matching:
+                contacts = rule["contacts"]
+                subject = self._subject_template.render(alert=alert)
+                text = alert.text
+                msg = MIMEMultipart('alternative')
+                msg['Subject'] = Header(subject, 'utf-8').encode()
+                msg['From'] = OPTIONS['mail_from']
+                msg['To'] = ", ".join(contacts)
+                msg.preamble = msg['Subject']
+                msg_text = MIMEText(text, 'plain', 'utf-8')
+                msg.attach(msg_text)
+                try:
+                    self._send_email_message(msg, contacts)
+                    LOG.debug('%s : Email sent to %s' % (alert.get_id(),
+                                                         ','.join(contacts)))
+                except smtplib.SMTPException as e:
+                    LOG.error('Failed to send mail to %s on %s:%s : %s',
+                              ", ".join(contacts),
+                              OPTIONS['smtp_host'], OPTIONS['smtp_port'], e)
+                except (socket.error, socket.herror, socket.gaierror) as e:
+                    LOG.error('Mail server connection error: %s', e)
+                except Exception as e:
+                    LOG.error('Unexpected error while sending email: {}'.format(str(e)))
 
     def _send_email_message(self, msg, contacts):
         if OPTIONS['skip_mta'] and DNS_RESOLVER_AVAILABLE:
@@ -328,14 +264,15 @@ class MailSender(threading.Thread):
                     if len(dns_answers) <= 0:
                         raise Exception('Failed to find mail exchange for {}'.format(dest))  # nopep8
 
-                    mxhost = reduce(lambda x, y: x if x.preference >= y.preference else y, dns_answers).exchange.to_text()  # nopep8
+                    mxhost = reduce(lambda x, y: x if x.preference >= y.preference else y,
+                                    dns_answers).exchange.to_text()  # nopep8
                     msg['To'] = dest
                     if OPTIONS['smtp_use_ssl']:
                         mx = smtplib.SMTP_SSL(mxhost,
-                                          OPTIONS['smtp_port'],
-                                          local_hostname=OPTIONS['mail_localhost'],
-                                          keyfile=OPTIONS['ssl_key_file'],
-                                          certfile=OPTIONS['ssl_cert_file'])
+                                              OPTIONS['smtp_port'],
+                                              local_hostname=OPTIONS['mail_localhost'],
+                                              keyfile=OPTIONS['ssl_key_file'],
+                                              certfile=OPTIONS['ssl_cert_file'])
                     else:
                         mx = smtplib.SMTP(mxhost,
                                           OPTIONS['smtp_port'],
@@ -351,10 +288,10 @@ class MailSender(threading.Thread):
         else:
             if OPTIONS['smtp_use_ssl']:
                 mx = smtplib.SMTP_SSL(OPTIONS['smtp_host'],
-                                  OPTIONS['smtp_port'],
-                                  local_hostname=OPTIONS['mail_localhost'],
-                                  keyfile=OPTIONS['ssl_key_file'],
-                                  certfile=OPTIONS['ssl_cert_file'])
+                                      OPTIONS['smtp_port'],
+                                      local_hostname=OPTIONS['mail_localhost'],
+                                      keyfile=OPTIONS['ssl_key_file'],
+                                      certfile=OPTIONS['ssl_cert_file'])
             else:
                 mx = smtplib.SMTP(OPTIONS['smtp_host'],
                                   OPTIONS['smtp_port'],
@@ -422,23 +359,16 @@ def validate_rules(rules):
     return valid_rules
 
 
-def parse_group_rules(config_file):
-    rules_dir = "{}/alerta.rules.d".format(os.path.dirname(config_file))
-    LOG.debug('Looking for rules files in %s', rules_dir)
-    if os.path.exists(rules_dir):
-        rules_d = []
-        for files in os.walk(rules_dir):
-            for filename in files[2]:
-                LOG.debug('Parsing %s', filename)
-                try:
-                    with open(os.path.join(files[0], filename), 'r') as f:
-                        rules = validate_rules(json.load(f))
-                        if rules is not None:
-                            rules_d.extend(rules)
-                except:
-                    LOG.exception('Could not parse file')
-        return rules_d
-    return ()
+def get_rules_for_customer_id(customer_id):
+    postgres_connection_url = os.environ.get('POSTGRES_CONNECTION_URL')
+    engine = sqlalchemy.create_engine(postgres_connection_url)
+    r = engine.execute(f"select * from customer_rules where customer_id='{customer_id}'")
+    results = r.fetchall()
+    engine.dispose()
+    rules_d = []
+    for result in results:
+        rules_d.extend([json.loads(s) for s in result.rules])
+    return rules_d
 
 
 def on_sigterm(x, y):
@@ -447,14 +377,11 @@ def on_sigterm(x, y):
 
 def main():
     global OPTIONS
-
     CONFIG_SECTION = 'alerta-mailer'
     config_file = os.environ.get('ALERTA_CONF_FILE') or DEFAULT_OPTIONS['config_file']  # nopep8
-
     # Convert default booleans to its string type, otherwise config.getboolean fails  # nopep8
     defopts = {k: str(v) if type(v) is bool else v for k, v in DEFAULT_OPTIONS.items()}  # nopep8
     config = RawConfigParser(defaults=defopts)
-
     if os.path.exists("{}.d".format(config_file)):
         config_path = "{}.d".format(config_file)
         config_list = []
@@ -501,15 +428,6 @@ def main():
     if os.environ.get('DEBUG'):
         OPTIONS['debug'] = True
 
-    if isinstance(config_file, list):
-        group_rules = []
-        for file in config_file:
-            group_rules.extend(parse_group_rules(file))
-    else:
-        group_rules = parse_group_rules(config_file)
-    if group_rules is not None:
-        OPTIONS['group_rules'] = group_rules
-
     # Registering action for SIGTERM signal handling
     signal.signal(signal.SIGTERM, on_sigterm)
 
@@ -525,7 +443,6 @@ def main():
     from kombu.utils.debug import setup_logging
     loginfo = 'DEBUG' if OPTIONS['debug'] else 'INFO'
     setup_logging(loglevel=loginfo, loggers=[''])
-
     with Connection(OPTIONS['amqp_url']) as conn:
         try:
             consumer = FanoutConsumer(connection=conn)
@@ -537,6 +454,7 @@ def main():
         except Exception as e:
             print(str(e))
             sys.exit(1)
+
 
 if __name__ == '__main__':
     main()
