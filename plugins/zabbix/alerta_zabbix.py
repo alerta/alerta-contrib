@@ -62,7 +62,8 @@ class ZabbixEventAck(PluginBase):
                 r = self.zapi.event.get(objectids=trigger_id, acknowledged=False, output='extend', sortfield='clock', sortorder='DESC', limit=10)
                 event_ids = [e['eventid'] for e in r]
             except ZabbixAPIException:
-                event_ids = None
+                LOG.error(f"No eventids retrieved from Zabbix for {trigger_id}")
+                return
 
             LOG.debug('Zabbix: status=ack; triggerId %s => eventIds %s', trigger_id, ','.join(event_ids))
 
@@ -87,7 +88,8 @@ class ZabbixEventAck(PluginBase):
                 r = self.zapi.event.get(objectids=trigger_id, output='extend', sortfield='clock', sortorder='DESC', limit=10)
                 event_ids = [e['eventid'] for e in r]
             except ZabbixAPIException:
-                event_ids = None
+                LOG.error(f"No eventids retrieved from Zabbix for {trigger_id}")
+                return
 
             LOG.debug('Zabbix: status=closed; triggerId %s => eventIds %s', trigger_id, ','.join(event_ids))
 
