@@ -39,31 +39,26 @@ LOG = logging.getLogger(__name__)
 root = logging.getLogger()
 
 OPTIONS = {
-    'config_file': '~/.alerta.conf',
     'profile': None,
-    'endpoint': 'http://localhost:8080',
-    'key': '',
-    'amqp_url': 'redis://localhost:6379/',
+    'endpoint': os.environ.get('ALERTA_ENDPOINT', 'http://localhost:8080'),
+    'key': os.environ.get('ALERTA_KEY', ''),
+    'amqp_url': os.environ.get('AMQP_URL', 'redis://localhost:6379/'),
     'amqp_topic': 'notify',
-    'amqp_queue_name': '',  # Name of the AMQP queue. Default is no name (default queue destination).
-    'amqp_queue_exclusive': True,  # Exclusive queues may only be consumed by the current connection.
-    'smtp_host': 'smtp.gmail.com',
-    'smtp_port': 587,
-    'smtp_username': '',  # application-specific username if it differs from the specified 'mail_from' user
-    'smtp_password': '',  # application-specific password if gmail used
-    'smtp_starttls': True,  # use the STARTTLS SMTP extension
-    'smtp_use_ssl': False,  # whether or not SSL is being used for the SMTP connection
+    'amqp_queue_name': '',
+    'amqp_queue_exclusive': True,
+    'smtp_host': os.environ.get('SMTP_HOST', 'smtp.gmail.com'),
+    'smtp_port': int(os.environ.get('SMTP_PORT', 587)),
+    'smtp_username': os.environ.get('SMTP_USERNAME', ''),
+    'smtp_password': os.environ.get('SMTP_PASSWORD', ''),
+    'smtp_starttls': os.environ.get('smtp_starttls', 'True') == 'True',
+    'smtp_use_ssl': os.environ.get('smtp_use_ssl', 'False') == 'False',
     'ssl_key_file': None,  # a PEM formatted private key file for the SSL connection
     'ssl_cert_file': None,  # a certificate chain file for the SSL connection
-    'mail_from': '',  # alerta@example.com
-    'mail_to': [],  # devops@example.com, support@example.com
-    'mail_localhost': None,  # fqdn to use in the HELO/EHLO command
-    'mail_template': os.path.dirname(__file__) + os.sep + 'email.tmpl',
-    'mail_template_html': os.path.dirname(__file__) + os.sep + 'email.html.tmpl',  # nopep8
+    'mail_from': os.environ.get('MAIL_FROM', ''),  # alerta@example.com
+    'mail_localhost': os.environ.get('MAIL_LOCALHOST', None),  # fqdn to use in the HELO/EHLO command
     'mail_subject': ('[{{ alert.status|capitalize }}] {{ alert.environment }}: '
                      '{{ alert.severity|capitalize }} {{ alert.event }} on '
                      '{{ alert.service|join(\',\') }} {{ alert.resource }}'),
-    'dashboard_url': 'http://try.alerta.io',
     'debug': False,
     'skip_mta': False,
     'email_type': 'text',  # options are: text, html
