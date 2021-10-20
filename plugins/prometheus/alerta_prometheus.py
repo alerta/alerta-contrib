@@ -23,6 +23,7 @@ ALERTMANAGER_PASSWORD = os.environ.get('ALERTMANAGER_PASSWORD') or app.config.ge
 ALERTMANAGER_SILENCE_DAYS = os.environ.get('ALERTMANAGER_SILENCE_DAYS') or app.config.get('ALERTMANAGER_SILENCE_DAYS', 1)
 ALERTMANAGER_SILENCE_FROM_ACK = os.environ.get('ALERTMANAGER_SILENCE_FROM_ACK') or app.config.get('ALERTMANAGER_SILENCE_FROM_ACK', False)
 
+
 class AlertmanagerSilence(PluginBase):
 
     def __init__(self, name=None):
@@ -38,6 +39,28 @@ class AlertmanagerSilence(PluginBase):
         return
 
     def status_change(self, alert, status, text):
+        '''
+        If a silence exists for an open or closed alert we probably want to remove it
+        '''
+        if status in ('open', 'closed'):
+
+            silenceId = alert.attributes.get('silenceId', None)
+            if silenceId:
+                LOG.debug('Alertmanager: Remove silence for alertname=%s instance=%s', alert.event, alert.resource)
+                base_url = ALERTMANAGER_API_URL or alert.attributes.get('externalUrl', DEFAULT_ALERTMANAGER_API_URL)
+                url = base_url + '/api/v1/silence/%s' % silenceId
+                try:
+                    r = requests.delete(url, auth=self.auth, timeout=2)
+                except Exception as e:
+                    raise RuntimeError("Alertmanager: ERROR - %s" % e)
+                LOG.debug('Alertmanager: %s - %s', r.status_code, r.text)
+
+                try:
+                    alert.attributes['silenceId'] = None
+                except Exception as e:
+                    raise RuntimeError("Alertmanager: ERROR - %s" % e)
+                LOG.debug('Alertmanager: Removed silenceId %s from attributes', silenceId)
+
         return alert
 
     def take_action(self, alert: Alert, action: str, text: str, **kwargs) -> Any:
@@ -48,9 +71,13 @@ class AlertmanagerSilence(PluginBase):
         if alert.event_type != 'prometheusAlert':
             return alert
 
+        if not ALERTMANAGER_SILENCE_FROM_ACK:
+            LOG.warning("Alertmanager silence from ack is disabled")
+            return alert
+
         if action == 'ack':
 
-            if ALERTMANAGER_SILENCE_FROM_ACK:
+            if not ALERTMANAGER_SILENCE_DAYS:
                 silence_seconds = kwargs.get('timeout', alert.timeout)
             else:
                 try:
@@ -98,10 +125,10 @@ class AlertmanagerSilence(PluginBase):
             try:
                 data = r.json().get('data', [])
                 if data:
-                  silenceId = data['silenceId']
-                  alert.attributes['silenceId'] = silenceId
+                    silenceId = data['silenceId']
+                    alert.attributes['silenceId'] = silenceId
                 else:
-                  silenceId = alert.attributes.get('silenceId', "unknown")
+                    silenceId = alert.attributes.get('silenceId', "unknown")
                 text = text + ' (silenced in Alertmanager)'
             except Exception as e:
                 raise RuntimeError("Alertmanager: ERROR - %s" % e)
