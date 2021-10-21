@@ -19,6 +19,8 @@ OPSGENIE_SERVICE_KEY = os.environ.get('OPSGENIE_SERVICE_KEY') or app.config['OPS
 OPSGENIE_TEAMS = os.environ.get('OPSGENIE_TEAMS', '') # comma separated list of teams
 OPSGENIE_SEND_WARN = os.environ.get('OPSGENIE_SEND_WARN') or app.config.get('OPSGENIE_SEND_WARN', False)
 SERVICE_KEY_MATCHERS = os.environ.get('SERVICE_KEY_MATCHERS') or app.config['SERVICE_KEY_MATCHERS']
+OPSGENIE_SEVERITY_MAP = os.environ.get('OPSGENIE_SEVERITY_MAP') or app.config.get('OPSGENIE_SEVERITY_MAP', { "critical": "P1", "warning": "P2", "informational": "P5", })
+OPSGENIE_DEFAULT_SEVERITY = os.environ.get('OPSGENIE_DEFAULT_SEVERITY') or app.config.get('OPSGENIE_DEFAULT_SEVERITY', "P3")
 DASHBOARD_URL = os.environ.get('DASHBOARD_URL') or app.config.get('DASHBOARD_URL', '')
 LOG.info('Initialized: %s key, %s matchers' % (OPSGENIE_SERVICE_KEY, SERVICE_KEY_MATCHERS))
 
@@ -105,7 +107,8 @@ class TriggerEvent(PluginBase):
                 "entity": alert.environment,
                 "responders" : self.get_opsgenie_teams(),
                 "tags": [alert.environment, alert.resource, alert.service[0], alert.event],
-                "details": details
+                "details": details,
+                "priority": OPSGENIE_SEVERITY_MAP.get(alert.severity, OPSGENIE_DEFAULT_SEVERITY)
             }
 
             LOG.debug('OpsGenie CREATE payload: %s' % payload)
