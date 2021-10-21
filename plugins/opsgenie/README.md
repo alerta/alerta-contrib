@@ -48,7 +48,15 @@ The `OPSGENIE_SEND_WARN` setting should be configured if you would like to send
 informational and warning alerts onto OpsGenie.
 
 ```python
-OPSGENIE_SEND_WARN = True   # default=True
+OPSGENIE_SEND_WARN = True   # default=False
+```
+
+The `OPSGENIE_SEVERITY_MAP` and `OPSGENIE_DEFAULT_SEVERITY` settings should be configured
+to map Alerta severity to OpsGenie's priority.
+
+```python
+OPSGENIE_SEVERITY_MAP = { "critical": "P1", "warning": "P2", "informational": "P5" }  # this is also default
+OPSGENIE_DEFAULT_SEVERITY = "P3"  # default="P3"
 ```
 
 **Example**
