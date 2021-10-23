@@ -22,6 +22,9 @@ SERVICE_KEY_MATCHERS = os.environ.get('SERVICE_KEY_MATCHERS') or app.config['SER
 DASHBOARD_URL = os.environ.get('DASHBOARD_URL') or app.config.get('DASHBOARD_URL', '')
 LOG.info('Initialized: %s key, %s matchers' % (OPSGENIE_SERVICE_KEY, SERVICE_KEY_MATCHERS))
 
+# when using with OpsGenie Edge connector setting a known source is useful
+OPSGENIE_ALERT_SOURCE = os.environ.get('OPSGENIE_ALERT_SOURCE') or app.config.get('OPSGENIE_ALERT_SOURCE', 'Alerta')
+
 class TriggerEvent(PluginBase):
 
     def opsgenie_service_key(self, resource):
@@ -105,6 +108,7 @@ class TriggerEvent(PluginBase):
                 "entity": alert.environment,
                 "responders" : self.get_opsgenie_teams(),
                 "tags": [alert.environment, alert.resource, alert.service[0], alert.event],
+                "source": "{}".format(OPSGENIE_ALERT_SOURCE),
                 "details": details
             }
 
