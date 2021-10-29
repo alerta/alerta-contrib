@@ -17,7 +17,7 @@ OPSGENIE_EVENTS_CLOSE_URL = 'https://api.opsgenie.com/v2/alerts/%s/close?identif
 OPSGENIE_EVENTS_ACK_URL = 'https://api.opsgenie.com/v2/alerts/%s/acknowledge?identifierType=alias'
 OPSGENIE_SERVICE_KEY = os.environ.get('OPSGENIE_SERVICE_KEY') or app.config['OPSGENIE_SERVICE_KEY']
 OPSGENIE_TEAMS = os.environ.get('OPSGENIE_TEAMS', '') # comma separated list of teams
-OPSGENIE_TEAMS_MATCHERS = os.environ.get('OPSGENIE_TEAMS_MATCHERS') or app.config['OPSGENIE_TEAMS_MATCHERS']
+OPSGENIE_TEAMS_MATCHERS = os.environ.get('OPSGENIE_TEAMS_MATCHERS') or app.config.get('OPSGENIE_TEAMS_MATCHERS', [])
 OPSGENIE_SEND_WARN = os.environ.get('OPSGENIE_SEND_WARN') or app.config.get('OPSGENIE_SEND_WARN', False)
 SERVICE_KEY_MATCHERS = os.environ.get('SERVICE_KEY_MATCHERS') or app.config['SERVICE_KEY_MATCHERS']
 DASHBOARD_URL = os.environ.get('DASHBOARD_URL') or app.config.get('DASHBOARD_URL', '')
