@@ -37,6 +37,14 @@ OPSGENIE_SERVICE_KEY = ''  # default="not set"
 SERVICE_KEY_MATCHERS = []  # default="not set"
 ```
 
+OPSGENIE_TEAMS_MATCHERS takes an array of dictionary objects, mapping a regular
+expression to a list of teams.  This allows sending different responders , based on 'alert.resource'.
+
+```python
+OPSGENIE_TEAMS = ''  # default="not set"
+OPSGENIE_TEAMS_MATCHERS = []  # default="not set"
+```
+
 The `DASHBOARD_URL` setting should be configured to link pushover messages to
 the Alerta console:
 
@@ -59,6 +67,8 @@ OPSGENIE_SERVICE_KEY = '54A634B1-FB0C-4758-840F-5D808C89E70E'
 SERVICE_KEY_MATCHERS = [ {"regex":"proxy[\\d+]","api_key":"6b982ii3l8p834566oo13zx9477p1zxd"} ]
 DASHBOARD_URL = 'https://try.alerta.io'
 OPSGENIE_SEND_WARN = False
+OPSGENIE_TEAMS = 'NOC,rocket_team'
+OPSGENIE_TEAMS_MATCHERS = [{"regex": "proxy[\\d+]", "teams": ["NOC", "rocket_team"]}]
 ```
 
 References
