@@ -14,5 +14,7 @@ setup(
     py_modules=["alerta_x3me_enhance"],
     include_package_data=True,
     zip_safe=True,
-    entry_points={"alerta.plugins": ["enhance = alerta_x3me_enhance:EnhanceAlert"]},
+    entry_points={
+        "alerta.plugins": ["x3me-enhance = alerta_x3me_enhance:EnhanceAlert"]
+    },
 )
