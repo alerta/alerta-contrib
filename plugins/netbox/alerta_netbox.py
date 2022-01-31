@@ -1,3 +1,4 @@
+import logging
 import os
 from typing import Any, Dict
 from urllib.parse import urljoin
@@ -5,6 +6,8 @@ from urllib.parse import urljoin
 import requests
 from alerta.models.alert import Alert
 from alerta.plugins import PluginBase, app
+
+LOG = logging.getLogger("alerta.plugins.netbox")
 
 GQL_QUERY = """
 query FindDevice($q: String) {
@@ -20,14 +23,14 @@ NETBOX_URL = os.environ.get("NETBOX_URL") or app.config["NETBOX_URL"]
 NETBOX_TOKEN = os.environ.get("NETBOX_TOKEN") or app.config["NETBOX_TOKEN"]
 
 
-class EnhanceAlert(PluginBase):
+class NetboxEnhance(PluginBase):
     """
     Enhancing alerts with Netbox data.
     Implementation by Extreme Labs
     """
 
     def pre_receive(self, alert: Alert):
-
+        LOG.info("Enhancing alert with Netbox data")
         res = requests.post(
             urljoin(NETBOX_URL, "/graphql/"),
             headers={
@@ -39,6 +42,8 @@ class EnhanceAlert(PluginBase):
                 "variables": {"q": alert.resource},
             },
         )
+
+        LOG.debug("Response:", res.json())
         data: Dict[str, Any] = res.json()["data"]["device_list"][0]
         alert.attributes.update(data)
 
