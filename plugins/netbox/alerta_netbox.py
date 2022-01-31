@@ -5,7 +5,7 @@ from urllib.parse import urljoin
 
 import requests
 from alerta.models.alert import Alert
-from alerta.plugins import PluginBase, app
+from alerta.plugins import PluginBase
 
 LOG = logging.getLogger("alerta.plugins.netbox")
 
@@ -19,17 +19,18 @@ query FindDevice($q: String) {
 """
 
 
-NETBOX_URL = os.environ.get("NETBOX_URL") or app.config["NETBOX_URL"]
-NETBOX_TOKEN = os.environ.get("NETBOX_TOKEN") or app.config["NETBOX_TOKEN"]
-
-
 class NetboxEnhance(PluginBase):
     """
     Enhancing alerts with Netbox data.
     Implementation by Extreme Labs
     """
 
-    def pre_receive(self, alert: Alert):
+    def pre_receive(self, alert: Alert, **kwargs):
+        NETBOX_URL = os.environ.get("NETBOX_URL") or kwargs["config"]["NETBOX_URL"]
+        NETBOX_TOKEN = (
+            os.environ.get("NETBOX_TOKEN") or kwargs["config"]["NETBOX_TOKEN"]
+        )
+
         LOG.info("Enhancing alert with Netbox data")
         res = requests.post(
             urljoin(NETBOX_URL, "/graphql/"),
