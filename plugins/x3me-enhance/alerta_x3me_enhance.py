@@ -3,6 +3,7 @@ from typing import Any, Dict
 from urllib.parse import urljoin
 
 import requests
+from alerta.models.alert import Alert
 from alerta.plugins import PluginBase, app
 
 GQL_QUERY = """
@@ -25,7 +26,7 @@ class EnhanceAlert(PluginBase):
     Implementation by Extreme Labs
     """
 
-    def pre_receive(self, alert):
+    def pre_receive(self, alert: Alert):
 
         res = requests.post(
             urljoin(NETBOX_URL, "/graphql/"),
@@ -35,18 +36,16 @@ class EnhanceAlert(PluginBase):
             },
             json={
                 "query": GQL_QUERY,
-                "variables": {"q": alert["DEVICE_HOSTNAME"]},
+                "variables": {"q": alert.resource},
             },
         )
         data: Dict[str, Any] = res.json()["data"]["device_list"][0]
+        alert.attributes.update(data)
 
-        return {
-            **alert,
-            **{f"NETBOX_{key.upper()}": value for key, value in data.items()},
-        }
+        return alert
 
-    def post_receive(self, alert):
+    def post_receive(self, alert: Alert):
         return
 
-    def status_change(self, alert, status, text):
+    def status_change(self, alert: Alert, status: str, text: str):
         return
