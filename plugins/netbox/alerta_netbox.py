@@ -1,6 +1,6 @@
 import logging
 import os
-from typing import Any, Dict
+from typing import Any, Dict, MutableMapping
 from urllib.parse import urljoin
 
 import requests
@@ -11,12 +11,32 @@ LOG = logging.getLogger("alerta.plugins.netbox")
 
 GQL_QUERY = """
 query FindDevice($q: String) {
-  device_list(q: $q) {
-    id
-    name
-  }
+    device_list(q: $q) {
+        id
+        serial
+        site {
+            name
+            region {
+                name
+            }
+        }
+        tenant {
+            name
+        }
+    }
 }
 """
+
+
+def flatten(d: MutableMapping, parent_key="", sep="_"):
+    items = []
+    for k, v in d.items():
+        new_key = parent_key + sep + k if parent_key else k
+        if isinstance(v, MutableMapping):
+            items.extend(flatten(v, new_key, sep=sep).items())
+        else:
+            items.append((new_key, v))
+    return dict(items)
 
 
 class NetboxEnhance(PluginBase):
@@ -31,7 +51,7 @@ class NetboxEnhance(PluginBase):
             os.environ.get("NETBOX_TOKEN") or kwargs["config"]["NETBOX_TOKEN"]
         )
 
-        LOG.info("Enhancing alert with Netbox data")
+        LOG.debug("Enhancing alert with Netbox data")
         res = requests.post(
             urljoin(NETBOX_URL, "/graphql/"),
             headers={
@@ -44,9 +64,20 @@ class NetboxEnhance(PluginBase):
             },
         )
 
-        LOG.debug("Response:", res.json())
-        data: Dict[str, Any] = res.json()["data"]["device_list"][0]
-        alert.attributes.update(data)
+        body = res.json()
+
+        if "error" in body or len(body["data"]["device_list"]) == 0:
+            LOG.error("Request error:", body)
+            return alert
+
+        device = flatten(body["data"]["device_list"][0], sep=" ")
+
+        data: Dict[str, Any] = device | {
+            "url": f"<a href='{NETBOX_URL}/dcim/devices/{device['id']}' target='_blank'>{alert.resource}</a>"
+        }
+        alert.attributes.update(
+            {f"Netbox {key}": value for key, value in data.items() if key != "id"}
+        )
 
         return alert
 
