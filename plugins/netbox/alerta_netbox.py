@@ -1,6 +1,6 @@
 import logging
-import os
-from typing import Any, Dict, MutableMapping
+from os import environ
+from typing import Any, Dict, List, MutableMapping, Tuple
 from urllib.parse import urljoin
 
 import requests
@@ -13,23 +13,28 @@ GQL_QUERY = """
 query FindDevice($q: String) {
     device_list(q: $q) {
         id
-        serial
-        site {
-            name
-            region {
-                name
-            }
-        }
-        tenant {
-            name
-        }
+        {fields}
     }
 }
 """
 
+DEFAULT_FIELDS = """
+serial
+site {
+    name
+    region {
+        name
+    }
+}
+tenant {
+    name
+}
+custom_fields
+"""
 
-def flatten(d: MutableMapping, parent_key="", sep="_"):
-    items = []
+
+def flatten(d: MutableMapping, parent_key: str = "", sep: str = "_"):
+    items: List[Tuple[str, Any]] = []
     for k, v in d.items():
         new_key = parent_key + sep + k if parent_key else k
         if isinstance(v, MutableMapping):
@@ -46,9 +51,12 @@ class NetboxEnhance(PluginBase):
     """
 
     def pre_receive(self, alert: Alert, **kwargs):
-        NETBOX_URL = os.environ.get("NETBOX_URL") or kwargs["config"]["NETBOX_URL"]
-        NETBOX_TOKEN = (
-            os.environ.get("NETBOX_TOKEN") or kwargs["config"]["NETBOX_TOKEN"]
+        NETBOX_URL = environ.get("NETBOX_URL") or kwargs["config"]["NETBOX_URL"]
+        NETBOX_TOKEN = environ.get("NETBOX_TOKEN") or kwargs["config"]["NETBOX_TOKEN"]
+        NETBOX_FIELDS = (
+            environ.get("NETBOX_FIELDS")
+            or kwargs["config"]["NETBOX_FIELDS"]
+            or DEFAULT_FIELDS
         )
 
         LOG.debug("Enhancing alert with Netbox data")
@@ -59,7 +67,7 @@ class NetboxEnhance(PluginBase):
                 "Content-Type": "application/json",
             },
             json={
-                "query": GQL_QUERY,
+                "query": GQL_QUERY.format(fields=NETBOX_FIELDS),
                 "variables": {"q": alert.resource},
             },
         )
@@ -70,13 +78,18 @@ class NetboxEnhance(PluginBase):
             LOG.error("Request error:", body)
             return alert
 
-        device = flatten(body["data"]["device_list"][0], sep=" ")
+        device: Dict = body["data"]["device_list"][0]
+        device.update(device.pop("custom_fields", {}))
+        device = flatten(device, sep=" ")
 
-        data: Dict[str, Any] = device | {
-            "url": f"<a href='{NETBOX_URL}/dcim/devices/{device['id']}' target='_blank'>{alert.resource}</a>"
-        }
+        device_url = f"{NETBOX_URL}/dcim/devices/{device.pop('id')}"
+        device["url"] = f"<a href='{device_url}' target='_blank'>{device_url}</a>"
+
         alert.attributes.update(
-            {f"Netbox {key}": value for key, value in data.items() if key != "id"}
+            {
+                f"Netbox {key.removesuffix('name') if key != 'name' else key}".strip(): value
+                for key, value in device.items()
+            }
         )
 
         return alert

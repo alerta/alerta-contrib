@@ -7,7 +7,7 @@ version = "0.1.0"
 [tool.poetry.dependencies]
 PyJWT = ">=2.0.0"
 alerta = "^8.5.1"
-alerta-server = {extras = ["mongodb", "postgres"], version = "^8.7.0"}
+alerta-server = "^8.7.0"
 kombu = "^5.2.3"
 mock = "^4.0.3"
 mypy = "^0.931"
