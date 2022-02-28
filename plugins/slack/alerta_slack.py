@@ -140,6 +140,11 @@ class ServiceIntegration(PluginBase):
         else:
             LOG.debug("No env-severity mapping. Channel: %s" % channel)
 
+        # Override the slack channel if a specific slack-channel attribute exist on the alert
+        if alert.attributes.get('slack-channel'):
+            LOG.debug("Found slack-channel attribute on the alert. Sending the alert to %s" % alert.attributes.get('slack-channel'))
+            channel = alert.attributes.get('slack-channel')
+
         templateVars = {
             'alert': alert,
             'status': status if status else alert.status,
