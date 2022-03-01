@@ -1,7 +1,8 @@
+import json
 import traceback
+
 from alerta.models.alert import Alert
 from alerta.webhooks import WebhookBase
-import json
 
 
 class XnmsWebhook(WebhookBase):
@@ -33,6 +34,6 @@ class XnmsWebhook(WebhookBase):
                     },
                     sort_keys=True,
                     indent=4,
-                    separators=(',',':')
+                    separators=(",", ":"),
                 ),
             )
