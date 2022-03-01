@@ -1,3 +1,8 @@
+from alerta.models.alert import Alert
+from alerta.webhooks import WebhookBase
+
+import json
+
 class ObserviumWebhook(WebhookBase):
     """
     Observium Network Monitoring
