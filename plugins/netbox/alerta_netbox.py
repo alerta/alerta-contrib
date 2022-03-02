@@ -107,7 +107,9 @@ class NetboxEnhance(PluginBase):
         )
 
         if "xnms" in alert.service:
-            alert.group = device.get("region", {}).get("name", alert.group)
+            alert.group = (
+                device.get("site", {}).get("region", {}).get("name", alert.group)
+            )
 
         return alert
 
