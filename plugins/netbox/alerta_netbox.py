@@ -16,7 +16,9 @@ GQL_QUERY = """query FindDevice($q: String) {{
     }}
 }}"""
 
-DEFAULT_FIELDS = "site { name, region { name } }, tenant { name }, custom_fields"
+DEFAULT_FIELDS = (
+    "site { name, region { name }, custom_fields }, tenant { name }, custom_fields"
+)
 
 
 def flatten(d: MutableMapping, parent_key: str = "", sep: str = "_"):
@@ -65,11 +67,11 @@ class NetboxEnhance(PluginBase):
         try:
             body = res.json()
         except ValueError:
-            LOG.error("Failed to parse response body:", res.text)
+            LOG.error(f"Failed to parse response body: {res.text}")
             return alert
 
         if "error" in body or len(body["data"]["device_list"]) == 0:
-            LOG.error("Request error:", body)
+            LOG.error(f"Request error: {body}")
             return alert
 
         device: Dict = body["data"]["device_list"][0]
@@ -79,11 +81,10 @@ class NetboxEnhance(PluginBase):
         device_url = f"{NETBOX_URL}/dcim/devices/{device.pop('id')}"
         device["url"] = f"<a href='{device_url}' target='_blank'>{device_url}</a>"
 
-        trasnform_key: Callable[[str], str] = (
-            lambda x: x[:-4].replace("_", " ")
-            if x.endswith("name") and x != "name"
-            else x
-        )
+        trasnform_key: Callable[[str], str] = lambda x: (
+            x[:-4] if x.endswith("name") and x != "name" else x
+        ).replace("_", " ")
+
         alert.attributes.update(
             {
                 f"Netbox {trasnform_key(key)}".strip(): value
