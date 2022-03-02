@@ -25,7 +25,7 @@ class ObserviumWebhook(WebhookBase):
                     if payload.get("ALERT_STATE", False) == "RECOVER"
                     else payload["ALERT_SEVERITY"].lower()
                 ),
-                value=payload["TITLE"],
+                value=payload["ENTITY_DESCRIPTION"],
                 text=payload["ALERT_MESSAGE"],
                 attributes={
                     "Device URL": payload["DEVICE_URL"],
