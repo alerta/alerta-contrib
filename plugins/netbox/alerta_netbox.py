@@ -13,12 +13,26 @@ GQL_QUERY = """query FindDevice($q: String) {{
     device_list(q: $q) {{
         id
         {fields}
-    }}
+    }} 
 }}"""
 
 DEFAULT_FIELDS = (
     "site { name, region { name }, custom_fields }, tenant { name }, custom_fields"
 )
+
+
+def squash_fields(obj: Dict[str, Any], fields: List[str]) -> Dict[str, Any]:
+    recurse = lambda x: squash_fields(x, fields) if isinstance(x, dict) else x
+    newObj = dict()
+
+    for key, value in obj.items():
+        if key not in fields:
+            newObj[key] = recurse(value)
+            continue
+
+        newObj.update(recurse(value))
+
+    return newObj
 
 
 def flatten(d: MutableMapping, parent_key: str = "", sep: str = "_"):
@@ -65,7 +79,7 @@ class NetboxEnhance(PluginBase):
             return alert
 
         try:
-            body = res.json()
+            body: Dict[str, Any] = res.json()
         except ValueError:
             LOG.error(f"Failed to parse response body: {res.text}")
             return alert
@@ -74,23 +88,26 @@ class NetboxEnhance(PluginBase):
             LOG.error(f"Request error: {body}")
             return alert
 
-        device: Dict = body["data"]["device_list"][0]
-        device.update(device.pop("custom_fields", {}))
+        device: Dict[str, Any] = body["data"]["device_list"][0]
+        device = squash_fields(device, ["custom_fields"])
         device = flatten(device, sep=" ")
 
         device_url = f"{NETBOX_URL}/dcim/devices/{device.pop('id')}"
         device["url"] = f"<a href='{device_url}' target='_blank'>{device_url}</a>"
 
-        trasnform_key: Callable[[str], str] = lambda x: (
+        transform_key: Callable[[str], str] = lambda x: (
             x[:-4] if x.endswith("name") and x != "name" else x
         ).replace("_", " ")
 
         alert.attributes.update(
             {
-                f"Netbox {trasnform_key(key)}".strip(): value
+                f"Netbox {transform_key(key)}".strip(): value
                 for key, value in device.items()
             }
         )
+
+        if "xnms" in alert.service:
+            alert.group = device.get("region", {}).get("name", alert.group)
 
         return alert
 
