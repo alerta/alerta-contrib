@@ -90,6 +90,12 @@ class NetboxEnhance(PluginBase):
 
         device: Dict[str, Any] = body["data"]["device_list"][0]
         device = squash_fields(device, ["custom_fields"])
+
+        if "xnms" in alert.service:
+            alert.group = (
+                device.get("site", {}).get("region", {}).get("name", alert.group)
+            )
+
         device = flatten(device, sep=" ")
 
         device_url = f"{NETBOX_URL}/dcim/devices/{device.pop('id')}"
@@ -105,11 +111,6 @@ class NetboxEnhance(PluginBase):
                 for key, value in device.items()
             }
         )
-
-        if "xnms" in alert.service:
-            alert.group = (
-                device.get("site", {}).get("region", {}).get("name", alert.group)
-            )
 
         return alert
 
