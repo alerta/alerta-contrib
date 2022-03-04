@@ -84,33 +84,37 @@ class NetboxEnhance(PluginBase):
             LOG.error(f"Failed to parse response body: {res.text}")
             return alert
 
-        if "error" in body or len(body["data"]["device_list"]) == 0:
+        if "error" in body:
             LOG.error(f"Request error: {body}")
+            return alert
+
+        if not len(body["data"]["device_list"]):
+            LOG.info(f"No devices found for {alert.resource}")
             return alert
 
         device: Dict[str, Any] = body["data"]["device_list"][0]
         device = squash_fields(device, ["custom_fields"])
 
-        if "xnms" in alert.service:
-            alert.group = (
-                device.get("site", {}).get("region", {}).get("name", alert.group)
-            )
-
-        device = flatten(device, sep=" ")
+        sep = " "
+        device = flatten(device, sep=sep)
 
         device_url = f"{NETBOX_URL}/dcim/devices/{device.pop('id')}"
         device["url"] = f"<a href='{device_url}' target='_blank'>{device_url}</a>"
 
         transform_key: Callable[[str], str] = lambda x: (
             x[:-4] if x.endswith("name") and x != "name" else x
-        ).replace("_", " ")
+        ).replace("_", sep)
 
         alert.attributes.update(
             {
                 f"Netbox {transform_key(key)}".strip(): value
                 for key, value in device.items()
+                if value
             }
         )
+
+        if "xnms" in alert.service and device:
+            alert.group = device.get(f"site{sep}region{sep}name", alert.group)
 
         return alert
 
