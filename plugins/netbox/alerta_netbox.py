@@ -16,9 +16,7 @@ GQL_QUERY = """query FindDevice($q: String) {{
     }} 
 }}"""
 
-DEFAULT_FIELDS = (
-    "site { name, region { name }, custom_fields }, tenant { name }, custom_fields"
-)
+DEFAULT_FIELDS = "site { name, region { name }, custom_fields }, tenant { name }, primary_ip4 { address }, custom_fields"
 
 
 def squash_fields(obj: Dict[str, Any], fields: List[str]) -> Dict[str, Any]:
@@ -98,8 +96,10 @@ class NetboxEnhance(PluginBase):
         sep = " "
         device = flatten(device, sep=sep)
 
-        device_url = f"{NETBOX_URL}/dcim/devices/{device.pop('id')}"
-        device["url"] = f"<a href='{device_url}' target='_blank'>{device_url}</a>"
+        device["url"] = f"{NETBOX_URL}/dcim/devices/{device.pop('id')}"
+        device["ip"] = device.pop(
+            f"primary_ip4{sep}address", device.pop(f"primary_ip6{sep}address", None)
+        )
 
         transform_key: Callable[[str], str] = lambda x: (
             x[:-4] if x.endswith("name") and x != "name" else x
