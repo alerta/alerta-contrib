@@ -18,7 +18,7 @@ class XnmsWebhook(WebhookBase):
                     **payload,
                     "attributes": {
                         f"xNMS {k}": v
-                        for k, v in json.loads(payload["attributes"]).items()
+                        for k, v in payload["attributes"].items()
                     }
                     if payload.get("attributes")
                     else None,
