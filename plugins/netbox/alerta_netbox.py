@@ -107,11 +107,15 @@ class NetboxEnhance(PluginBase):
 
         alert.attributes.update(
             {
-                f"Netbox {transform_key(key)}".strip(): value
+                f"Netbox{sep}{transform_key(key)}".strip(): value
                 for key, value in device.items()
                 if value
             }
         )
+
+        if zone := device.get(f"site{sep}Zone"):
+            if zone not in alert.tags:
+                alert.tags.append(zone)
 
         if "xnms" in alert.service and device:
             alert.group = device.get(f"site{sep}region{sep}name", alert.group)

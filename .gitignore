@@ -40,3 +40,4 @@ TODO
 *.log
 
 venv
+.venv
