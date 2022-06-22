@@ -127,7 +127,7 @@ class AlertmanagerSilence(PluginBase):
 
             # if alertmanager is clustered behind a load balancer that mirrors requests we should prefer to create one silence 
             # rather than many 
-            if USE_AM_EXTERNALURL_FOR_SILENCES:
+            if ALERTMANAGER_USE_EXTERNALURL_FOR_SILENCES:
                 base_url = alert.attributes.get('externalUrl', DEFAULT_ALERTMANAGER_API_URL) or ALERTMANAGER_API_URL 
             else: 
                 base_url = ALERTMANAGER_API_URL or alert.attributes.get('externalUrl', DEFAULT_ALERTMANAGER_API_URL)
