@@ -1,7 +1,7 @@
 
 from setuptools import setup, find_packages
 
-version = '5.3.1'
+version = '5.3.5'
 
 setup(
     name="alerta-pagerduty",
@@ -14,7 +14,8 @@ setup(
     packages=find_packages(),
     py_modules=['alerta_pagerduty'],
     install_requires=[
-        'requests'
+        'requests',
+        'pdpyras'
     ],
     include_package_data=True,
     zip_safe=True,

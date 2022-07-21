@@ -3,6 +3,7 @@ import logging
 import os
 import re
 import requests
+import pdpyras
 
 try:
     from alerta.plugins import app  # alerta >= 5.0
@@ -12,7 +13,6 @@ from alerta.plugins import PluginBase
 
 LOG = logging.getLogger('alerta.plugins.pagerduty')
 
-PAGERDUTY_EVENTS_URL = 'https://events.pagerduty.com/generic/2010-04-15/create_event.json'
 PAGERDUTY_SERVICE_KEY = os.environ.get('PAGERDUTY_SERVICE_KEY') or app.config['PAGERDUTY_SERVICE_KEY']
 SERVICE_KEY_MATCHERS = os.environ.get('SERVICE_KEY_MATCHERS') or app.config['SERVICE_KEY_MATCHERS']
 DASHBOARD_URL = os.environ.get('DASHBOARD_URL') or app.config.get('DASHBOARD_URL', '')
@@ -33,10 +33,12 @@ class TriggerEvent(PluginBase):
         LOG.debug('No regex match! Default service key: %s' % (PAGERDUTY_SERVICE_KEY))
         return PAGERDUTY_SERVICE_KEY
 
-    def pre_receive(self, alert):
+    def pre_receive(self, alert, **kwargs):
         return alert
 
-    def post_receive(self, alert):
+    def post_receive(self, alert, **kwargs):
+
+        LOG.debug('Sending PagerDuty notice')
 
         if alert.repeat:
             return
@@ -46,48 +48,26 @@ class TriggerEvent(PluginBase):
             ','.join(alert.service), alert.resource, alert.event
         )
 
-        if alert.severity in ['cleared', 'normal', 'ok']:
-            event_type = "resolve"
-        else:
-            event_type = "trigger"
-
-        payload = {
-            "service_key": self.pagerduty_service_key(alert.resource),
-            "incident_key": alert.id,
-            "event_type": event_type,
-            "description": message,
-            "client": "alerta",
-            "client_url": '%s/#/alert/%s' % (DASHBOARD_URL, alert.id),
-            "details": alert.get_body(history=False)
-        }
-
-        LOG.debug('PagerDuty payload: %s', payload)
+        session = pdpyras.EventsAPISession(self.pagerduty_service_key(alert.resource))
 
         try:
-            r = requests.post(PAGERDUTY_EVENTS_URL, json=payload, timeout=2)
+            if alert.severity in ['cleared', 'normal', 'ok']:
+                pd_incident = session.resolve(alert.id)
+            else:
+                pd_incident = session.trigger(
+                    message,
+                    alert.resource,
+                    dedup_key=alert.id,
+                    severity=alert.severity,
+                    custom_details=alert.get_body(history=False),
+                    links=['%s/#/alert/%s' % (DASHBOARD_URL, alert.id)]
+                )
+
         except Exception as e:
             raise RuntimeError("PagerDuty connection error: %s" % e)
 
-        LOG.debug('PagerDuty response: %s - %s', r.status_code, r.text)
+        LOG.info('PagerDuty notice sent')
 
-    def status_change(self, alert, status, text):
+    def status_change(self, alert, status, text, **kwargs):
+        LOG.debug('PagerDuty status change ignored.')
 
-        if status not in ['ack', 'assign']:
-            return
-
-        payload = {
-            "service_key": self.pagerduty_service_key(alert.resource),
-            "incident_key": alert.id,
-            "event_type": "acknowledge",
-            "description": text,
-            "details": alert.get_body(history=False)
-        }
-
-        LOG.debug('PagerDuty payload: %s', payload)
-
-        try:
-            r = requests.post(PAGERDUTY_EVENTS_URL, json=payload, timeout=2)
-        except Exception as e:
-            raise RuntimeError("PagerDuty connection error: %s" % e)
-
-        LOG.debug('PagerDuty response: %s - %s', r.status_code, r.text)
