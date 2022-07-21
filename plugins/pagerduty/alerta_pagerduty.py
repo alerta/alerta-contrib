@@ -11,7 +11,7 @@ except ImportError:
     from alerta.app import app  # alerta < 5.0
 from alerta.plugins import PluginBase
 
-LOG = logging.getLogger('alerta.plugins')
+LOG = logging.getLogger('alerta.plugins.pagerduty')
 
 PAGERDUTY_SERVICE_KEY = os.environ.get('PAGERDUTY_SERVICE_KEY') or app.config['PAGERDUTY_SERVICE_KEY']
 SERVICE_KEY_MATCHERS = os.environ.get('SERVICE_KEY_MATCHERS') or app.config['SERVICE_KEY_MATCHERS']
@@ -22,15 +22,15 @@ class TriggerEvent(PluginBase):
 
     def pagerduty_service_key(self, resource):
         if not SERVICE_KEY_MATCHERS:
-            LOG.warning('No matchers defined! Default service key: %s' % (PAGERDUTY_SERVICE_KEY))
+            LOG.debug('No matchers defined! Default service key: %s' % (PAGERDUTY_SERVICE_KEY))
             return PAGERDUTY_SERVICE_KEY
 
         for mapping in SERVICE_KEY_MATCHERS:
             if re.match(mapping['regex'], resource):
-                LOG.warning('Matched regex: %s, service key: %s' % (mapping['regex'], mapping['api_key']))
+                LOG.debug('Matched regex: %s, service key: %s' % (mapping['regex'], mapping['api_key']))
                 return mapping['api_key']
 
-        LOG.warning('No regex match! Default service key: %s' % (PAGERDUTY_SERVICE_KEY))
+        LOG.debug('No regex match! Default service key: %s' % (PAGERDUTY_SERVICE_KEY))
         return PAGERDUTY_SERVICE_KEY
 
     def pre_receive(self, alert, **kwargs):
@@ -38,7 +38,7 @@ class TriggerEvent(PluginBase):
 
     def post_receive(self, alert, **kwargs):
 
-        LOG.warning('Sending PagerDuty notice')
+        LOG.debug('Sending PagerDuty notice')
 
         if alert.repeat:
             return
@@ -55,9 +55,9 @@ class TriggerEvent(PluginBase):
                 pd_incident = session.resolve(alert.id)
             else:
                 pd_incident = session.trigger(
-                    message, 
-                    alert.resource, 
-                    dedup_key=alert.id, 
+                    message,
+                    alert.resource,
+                    dedup_key=alert.id,
                     severity=alert.severity,
                     custom_details=alert.get_body(history=False),
                     links=['%s/#/alert/%s' % (DASHBOARD_URL, alert.id)]
@@ -66,7 +66,8 @@ class TriggerEvent(PluginBase):
         except Exception as e:
             raise RuntimeError("PagerDuty connection error: %s" % e)
 
-        LOG.warning('PagerDuty notice sent')
+        LOG.info('PagerDuty notice sent')
 
     def status_change(self, alert, status, text, **kwargs):
-        LOG.warn('PagerDuty status change ignored.')
+        LOG.debug('PagerDuty status change ignored.')
+
