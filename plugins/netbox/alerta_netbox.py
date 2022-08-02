@@ -1,4 +1,3 @@
-from datetime import timedelta
 import logging
 from os import environ
 from typing import Any, Callable, Dict, List, MutableMapping, Tuple
@@ -52,7 +51,7 @@ class NetboxEnhance(PluginBase):
     Implementation by Extreme Labs
     """
 
-    netbox_cache = TTLCache(maxsize=1000, ttl=timedelta(minutes=5))
+    netbox_cache = TTLCache(maxsize=1000, ttl=5*60)
 
     def pre_receive(self, alert: Alert, **kwargs):
         NETBOX_URL = environ.get("NETBOX_URL") or kwargs["config"]["NETBOX_URL"]
