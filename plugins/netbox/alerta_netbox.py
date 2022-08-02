@@ -64,6 +64,7 @@ class NetboxEnhance(PluginBase):
         )
 
         LOG.debug("Enhancing alert with Netbox data")
+        body: Dict[str, Any]
         self.netbox_cache.expire()
         if cached := self.netbox_cache.get(alert.resource, False):
             LOG.debug("Using cached netbox response")
@@ -88,7 +89,7 @@ class NetboxEnhance(PluginBase):
                 return alert
 
             try:
-                body: Dict[str, Any] = res.json()
+                body = res.json()
             except ValueError:
                 LOG.error(f"Failed to parse response body: {res.text}")
                 return alert
