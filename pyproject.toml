@@ -21,6 +21,7 @@ requests-mock = "^1.9.3"
 six = "^1.16.0"
 twine = "^3.7.1"
 wheel = "^0.37.1"
+cachetools = "^5.2.0"
 
 [tool.poetry.dev-dependencies]
 black = "^22.1.0"

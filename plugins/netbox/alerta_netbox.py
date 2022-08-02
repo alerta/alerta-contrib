@@ -1,9 +1,11 @@
+from datetime import timedelta
 import logging
 from os import environ
 from typing import Any, Callable, Dict, List, MutableMapping, Tuple
 from urllib.parse import urljoin
 
 import requests
+from cachetools import TTLCache
 from alerta.models.alert import Alert
 from alerta.plugins import PluginBase
 
@@ -50,6 +52,8 @@ class NetboxEnhance(PluginBase):
     Implementation by Extreme Labs
     """
 
+    netbox_cache = TTLCache(ttl=timedelta(minutes=5))
+
     def pre_receive(self, alert: Alert, **kwargs):
         NETBOX_URL = environ.get("NETBOX_URL") or kwargs["config"]["NETBOX_URL"]
         NETBOX_TOKEN = environ.get("NETBOX_TOKEN") or kwargs["config"]["NETBOX_TOKEN"]
@@ -60,35 +64,43 @@ class NetboxEnhance(PluginBase):
         )
 
         LOG.debug("Enhancing alert with Netbox data")
-        res = requests.post(
-            urljoin(NETBOX_URL, "/graphql/"),
-            headers={
-                "Authorization": f"Token {NETBOX_TOKEN}",
-                "Content-Type": "application/json",
-            },
-            json={
-                "query": GQL_QUERY.format(fields=NETBOX_FIELDS),
-                "variables": {"q": alert.resource},
-            },
-        )
+        self.netbox_cache.expire()
+        if cached := self.netbox_cache.get(alert.resource, False):
+            LOG.debug("Using cached netbox response")
+            body = cached
+        else:
+            res = requests.post(
+                urljoin(NETBOX_URL, "/graphql/"),
+                headers={
+                    "Authorization": f"Token {NETBOX_TOKEN}",
+                    "Content-Type": "application/json",
+                },
+                json={
+                    "query": GQL_QUERY.format(fields=NETBOX_FIELDS),
+                    "variables": {"q": alert.resource},
+                },
+            )
 
-        if not res.ok:
-            LOG.error(f"Failed to query Netbox (code {res.status_code}): {res.text}")
-            return alert
+            if not res.ok:
+                LOG.error(
+                    f"Failed to query Netbox (code {res.status_code}): {res.text}"
+                )
+                return alert
 
-        try:
-            body: Dict[str, Any] = res.json()
-        except ValueError:
-            LOG.error(f"Failed to parse response body: {res.text}")
-            return alert
+            try:
+                body: Dict[str, Any] = res.json()
+            except ValueError:
+                LOG.error(f"Failed to parse response body: {res.text}")
+                return alert
 
-        if "error" in body:
-            LOG.error(f"Request error: {body}")
-            return alert
+            if "error" in body:
+                LOG.error(f"Request error: {body}")
+                return alert
 
-        if not len(body["data"]["device_list"]):
-            LOG.info(f"No devices found for {alert.resource}")
-            return alert
+            if not len(body["data"]["device_list"]):
+                LOG.info(f"No devices found for {alert.resource}")
+                return alert
+            self.netbox_cache[alert.resource] = body
 
         device: Dict[str, Any] = body["data"]["device_list"][0]
         device = squash_fields(device, ["custom_fields"])
