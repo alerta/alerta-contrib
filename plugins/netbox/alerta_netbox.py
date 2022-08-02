@@ -52,7 +52,7 @@ class NetboxEnhance(PluginBase):
     Implementation by Extreme Labs
     """
 
-    netbox_cache = TTLCache(ttl=timedelta(minutes=5))
+    netbox_cache = TTLCache(maxsize=1000, ttl=timedelta(minutes=5))
 
     def pre_receive(self, alert: Alert, **kwargs):
         NETBOX_URL = environ.get("NETBOX_URL") or kwargs["config"]["NETBOX_URL"]
