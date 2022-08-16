@@ -1,7 +1,6 @@
 import json
 import traceback
 from typing import Any, Dict
-from urllib.parse import parse_qsl
 from alerta.models.alert import Alert
 from alerta.webhooks import WebhookBase
 
@@ -12,14 +11,13 @@ class ObserviumWebhook(WebhookBase):
     Implementation by Extreme Labs
     """
 
-    def incoming(self, query_string, payload: Dict[str, Any], path=None):
+    def incoming(self, query_string: Dict[str,str], payload: Dict[str, Any], path=None):
         try:
-            params = dict(parse_qsl(query_string))
             return Alert(
                 resource=payload["DEVICE_HOSTNAME"],
                 event=payload["ENTITY_NAME"],
                 event_type=payload["ALERT_STATE"],
-                environment=params.get("environment", "Production"),
+                environment=query_string.get("environment", "Production"),
                 service=["network"],
                 severity=(
                     "normal"

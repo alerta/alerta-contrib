@@ -1,6 +1,6 @@
 from setuptools import find_packages, setup
 
-version = "0.0.8"
+version = "0.0.9"
 
 setup(
     name="alerta-observium",
