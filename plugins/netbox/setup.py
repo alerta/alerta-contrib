@@ -14,5 +14,8 @@ setup(
     py_modules=["alerta_netbox"],
     include_package_data=True,
     zip_safe=True,
+    install_requires=[
+        "cachetools",
+    ],
     entry_points={"alerta.plugins": ["netbox = alerta_netbox:NetboxEnhance"]},
 )
