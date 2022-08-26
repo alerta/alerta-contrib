@@ -1,12 +1,17 @@
 import fcntl
+import hashlib
 import logging
 import time
 from contextlib import contextmanager
 
+from cachetools import TTLCache
+
 from requests import Session
+from requests.exceptions import ConnectionError as RequestsConnectionError
 
 from simple_salesforce import Salesforce
 from simple_salesforce import exceptions as sf_exceptions
+
 
 try:
     from alerta.plugins import app  # alerta >= 5.0
@@ -14,6 +19,20 @@ except ImportError:
     from alerta.app import app  # alerta < 5.0
 
 from alerta.plugins import PluginBase
+
+
+STATE_MAP = {
+    'OK': '060 Informational',
+    'UP': '060 Informational',
+    'INFORMATIONAL': '060 Informational',
+    'UNKNOWN': '070 Unknown',
+    'WARNING': '080 Warning',
+    'MINOR': '080 Warning',
+    'MAJOR': '090 Critical',
+    'CRITICAL': '090 Critical',
+    'DOWN': '090 Critical',
+    'UNREACHABLE': '090 Critical',
+}
 
 CONFIG_FIELD_MAP = {
     'auth_url': 'instance_url',
@@ -26,6 +45,8 @@ CONFIG_FIELD_MAP = {
     'hash_func': 'hash_func',
 }
 
+
+ALLOWED_HASHING = ('md5', 'sha256')
 SESSION_FILE = '/tmp/session'
 
 logger = logging.getLogger(__name__)
@@ -43,21 +64,65 @@ def flocked(fd):
         fcntl.flock(fd, fcntl.LOCK_UN)
 
 
+def sf_auth_retry(method):
+    def wrapper(self, *args, **kwargs):
+        try:
+            return method(self, *args, **kwargs)
+        except sf_exceptions.SalesforceExpiredSession:
+            logger.warning('Salesforce session expired.')
+            self.auth()
+        except RequestsConnectionError:
+            logger.error('Salesforce connection error.')
+            self.auth()
+        return method(self, *args, **kwargs)
+    return wrapper
+
+
 class SfNotifierError(Exception):
     pass
 
+class SFIntegration(PluginBase):
+    def __init__(self):
+        client = SalesforceClient(TEMP_CONFIGURATION)
 
-class SalesforceClient(PluginBase):
+    def pre_receive(self, alert):
+        # TODO
+        return alert
+    
+    def post_receive(self, alert):
+        # TODO
+        return
+
+    def status_change(self, alert):
+        # TODO
+        return alert
+
+class SalesforceClient(object):
     def __init__(self, config):
         self.metrics = {
             'sf_auth_ok': False,
+            'sf_error_count': 0,
+            'sf_request_count': 0
         }
+        self._registered_alerts = TTLCache(maxsize=2048, ttl=300)
+
         self.config = self._validate_config(config)
+        self.hash_func = self._hash_func(self.config.pop('hash_func'))
+        self.feed_enabled = self.config.pop('feed_enabled')
 
         self.environment = self.config.pop('environment_id')
         self.sf = None
         self.session = Session()
         self.auth(no_retry=True)
+
+    @staticmethod
+    def _hash_func(name):
+        if name in ALLOWED_HASHING:
+            return getattr(hashlib, name)
+        msg = ('Invalid hashing function "{}".'
+               'Switching to default "sha256".').format(name)
+        logger.warn(msg)
+        return hashlib.sha256
 
     @staticmethod
     def _validate_config(config):
@@ -163,3 +228,84 @@ class SalesforceClient(PluginBase):
 
         while auth_ok is False:
             auth_ok = self._acquire_session()
+
+    def _get_alert_id(self, labels):
+        alert_id_data = ''
+        for key in sorted(labels):
+            alert_id_data += labels[key].replace(".", "\\.")
+        return self.hash_func(alert_id_data.encode('utf-8')).hexdigest()
+
+    @staticmethod
+    def _is_watchdog(labels):
+        return labels['alertname'].lower() == 'watchdog'
+
+    @sf_auth_retry
+    def _create_case(self, subject, body, labels, alert_id):
+
+        if alert_id in self._registered_alerts:
+            logger.warning('Duplicate case for alert: {}.'.format(alert_id))
+            return 1, self._registered_alerts[alert_id]['Id']
+
+        severity = labels.get('severity', 'unknown').upper()
+        payload = {
+            'Subject': subject,
+            'Description': body,
+            'IsMosAlert__c': 'true',
+            'Alert_Priority__c': STATE_MAP.get(severity, '070 Unknown'),
+            'Alert_Host__c': labels.get('host') or labels.get(
+                'instance', 'UNKNOWN'
+            ),
+            'Alert_Service__c': labels.get('service', 'UNKNOWN'),
+            'Environment2__c': self.environment,
+            'Alert_ID__c': alert_id,
+        }
+        if labels.get('cluster_id') is not None:
+            payload['ClusterId__c'] = labels['cluster_id']
+
+        if self._is_watchdog(labels):
+            payload['IsWatchDogAlert__c'] = 'true'
+
+        logger.info('Try to create case: {}.'.format(payload))
+        try:
+            self.metrics['sf_request_count'] += 1
+            case = self.sf.Case.create(payload)
+            logger.info('Created case: {}.'.format(case))
+        except sf_exceptions.SalesforceMalformedRequest as ex:
+            msg = ex.content[0]['message']
+            err_code = ex.content[0]['errorCode']
+
+            if err_code == 'DUPLICATE_VALUE':
+                logger.warning('Duplicate case: {}.'.format(msg))
+                case_id = msg.split()[-1]
+                self._registered_alerts[alert_id] = {'Id': case_id}
+                return 1, case_id
+
+            logger.error('Cannot create case: {}.'.format(msg))
+            self.metrics['sf_error_count'] += 1
+            raise
+
+        self._registered_alerts[alert_id] = {'Id': case['id']}
+        return 0, case['id']
+
+    @sf_auth_retry
+    def _create_feed_item(self, subject, body, case_id):
+        feed_item = {'Title': subject, 'ParentId': case_id, 'Body': body}
+        logger.debug('Creating feed item: {}.'.format(feed_item))
+        return self.sf.FeedItem.create(feed_item)
+
+    def create_case(self, subject, body, labels):
+        alert_id = self._get_alert_id(labels)
+
+        error_code, case_id = self._create_case(subject, body,
+                                                labels, alert_id)
+
+        response = {'case_id': case_id, 'alert_id': alert_id}
+
+        if error_code == 1:
+            response['status'] = 'duplicate'
+        else:
+            response['status'] = 'created'
+
+        if self.feed_enabled or self._is_watchdog(labels):
+            self._create_feed_item(subject, body, case_id)
+        return response
