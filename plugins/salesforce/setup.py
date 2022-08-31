@@ -14,7 +14,7 @@ setup(
     packages=find_packages(),
     py_modules=['alerta_salesforce'],
     install_requires=[
-        'simple-salesforce'
+        'simple-salesforce',
         'cachetools'
     ],
     include_package_data=True,
