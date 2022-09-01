@@ -1,9 +1,11 @@
 import contextlib
+import json
 import os
 import unittest
 
 from alerta.app import create_app, plugins
-from alerta_salesforce import SFIntegration, SalesforceClient
+from alerta_salesforce import SFIntegration
+
 
 @contextlib.contextmanager
 def mod_env(*remove, **update):
@@ -37,19 +39,39 @@ def mod_env(*remove, **update):
         env.update(update_after)
         [env.pop(k) for k in remove_after]
 
+
 class SalesForcePluginTestCase(unittest.TestCase):
 
     def setUp(self):
         pass
 
-    def test_sf_plugin(self):
+    def test_salesforce_plugin(self):
 
         test_config = {
             'TESTING': True,
             'AUTH_REQUIRED': False
         }
 
-        self.app = create_app(test_config)
-        self.client = self.app.test_client()
+        with mod_env(
+                # SLACK_WEBHOOK_URL='https://hooks.slack.com/services/T00000000/B00000000/XXXXXXXXXXXXXXXXXXXXXXXX'
+        ):
+            self.app = create_app(test_config)
+            self.client = self.app.test_client()
 
-        plugins.plugins['salesforce'] = SFIntegration()
+            plugins.plugins['salesforce'] = SFIntegration()
+
+            self.alert = {
+                'event': 'node_down',
+                'resource': 'net5',
+                'environment': 'Production',
+                'service': ['Network'],
+                'severity': 'critical',
+                'correlate': ['node_down', 'node_marginal', 'node_up'],
+                'tags': []
+            }
+
+            response = self.client.post('/alert', data=json.dumps(self.alert), headers={'Content-type': 'application/json'})
+            self.assertEqual(response.status_code, 201)
+            data = json.loads(response.data.decode('utf-8'))
+            self.assertEqual(data['status'], 'ok')
+            self.assertRegex(data['id'], '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}')
