@@ -51,7 +51,7 @@ class NetboxEnhance(PluginBase):
     Implementation by Extreme Labs
     """
 
-    netbox_cache = TTLCache(maxsize=1000, ttl=5*60)
+    netbox_cache = TTLCache(maxsize=1000, ttl=5 * 60)
 
     def pre_receive(self, alert: Alert, **kwargs):
         NETBOX_URL = environ.get("NETBOX_URL") or kwargs["config"]["NETBOX_URL"]
@@ -69,17 +69,21 @@ class NetboxEnhance(PluginBase):
             LOG.debug("Using cached netbox response")
             body = cached
         else:
-            res = requests.post(
-                urljoin(NETBOX_URL, "/graphql/"),
-                headers={
-                    "Authorization": f"Token {NETBOX_TOKEN}",
-                    "Content-Type": "application/json",
-                },
-                json={
-                    "query": GQL_QUERY.format(fields=NETBOX_FIELDS),
-                    "variables": {"q": alert.resource},
-                },
-            )
+            try:
+                res = requests.post(
+                    urljoin(NETBOX_URL, "/graphql/"),
+                    headers={
+                        "Authorization": f"Token {NETBOX_TOKEN}",
+                        "Content-Type": "application/json",
+                    },
+                    json={
+                        "query": GQL_QUERY.format(fields=NETBOX_FIELDS),
+                        "variables": {"q": alert.resource},
+                    },
+                )
+            except Exception as e:
+                LOG.exception(f"Failed to query Netbox: {e}")
+                return alert
 
             if not res.ok:
                 LOG.error(
