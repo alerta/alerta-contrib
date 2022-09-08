@@ -21,7 +21,7 @@ setup(
     zip_safe=True,
     entry_points={
         'alerta.plugins': [
-            'salesforce = alerta_salesforce:OpenCase'
+            'salesforce = alerta_salesforce:SFIntegration'
         ]
     }
 )
