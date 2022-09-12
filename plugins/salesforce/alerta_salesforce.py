@@ -83,7 +83,7 @@ class SfNotifierError(Exception):
 
 class SFIntegration(PluginBase):
     def __init__(self):
-        client = SalesforceClient(TEMP_CONFIGURATION)
+        self.client = SalesforceClient(TEMP_CONFIGURATION)
 
     def pre_receive(self, alert):
         # TODO
