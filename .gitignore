@@ -40,3 +40,8 @@ TODO
 *.log
 
 venv
+
+.devcontainer
+.vscode
+pg-data/
+docker-compose.yml
