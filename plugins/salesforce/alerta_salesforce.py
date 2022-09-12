@@ -90,7 +90,7 @@ class SFIntegration(PluginBase):
         return alert
     
     def post_receive(self, alert):
-        # TODO
+        self.client.create_case(alert.event, alert.text, alert.serialize)
         return
 
     def status_change(self, alert):
@@ -262,8 +262,8 @@ class SalesforceClient(object):
         if labels.get('cluster_id') is not None:
             payload['ClusterId__c'] = labels['cluster_id']
 
-        if self._is_watchdog(labels):
-            payload['IsWatchDogAlert__c'] = 'true'
+        # if self._is_watchdog(labels):
+        #     payload['IsWatchDogAlert__c'] = 'true'
 
         logger.info('Try to create case: {}.'.format(payload))
         try:
@@ -294,7 +294,8 @@ class SalesforceClient(object):
         return self.sf.FeedItem.create(feed_item)
 
     def create_case(self, subject, body, labels):
-        alert_id = self._get_alert_id(labels)
+        # alert_id = self._get_alert_id(labels)
+        alert_id = labels.id
 
         error_code, case_id = self._create_case(subject, body,
                                                 labels, alert_id)
