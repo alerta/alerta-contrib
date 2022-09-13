@@ -67,7 +67,8 @@ class SalesForcePluginTestCase(unittest.TestCase):
                 'service': ['Network'],
                 'severity': 'critical',
                 'correlate': ['node_down', 'node_marginal', 'node_up'],
-                'tags': []
+                'tags': [],
+                'text': 'A node is down in a non-existent environment'
             }
 
             response = self.client.post('/alert', data=json.dumps(self.alert), headers={'Content-type': 'application/json'})

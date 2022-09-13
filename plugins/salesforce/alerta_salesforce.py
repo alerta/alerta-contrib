@@ -12,6 +12,8 @@ from requests.exceptions import ConnectionError as RequestsConnectionError
 from simple_salesforce import Salesforce
 from simple_salesforce import exceptions as sf_exceptions
 
+import configparser
+
 
 try:
     from alerta.plugins import app  # alerta >= 5.0
@@ -49,6 +51,8 @@ CONFIG_FIELD_MAP = {
 ALLOWED_HASHING = ('md5', 'sha256')
 SESSION_FILE = '/tmp/session'
 
+SALESFORCE_CONFIG = 'temp_configuration'
+
 logger = logging.getLogger(__name__)
 
 
@@ -83,7 +87,23 @@ class SfNotifierError(Exception):
 
 class SFIntegration(PluginBase):
     def __init__(self):
-        self.client = SalesforceClient(TEMP_CONFIGURATION)
+        config = configparser.ConfigParser()
+        config.read('salesforce.cfg')
+        for section in config.sections():
+            # need some logic to determine which is the appropriate environment from the config file to use
+            if section == SALESFORCE_CONFIG: 
+                configValues = {
+                    'AUTH_URL': config[section]['AUTH_URL'],
+                    'USERNAME': config[section]['USERNAME'],
+                    'PASSWORD': config[section]['PASSWORD'],
+                    'ORGANIZATION_ID': config[section]['ORGANIZATION_ID'],
+                    'ENVIRONMENT_ID': config[section]['ENVIRONMENT_ID'],
+                    'SANDBOX_ENABLED': config[section]['SANDBOX_ENABLED'],
+                    'FEED_ENABLED': config[section]['FEED_ENABLED'],
+                    'HASH_FUNC': config[section]['HASH_FUNC']
+                }
+                break
+        self.client = SalesforceClient(configValues)
 
     def pre_receive(self, alert):
         # TODO
@@ -255,7 +275,7 @@ class SalesforceClient(object):
             'Alert_Host__c': labels.get('host') or labels.get(
                 'instance', 'UNKNOWN'
             ),
-            'Alert_Service__c': labels.get('service', 'UNKNOWN'),
+            'Alert_Service__c': labels.get('service', 'UNKNOWN')[0],
             'Environment2__c': self.environment,
             'Alert_ID__c': alert_id,
         }
@@ -295,7 +315,7 @@ class SalesforceClient(object):
 
     def create_case(self, subject, body, labels):
         # alert_id = self._get_alert_id(labels)
-        alert_id = labels.id
+        alert_id = labels.get('id')
 
         error_code, case_id = self._create_case(subject, body,
                                                 labels, alert_id)
