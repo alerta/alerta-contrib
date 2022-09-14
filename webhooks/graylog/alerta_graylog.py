@@ -15,8 +15,7 @@ class GraylogWebhook(WebhookBase):
 
     def incoming(self, query_string, payload, path=None):
         try:
-            payload = payload["payload"]
-            kys = Alert(
+            return Alert(
                 resource=payload["backlog"][0]["source"],
                 event=payload["event"]["message"],
                 # event_type=payload["event"]["event_definition_type"],
@@ -37,8 +36,6 @@ class GraylogWebhook(WebhookBase):
                 origin=payload["event"]["source"],
                 raw_data=json.dumps(payload),
             )
-            pprint(kys)
-            return kys
         except Exception as e:
             return Alert(
                 resource="Alerta Graylog integration",
