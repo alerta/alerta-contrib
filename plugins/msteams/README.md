@@ -36,11 +36,46 @@ MS_TEAMS_WEBHOOK_URL =  'https://outlook.office.com/webhook/.../IncomingWebhook/
 DASHBOARD_URL = 'http://try.alerta.io'
 ```
 
+The `MS_TEAMS_ALERT_WEBHOOK_MAPPING` configuration variable can be used to form
+a mapping based on attribute values from an alert to a specific teams webhook. 
+Also custom attributes are supported.
+For example:
+```python
+MS_TEAMS_ALERT_WEBHOOK_MAPPING = [
+    {
+        "attributes" : {
+            "event": "NodeDown",
+        },
+        "ms_teams_webhook": 'https://outlook.office.com/webhook/.../IncomingWebhook/.../...'
+    },
+        {
+        "attributes" : {
+            "custom_attribute_1": "=~custom_value_1",
+            "custom_attribute_2": "custom_value_2",
+            "severity": "critical",
+        },
+        "ms_teams_webhook": 'https://outlook.office.com/webhook/.../IncomingWebhook/.../...'
+    }
+]
+```
+### Regex support
+
+If the value of an attribute is prefixed with __=~__ the expression will be evaluated as RegEx.
+ 
+If all attributes of the alert are matched for multiple mappings, 
+the alert is sent to each matching channel.
+
+### Default Channel
+
+The `MS_TEAMS_WEBHOOK_URL` configuration variable can be used to set a default MS Teams webhook, wich will catch all alerts. It will not affect the mappings defined in  `MS_TEAMS_ALERT_WEBHOOK_MAPPING`.
+
+
 The `MS_TEAMS_SUMMARY_FMT` configuration variable is a Jinja2 template
 string or filename to a template file and accepts any Jinja2 syntax.
 The formatter has access to two variables in the template environment,
 'alert' for all alert details and 'config' for access to the alerta
 configuration.
+
 
 If you have Jinja2 available you can try customizing the message like
 this:

@@ -4,6 +4,7 @@ import logging
 import os
 import requests
 import pymsteams
+import re
 
 try:
     from alerta.plugins import app  # alerta >= 5.0
@@ -27,12 +28,15 @@ MS_TEAMS_DEFAULT_COLORS_MAP = {'security': '000000',
 MS_TEAMS_DEFAULT_COLOR = '00AA5A'
 MS_TEAMS_DEFAULT_TIMEOUT = 7 # pymsteams http_timeout
 
+REGEX_PREFIX = "=~"
+
 class SendConnectorCardMessage(PluginBase):
 
     def __init__(self, name=None):
         # override user-defined severities(colors)
         self._colors = MS_TEAMS_DEFAULT_COLORS_MAP
         self._colors.update(MS_TEAMS_COLORS_MAP)
+
 
         super(SendConnectorCardMessage, self).__init__(name)
 
@@ -59,6 +63,13 @@ class SendConnectorCardMessage(PluginBase):
         MS_TEAMS_INBOUNDWEBHOOK_URL = self.get_config('MS_TEAMS_INBOUNDWEBHOOK_URL', default=None, type=str, **kwargs)  # webhook url for connectorcard actions
         MS_TEAMS_APIKEY = self.get_config('MS_TEAMS_APIKEY', default=None, type=str, **kwargs)  # X-API-Key (needs webhook.write permission)
         DASHBOARD_URL = self.get_config('DASHBOARD_URL', default='', type=str, **kwargs)
+
+        MS_TEAMS_ALERT_WEBHOOK_MAP = self.get_config("MS_TEAMS_ALERT_WEBHOOK_MAP", default=[], type=list, **kwargs)
+
+        ms_teams_webhooks = self._get_ms_teams_webhooks(MS_TEAMS_ALERT_WEBHOOK_MAP, alert)
+
+        if len(ms_teams_webhooks) <= 0 and not MS_TEAMS_WEBHOOK_URL:
+            return alert
 
         if alert.repeat:
             return
@@ -123,19 +134,78 @@ class SendConnectorCardMessage(PluginBase):
         try:
             if MS_TEAMS_PAYLOAD:
                 # Use requests.post to send raw json message card
-                LOG.debug("MS Teams sending(json payload) POST to %s", MS_TEAMS_WEBHOOK_URL)
-                r = requests.post(MS_TEAMS_WEBHOOK_URL, data=card_json, timeout=MS_TEAMS_DEFAULT_TIMEOUT)
-                LOG.debug('MS Teams response: %s / %s' % (r.status_code, r.text))
+                if MS_TEAMS_WEBHOOK_URL:
+                    LOG.debug("MS Teams sending(json payload) POST to %s", MS_TEAMS_WEBHOOK_URL)
+                    r = requests.post(MS_TEAMS_WEBHOOK_URL, data=card_json, timeout=MS_TEAMS_DEFAULT_TIMEOUT)
+                    LOG.debug('MS Teams response: %s / %s' % (r.status_code, r.text))
+                if ms_teams_webhooks:
+                    for webhook in ms_teams_webhooks:
+                        LOG.debug("MS Teams sending(json payload) POST to %s", webhook)
+                        r = requests.post(webhook, data=card_json, timeout=MS_TEAMS_DEFAULT_TIMEOUT)
+                        LOG.debug('MS Teams response: %s / %s' % (r.status_code, r.text))
             else:
                 # Use pymsteams to send card
-                msTeamsMessage = pymsteams.connectorcard(hookurl=MS_TEAMS_WEBHOOK_URL, http_timeout=MS_TEAMS_DEFAULT_TIMEOUT)
-                msTeamsMessage.title(summary)
-                msTeamsMessage.text(text)
-                msTeamsMessage.addLinkButton("Open in Alerta", url)
-                msTeamsMessage.color(color)
-                msTeamsMessage.send()
+                if MS_TEAMS_WEBHOOK_URL:
+                    self._send_card(MS_TEAMS_WEBHOOK_URL, summary, text, url, color)
+                if ms_teams_webhooks:
+                    for webhook in ms_teams_webhooks:
+                        self._send_card(webhook, summary, text, url, color)
         except Exception as e:
             raise RuntimeError("MS Teams: ERROR - %s", e)
 
+    def _send_card(self, webhook_url, summary, text, url, color):
+        LOG.debug("MS Teams sending(json payload) POST to %s", webhook_url)
+        msTeamsMessage = pymsteams.connectorcard(hookurl=webhook_url, http_timeout=MS_TEAMS_DEFAULT_TIMEOUT)
+        msTeamsMessage.title(summary)
+        msTeamsMessage.text(text)
+        msTeamsMessage.addLinkButton("Open in Alerta", url)
+        msTeamsMessage.color(color)
+        msTeamsMessage.send()
+
     def status_change(self, alert, status, text, **kwargs):
         return
+
+    def _get_ms_teams_webhooks(self, webhook_mappings, alert):
+        webhooks = list()
+        for mapping in webhook_mappings:
+            LOG.debug(mapping['attributes'])
+            attributes_match = self._match_attributes(mapping, alert)
+            if attributes_match:
+                webhooks.append(mapping['ms_teams_webhook'])
+        return webhooks
+
+    def _match_attributes(self, mapping, alert):
+        for k, v in mapping['attributes'].items():
+            LOG.debug(f"{k} = {v}")
+            if not hasattr(alert, k) and k not in alert.attributes:
+                LOG.debug(f"Attribute {k} does not exist!")
+                return False
+            if v.startswith(REGEX_PREFIX):
+                match = self._match_attribute_regex(alert, k, v)
+                if not match:
+                    return False
+            else:
+                match = self._match_attribute_str(alert, k, v)
+                if not match:
+                    return False
+        return True
+    
+    def _match_attribute_regex(self, alert, attr_name, regex_pattern):
+        # Check if attribute exists as default alerta variable, if not check if 
+        # attribute is in custom defined attributes array of the alert
+        pattern = self.remove_prefix(regex_pattern, REGEX_PREFIX)
+        if hasattr(alert, attr_name):
+            return re.fullmatch(pattern, getattr(attr_name))
+        return re.fullmatch(pattern, alert.attributes.get(attr_name))
+
+    def _match_attribute_str(self,alert, attr_name, attr_value):
+        # Check if attribute exists as default alerta variable, if not check if 
+        # attribute is in custom defined attributes array of the alert
+        if hasattr(alert, attr_name) and getattr(alert, attr_name) == attr_value:
+            return True
+        return alert.attributes.get(attr_name) == attr_value
+    
+    def remove_prefix(self, text, prefix):
+        if text.startswith(prefix):
+            return text[len(prefix):]
+        return text
