@@ -54,6 +54,7 @@ try:
 except Exception as e:
     SLACK_SEVERITY_FILTER = app.config.get('SLACK_SEVERITY_FILTER', list())
 
+SLACK_PREVIOUS_SEVERITY_FILTER = SLACK_SEVERITY_FILTER + [app.config.get('DEFAULT_PREVIOUS_SEVERITY') or 'indeterminate']
 SLACK_SEND_ON_ACK = os.environ.get(
     'SLACK_SEND_ON_ACK') or app.config.get('SLACK_SEND_ON_ACK', False)
 SLACK_SEVERITY_MAP = app.config.get('SLACK_SEVERITY_MAP', {})
@@ -78,6 +79,9 @@ class ServiceIntegration(PluginBase):
         # override user-defined severities
         self._severities = SLACK_DEFAULT_SEVERITY_MAP
         self._severities.update(SLACK_SEVERITY_MAP)
+
+        LOG.info('Filtered Severities: %s' % ','.join(SLACK_SEVERITY_FILTER))
+        LOG.info('Filtered previous_severity on recovery: %s' % ','.join(SLACK_PREVIOUS_SEVERITY_FILTER))
 
         super(ServiceIntegration, self).__init__(name)
 
@@ -135,6 +139,11 @@ class ServiceIntegration(PluginBase):
             LOG.debug("Found env-severity mapping. Channel: %s" % channel)
         else:
             LOG.debug("No env-severity mapping. Channel: %s" % channel)
+
+        # Override the slack channel if a specific slack-channel attribute exist on the alert
+        if alert.attributes.get('slack-channel'):
+            LOG.debug("Found slack-channel attribute on the alert. Sending the alert to %s" % alert.attributes.get('slack-channel'))
+            channel = alert.attributes.get('slack-channel')
 
         templateVars = {
             'alert': alert,
@@ -198,7 +207,7 @@ class ServiceIntegration(PluginBase):
             LOG.debug("Alert severity %s is included in SLACK_SEVERITY_FILTER list, thus it will not be forwarded to Slack." % alert.severity)
             return
 
-        if alert.severity in ['ok', 'normal', 'cleared', app.config.get('DEFAULT_NORMAL_SEVERITY')] and alert.previous_severity in SLACK_SEVERITY_FILTER:
+        if alert.severity in ['ok', 'normal', 'cleared', app.config.get('DEFAULT_NORMAL_SEVERITY')] and alert.previous_severity in SLACK_PREVIOUS_SEVERITY_FILTER:
             LOG.debug("Alert severity is %s but previous_severity was %s (included in SLACK_SEVERITY_FILTER list), thus it will not be forwarded to Slack." % (alert.severity, alert.previous_severity))
             return
 
