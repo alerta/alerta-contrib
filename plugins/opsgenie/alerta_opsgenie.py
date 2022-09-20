@@ -17,10 +17,12 @@ OPSGENIE_EVENTS_CLOSE_URL = 'https://api.opsgenie.com/v2/alerts/%s/close?identif
 OPSGENIE_EVENTS_ACK_URL = 'https://api.opsgenie.com/v2/alerts/%s/acknowledge?identifierType=alias'
 OPSGENIE_SERVICE_KEY = os.environ.get('OPSGENIE_SERVICE_KEY') or app.config['OPSGENIE_SERVICE_KEY']
 OPSGENIE_TEAMS = os.environ.get('OPSGENIE_TEAMS', '') # comma separated list of teams
+OPSGENIE_TEAMS_MATCHERS = os.environ.get('OPSGENIE_TEAMS_MATCHERS') or app.config.get('OPSGENIE_TEAMS_MATCHERS', [])
 OPSGENIE_SEND_WARN = os.environ.get('OPSGENIE_SEND_WARN') or app.config.get('OPSGENIE_SEND_WARN', False)
 SERVICE_KEY_MATCHERS = os.environ.get('SERVICE_KEY_MATCHERS') or app.config['SERVICE_KEY_MATCHERS']
 DASHBOARD_URL = os.environ.get('DASHBOARD_URL') or app.config.get('DASHBOARD_URL', '')
 LOG.info('Initialized: %s key, %s matchers' % (OPSGENIE_SERVICE_KEY, SERVICE_KEY_MATCHERS))
+LOG.info('Initialized: %s key, %s matchers' % (OPSGENIE_TEAMS, OPSGENIE_TEAMS_MATCHERS))
 
 # when using with OpsGenie Edge connector setting a known source is useful
 OPSGENIE_ALERT_SOURCE = os.environ.get('OPSGENIE_ALERT_SOURCE') or app.config.get('OPSGENIE_ALERT_SOURCE', 'Alerta')
@@ -106,7 +108,7 @@ class TriggerEvent(PluginBase):
                 "alias": alert.id,
                 "message": "[ %s ]: %s: %s" % (alert.environment, alert.severity, alert.text),
                 "entity": alert.environment,
-                "responders" : self.get_opsgenie_teams(),
+                "responders" : self.get_opsgenie_teams(alert.resource),
                 "tags": [alert.environment, alert.resource, alert.service[0], alert.event],
                 "source": "{}".format(OPSGENIE_ALERT_SOURCE),
                 "details": details
@@ -121,12 +123,21 @@ class TriggerEvent(PluginBase):
 
             LOG.debug('OpsGenie response: %s - %s' % (r.status_code, r.text))
 
-    # generate list of responders from OPSGENIE_TEAMS env var
-    def get_opsgenie_teams(self):
-        teams = OPSGENIE_TEAMS.replace(' ', '') # remove whitespace
-        if len(teams) == 0:
-            return [] # no teams specified
-        teams = teams.split(',')
+    # generate list of responders from OPSGENIE_TEAMS env var or OPSGENIE_TEAMS_MATCHERS
+    def get_opsgenie_teams(self, resource):
+        teams = []
+        if not OPSGENIE_TEAMS:
+            LOG.debug('No matchers defined! Default teams: %s' % (OPSGENIE_TEAMS))
+            teams = OPSGENIE_TEAMS.replace(' ', '') # remove whitespace
+            if len(teams) == 0:
+                teams = [] # no teams specified
+            teams = teams.split(',')
+        else:
+            for mapping in OPSGENIE_TEAMS_MATCHERS:
+                if re.match(mapping['regex'], resource):
+                    LOG.debug('Matched regex: %s, teams: %s' % (mapping['regex'], mapping['teams']))
+                    teams = mapping['teams']
+                    break
         return [{"name": team, "type": "team"} for team in teams]
 
     def status_change(self, alert, status, text):
