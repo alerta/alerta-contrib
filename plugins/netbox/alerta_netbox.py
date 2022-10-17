@@ -4,14 +4,14 @@ from typing import Any, Callable, Dict, List, MutableMapping, Tuple
 from urllib.parse import urljoin
 
 import requests
-from cachetools import TTLCache
 from alerta.models.alert import Alert
 from alerta.plugins import PluginBase
+from cachetools import TTLCache
 
 LOG = logging.getLogger("alerta.plugins.netbox")
 
-GQL_QUERY = """query FindDevice($q: String) {{
-    device_list(q: $q) {{
+GQL_QUERY = """query FindDevice($q: [String]) {{
+    device_list(name: $q) {{
         id
         {fields}
     }} 
@@ -65,7 +65,7 @@ class NetboxEnhance(PluginBase):
         LOG.debug("Enhancing alert with Netbox data")
         body: Dict[str, Any]
         self.netbox_cache.expire()
-        if cached := self.netbox_cache.get(alert.resource, False):
+        if cached := self.netbox_cache.get(alert.resource, None):
             LOG.debug("Using cached netbox response")
             body = cached
         else:
@@ -78,7 +78,7 @@ class NetboxEnhance(PluginBase):
                     },
                     json={
                         "query": GQL_QUERY.format(fields=NETBOX_FIELDS),
-                        "variables": {"q": alert.resource},
+                        "variables": {"q": [alert.resource]},
                     },
                 )
             except Exception as e:
@@ -104,6 +104,7 @@ class NetboxEnhance(PluginBase):
             if not len(body["data"]["device_list"]):
                 LOG.info(f"No devices found for {alert.resource}")
                 return alert
+
             self.netbox_cache[alert.resource] = body
 
         device: Dict[str, Any] = body["data"]["device_list"][0]
