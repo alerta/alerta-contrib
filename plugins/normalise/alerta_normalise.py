@@ -47,23 +47,22 @@ class NormaliseAlert(PluginBase):
 
         LOG.info("Normalising alert...")
 
-        if not alert.environment or not alert.environment == None or alert.environment == 'n/a':
-            try:
-                env = alert.tags['cluster_id'].split('/')
-                env_name = env[1]
-                env_id = env[2]
-                if ((env_name == "kaas-mgmt") or (env_name == "mcc-mgmt")):
-                    environment, resource = mgmt_def(env_id)
-                else:
-                    environment = env_name
-                    resource = customer_def(env_name)
-                alert.environment = environment
-                alert.resource = resource
-                alert.tags.pop('cluster_id')
-            except Exception:
-                alert.environment = current_app.config['DEFAULT_ENVIRONMENT']
-                alert.resource = None
-                return alert
+        try:
+            env = alert.tags['cluster_id'].split('/')
+            env_name = env[1]
+            env_id = env[2]
+            if ((env_name == "kaas-mgmt") or (env_name == "mcc-mgmt")):
+                environment, resource = mgmt_def(env_id)
+            else:
+                environment = env_name
+                resource = customer_def(env_name)
+            alert.environment = environment
+            alert.resource = resource
+            alert.tags.pop('cluster_id')
+        except Exception:
+            alert.environment = current_app.config['DEFAULT_ENVIRONMENT']
+            alert.resource = None
+            return alert
 
     def post_receive(self, alert):
         return
