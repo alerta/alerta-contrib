@@ -11,10 +11,10 @@ from cachetools import TTLCache
 LOG = logging.getLogger("alerta.plugins.netbox")
 
 GQL_QUERY = """query FindDevice($q: [String]) {{
-    device_list(name: $q) {{
+    device_list(name__ie: $q) {{
         id
         {fields}
-    }} 
+    }}
 }}"""
 
 DEFAULT_FIELDS = "site { name, region { name }, custom_fields }, tenant { name }, primary_ip4 { address }, custom_fields"
