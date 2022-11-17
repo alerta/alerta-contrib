@@ -12,7 +12,6 @@ setup(
     author='Michael Chambers',
     author_email='mchambers@mirantis.com',
     packages=find_packages(),
-    py_modules=['mirantis_normalise'],
     install_requires=[
         'flask'
     ],
@@ -20,7 +19,7 @@ setup(
     zip_safe=True,
     entry_points={
         'alerta.plugins': [
-            'normalise = alerta_normalise:NormaliseAlert'
+            'mirantis-normalise = alerta_normalise:NormaliseAlert'
         ]
     }
 )
