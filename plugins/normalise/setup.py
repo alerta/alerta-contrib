@@ -19,7 +19,7 @@ setup(
     zip_safe=True,
     entry_points={
         'alerta.plugins': [
-            'mirantis-normalise = alerta_normalise:NormaliseAlert'
+            'normalise = alerta_normalise:NormaliseAlert'
         ]
     }
 )
