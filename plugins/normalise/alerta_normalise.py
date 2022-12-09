@@ -61,7 +61,7 @@ class NormaliseAlert(PluginBase):
             alert.tags.pop('cluster_id')
         except Exception:
             alert.environment = current_app.config['DEFAULT_ENVIRONMENT']
-            alert.resource = None
+            alert.resource = "None"
             return alert
 
     def post_receive(self, alert):
