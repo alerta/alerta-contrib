@@ -45,3 +45,5 @@ pg-data/
 .devcontainer/
 .vscode/
 docker-compose.yml
+data/alertmanager
+data/prometheus
