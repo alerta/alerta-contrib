@@ -4,7 +4,7 @@ from setuptools import setup, find_packages
 version = '0.1'
 
 setup(
-    name="mirantis-normalise",
+    name="alerta-normalise",
     version=version,
     description='Alerta plugin for alert normalisation',
     url='https://github.com/michael-chambers/alerta-contrib',
@@ -12,6 +12,7 @@ setup(
     author='Michael Chambers',
     author_email='mchambers@mirantis.com',
     packages=find_packages(),
+    py_modules=['alerta_normalise'],
     install_requires=[
         'flask'
     ],

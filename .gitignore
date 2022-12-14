@@ -47,3 +47,4 @@ pg-data/
 docker-compose.yml
 data/alertmanager
 data/prometheus
+config/*.yml
