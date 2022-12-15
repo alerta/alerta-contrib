@@ -48,7 +48,7 @@ class NormaliseAlert(PluginBase):
         LOG.info("Normalising alert...")
 
         try:
-            env = alert.tags['cluster_id'].split('/')
+            env = alert.tags["cluster_id"].split('/')
             env_name = env[1]
             env_id = env[2]
             if ((env_name == "kaas-mgmt") or (env_name == "mcc-mgmt")):
