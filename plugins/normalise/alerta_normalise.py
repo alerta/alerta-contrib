@@ -5,7 +5,9 @@ from alerta.plugins import PluginBase
 from flask import current_app
 
 LOG = logging.getLogger('alerta.plugins.normalise')
-
+LOG.setLevel(logging.DEBUG)
+handler = logging.FileHandler('alertad.log')
+LOG.addHandler(handler)
 
 def customer_def(cloud_name):
     if ((cloud_name == "eu-production-mos") or (cloud_name == "presales-mos") or (cloud_name == "eu-mos-tf-region")):
@@ -45,10 +47,12 @@ class NormaliseAlert(PluginBase):
 
     def pre_receive(self, alert):
 
-        LOG.info("Normalising alert...")
+        LOG.info("Normalising alert because that's what we do...")
+        LOG.info("Raw cluster ID for alert is %s", alert.tags['cluster_id'])
 
         try:
             env = alert.tags["cluster_id"].split('/')
+            LOG.debug("env is set to %", env)
             env_name = env[1]
             env_id = env[2]
             if ((env_name == "kaas-mgmt") or (env_name == "mcc-mgmt")):
