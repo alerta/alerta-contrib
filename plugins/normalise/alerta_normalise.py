@@ -48,7 +48,10 @@ class NormaliseAlert(PluginBase):
     def pre_receive(self, alert):
 
         LOG.info("Normalising alert because that's what we do...")
-        LOG.info("Raw cluster ID for alert is %s", alert.tags['cluster_id'])
+        for t in alert.tags:
+            if t.startswith("cluster_id"):
+                cluster_id = t
+        LOG.info("Raw cluster ID tag for alert is %s", cluster_id)
 
         try:
             env = alert.tags["cluster_id"].split('/')
