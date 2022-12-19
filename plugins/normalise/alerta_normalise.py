@@ -47,15 +47,14 @@ class NormaliseAlert(PluginBase):
 
     def pre_receive(self, alert):
 
-        LOG.info("Normalising alert because that's what we do...")
-        for t in alert.tags:
-            if t.startswith("cluster_id"):
-                cluster_id = t
-        LOG.info("Raw cluster ID tag for alert is %s", cluster_id)
+        LOG.info("Normalising alert...")
 
         try:
-            env = alert.tags["cluster_id"].split('/')
-            LOG.debug("env is set to %", env)
+            for t in alert.tags:
+                if t.startswith("cluster_id"):
+                    cluster_id = t[11:]
+            env = cluster_id.split('/')
+            LOG.debug("env is set to %s", env)
             env_name = env[1]
             env_id = env[2]
             if ((env_name == "kaas-mgmt") or (env_name == "mcc-mgmt")):
@@ -65,11 +64,11 @@ class NormaliseAlert(PluginBase):
                 resource = customer_def(env_name)
             alert.environment = environment
             alert.resource = resource
-            alert.tags.pop('cluster_id')
         except Exception:
+            LOG.error("Unable to correctly normalise cluster information for %s", cluster_id)
             alert.environment = current_app.config['DEFAULT_ENVIRONMENT']
             alert.resource = "No worky"
-            return alert
+        return alert
 
     def post_receive(self, alert):
         return
