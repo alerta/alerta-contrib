@@ -7,6 +7,7 @@ import requests
 from alerta.models.alert import Alert
 from alerta.plugins import PluginBase
 from cachetools import TTLCache
+from requests.adapters import HTTPAdapter
 
 LOG = logging.getLogger("alerta.plugins.netbox")
 
@@ -45,16 +46,22 @@ def flatten(d: MutableMapping, parent_key: str = "", sep: str = "_"):
     return dict(items)
 
 
+CONNECTION_POOL = requests.Session()
+CONNECTION_POOL.mount("https://", HTTPAdapter(pool_maxsize=10))
+
+CACHE = TTLCache(maxsize=1000, ttl=5 * 60)
+
+
 class NetboxEnhance(PluginBase):
     """
     Enhancing alerts with Netbox data.
     Implementation by Extreme Labs
     """
 
-    netbox_cache = TTLCache(maxsize=1000, ttl=5 * 60)
-
     def pre_receive(self, alert: Alert, **kwargs):
-        NETBOX_URL = environ.get("NETBOX_URL") or kwargs["config"]["NETBOX_URL"]
+        NETBOX_URL = (
+            environ.get("NETBOX_URL") or kwargs["config"]["NETBOX_URL"]
+        ).rstrip("/")
         NETBOX_TOKEN = environ.get("NETBOX_TOKEN") or kwargs["config"]["NETBOX_TOKEN"]
         NETBOX_FIELDS = (
             environ.get("NETBOX_FIELDS")
@@ -64,13 +71,13 @@ class NetboxEnhance(PluginBase):
 
         LOG.debug("Enhancing alert with Netbox data")
         body: Dict[str, Any]
-        self.netbox_cache.expire()
-        if cached := self.netbox_cache.get(alert.resource, None):
+        CACHE.expire()
+        if cached := CACHE.get(alert.resource, None):
             LOG.debug("Using cached netbox response")
             body = cached
         else:
             try:
-                res = requests.post(
+                res = CONNECTION_POOL.post(
                     urljoin(NETBOX_URL, "/graphql/"),
                     headers={
                         "Authorization": f"Token {NETBOX_TOKEN}",
@@ -105,7 +112,7 @@ class NetboxEnhance(PluginBase):
                 LOG.info(f"No devices found for {alert.resource}")
                 return alert
 
-            self.netbox_cache[alert.resource] = body
+            CACHE[alert.resource] = body
 
         device: Dict[str, Any] = body["data"]["device_list"][0]
         device = squash_fields(device, ["custom_fields"])
