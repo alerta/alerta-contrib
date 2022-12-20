@@ -40,3 +40,11 @@ TODO
 *.log
 
 venv
+
+pg-data/
+.devcontainer/
+.vscode/
+docker-compose.yml
+data/alertmanager
+data/prometheus
+config/*.yml
