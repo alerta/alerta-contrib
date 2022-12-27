@@ -15,7 +15,7 @@ def get_info(current_cluster):
         for environment, env_data in customer_data.items():
             for cluster_name, id in env_data.items():
                 if id == current_cluster:
-                    return customer, environment
+                    return customer, environment, cluster_name
 
 class NormaliseAlert(PluginBase):
 
@@ -26,8 +26,8 @@ class NormaliseAlert(PluginBase):
         try:
             for t in alert.tags:
                 if t.startswith("cluster_id"):
-                    x, cluster_id = t.split('=', 1)
-            env = cluster_id.split('/')
+                    x, cluster_info = t.split('=', 1)
+            env = cluster_info.split('/')
             cluster_id = env[2]
             customer, environment, cluster_name = get_info(cluster_id)
             alert.attributes['client'] = customer
