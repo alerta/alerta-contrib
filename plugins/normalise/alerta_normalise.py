@@ -18,6 +18,7 @@ def get_info(current_cluster):
             for cluster_name, id in env_data.items():
                 LOG.debug("Examining %s cluster", cluster_name)
                 if id == current_cluster:
+                    LOG.debug("cluster identified for %s", id)
                     return customer, environment, cluster_name
 
 class NormaliseAlert(PluginBase):
@@ -31,6 +32,7 @@ class NormaliseAlert(PluginBase):
                 if t.startswith("cluster_id"):
                     x, cluster_info = t.split('=', 1)
             env = cluster_info.split('/')
+            LOG.debug("Cluster information is %s", env)
             cluster_id = env[2]
             customer, environment, cluster_name = get_info(cluster_id)
             alert.attributes['client'] = customer
