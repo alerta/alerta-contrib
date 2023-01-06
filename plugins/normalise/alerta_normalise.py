@@ -35,7 +35,8 @@ class NormaliseAlert(PluginBase):
             LOG.debug("Cluster information is %s", env)
             cluster_id = env[2]
             customer, environment, cluster_name = get_info(cluster_id)
-            alert.attributes['client'] = customer
+            # alert.attributes['client'] = customer
+            alert.customer = customer
             alert.environment = environment
             alert.resource = cluster_name
         except Exception:
@@ -43,7 +44,6 @@ class NormaliseAlert(PluginBase):
             LOG.error("Unable to correctly normalise cluster information for %s", cluster_id)
             if not alert.environment:
                 alert.environment = current_app.config['DEFAULT_ENVIRONMENT']
-            # alert.attributes['client'] = "N/A"
             if not alert.resource:
                 alert.resource = "Unknown"
         return alert
