@@ -41,7 +41,10 @@ TODO
 
 venv
 
-.devcontainer
-.vscode
 pg-data/
+.devcontainer/
+.vscode/
 docker-compose.yml
+data/alertmanager
+data/prometheus
+config/*.yml

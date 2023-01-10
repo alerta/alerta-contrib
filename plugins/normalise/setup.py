@@ -1,18 +1,21 @@
 
 from setuptools import setup, find_packages
 
-version = '5.3.1'
+version = '0.3'
 
 setup(
     name="alerta-normalise",
     version=version,
     description='Alerta plugin for alert normalisation',
-    url='https://github.com/alerta/alerta-contrib',
+    url='https://github.com/michael-chambers/alerta-contrib',
     license='MIT',
-    author='Nick Satterly',
-    author_email='nick.satterly@theguardian.com',
+    author='Michael Chambers',
+    author_email='mchambers@mirantis.com',
     packages=find_packages(),
     py_modules=['alerta_normalise'],
+    install_requires=[
+        'flask'
+    ],
     include_package_data=True,
     zip_safe=True,
     entry_points={
