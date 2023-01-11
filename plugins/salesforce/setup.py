@@ -7,7 +7,7 @@ setup(
     name="alerta-salesforce",
     version=version,
     description='Alerta plugin for SalesForce',
-    url='https://github.com/alerta/alerta-contrib',
+    url='https://github.com/michael-chambers/alerta-contrib',
     license='MIT',
     author='Michael Chambers',
     author_email='mchambers@mirantis.com',

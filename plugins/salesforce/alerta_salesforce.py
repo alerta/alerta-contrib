@@ -12,9 +12,6 @@ from requests.exceptions import ConnectionError as RequestsConnectionError
 from simple_salesforce import Salesforce
 from simple_salesforce import exceptions as sf_exceptions
 
-import configparser
-
-
 try:
     from alerta.plugins import app  # alerta >= 5.0
 except ImportError:
@@ -53,8 +50,8 @@ SESSION_FILE = '/tmp/session'
 
 SALESFORCE_CONFIG = 'temp_configuration'
 
-logger = logging.getLogger(__name__)
-
+LOG = logging.getLogger('alerta.plugins.salesforce')
+LOG.setLevel(logging.DEBUG)
 
 @contextmanager
 def flocked(fd):
@@ -62,7 +59,7 @@ def flocked(fd):
         fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
         yield
     except IOError:
-        logger.info('Session file locked. Waiting 5 seconds...')
+        LOG.info('Session file locked. Waiting 5 seconds...')
         time.sleep(5)
     finally:
         fcntl.flock(fd, fcntl.LOCK_UN)
@@ -73,10 +70,10 @@ def sf_auth_retry(method):
         try:
             return method(self, *args, **kwargs)
         except sf_exceptions.SalesforceExpiredSession:
-            logger.warning('Salesforce session expired.')
+            LOG.warning('Salesforce session expired.')
             self.auth()
         except RequestsConnectionError:
-            logger.error('Salesforce connection error.')
+            LOG.error('Salesforce connection error.')
             self.auth()
         return method(self, *args, **kwargs)
     return wrapper
@@ -86,25 +83,6 @@ class SfNotifierError(Exception):
     pass
 
 class SFIntegration(PluginBase):
-    def __init__(self):
-        config = configparser.ConfigParser()
-        config.read('salesforce.cfg')
-        for section in config.sections():
-            # need some logic to determine which is the appropriate environment from the config file to use
-            if section == SALESFORCE_CONFIG: 
-                configValues = {
-                    'AUTH_URL': config[section]['AUTH_URL'],
-                    'USERNAME': config[section]['USERNAME'],
-                    'PASSWORD': config[section]['PASSWORD'],
-                    'ORGANIZATION_ID': config[section]['ORGANIZATION_ID'],
-                    'ENVIRONMENT_ID': config[section]['ENVIRONMENT_ID'],
-                    'SANDBOX_ENABLED': config[section]['SANDBOX_ENABLED'],
-                    'FEED_ENABLED': config[section]['FEED_ENABLED'],
-                    'HASH_FUNC': config[section]['HASH_FUNC']
-                }
-                break
-        self.client = SalesforceClient(configValues)
-
     def pre_receive(self, alert):
         # TODO
         return alert
@@ -116,6 +94,26 @@ class SFIntegration(PluginBase):
     def status_change(self, alert):
         # TODO
         return alert
+
+    def take_action(self, alert, action, text):
+        # need some logic to determine which is the appropriate environment from the config file to use
+        LOG.debug("SFDC take_action function reached")
+        try:
+            configValues = {
+                'AUTH_URL': app.config.get('SFDC_AUTH_URL'),
+                'USERNAME': app.config.get('SFDC_USERNAME'),
+                'PASSWORD': app.config.get('SFDC_PASSWORD'),
+                'ORGANIZATION_ID': app.config.get('SFDC_ORGANIZATION_ID'),
+                'ENVIRONMENT_ID': app.config.get('SFDC_ENVIRONMENT_ID'),
+                'SANDBOX_ENABLED': app.config.get('SFDC_SANDBOX_ENABLED'),
+                'FEED_ENABLED': app.config.get('SFDC_FEED_ENABLED'),
+                'HASH_FUNC': app.config.get('SFDC_HASH_FUNC')
+            }
+            LOG.debug("SFDC values read for environment %s", configValues['ENVIRONMENT_ID'])
+        except Exception as e:
+            LOG.error(e)
+        self.client = SalesforceClient(configValues)
+        return alert, action, text
 
 class SalesforceClient(object):
     def __init__(self, config):
@@ -134,6 +132,7 @@ class SalesforceClient(object):
         self.sf = None
         self.session = Session()
         self.auth(no_retry=True)
+        LOG.debug("SFDC client initialized")
 
     @staticmethod
     def _hash_func(name):
@@ -141,7 +140,7 @@ class SalesforceClient(object):
             return getattr(hashlib, name)
         msg = ('Invalid hashing function "{}".'
                'Switching to default "sha256".').format(name)
-        logger.warn(msg)
+        LOG.warn(msg)
         return hashlib.sha256
 
     @staticmethod
@@ -151,10 +150,10 @@ class SalesforceClient(object):
         for param, value in config.items():
             field = CONFIG_FIELD_MAP.get(param.lower())
             if field is None:
-                env_var = 'SFDC_{}'.format(param)
+                # env_var = 'SFDC_{}'.format(param)
                 msg = ('Invalid config: missing "{}" field or "{}" environment'
-                       ' variable.').format(field, env_var)
-                logger.error(msg)
+                       ' variable.').format(field, param)
+                LOG.error(msg)
                 raise SfNotifierError(msg)
 
             kwargs[field] = value
@@ -172,11 +171,11 @@ class SalesforceClient(object):
             config.update({'session': self.session})
             self.sf = Salesforce(**config)
         except Exception as ex:
-            logger.error('Salesforce authentication failure: {}.'.format(ex))
+            LOG.error('Salesforce authentication failure: {}.'.format(ex))
             self.metrics['sf_auth_ok'] = False
             return False
 
-        logger.info('Salesforce authentication successful.')
+        LOG.info('Salesforce authentication successful.')
         self.metrics['sf_auth_ok'] = True
         return True
 
@@ -189,7 +188,7 @@ class SalesforceClient(object):
 
     def _refresh_ready(self, saved_session):
         if saved_session is None:
-            logger.info('Current session is None.')
+            LOG.info('Current session is None.')
             return True
 
         if self.sf is None:
@@ -200,7 +199,7 @@ class SalesforceClient(object):
         return False
 
     def _reuse_session(self, saved_session):
-        logger.info('Reusing session id from file.')
+        LOG.info('Reusing session id from file.')
         # limit params to avoid login request
         config = {
             'session_id': saved_session,
@@ -212,35 +211,36 @@ class SalesforceClient(object):
         # only one worker at a time can check session_file
         auth_success = False
 
-        logger.info('Attempting to lock session file.')
+        LOG.info('Attempting to lock session file.')
         with open(SESSION_FILE, 'r+') as session_file:
             with flocked(session_file):
-                logger.info('Successfully locked session file for refresh.')
+                LOG.info('Successfully locked session file for refresh.')
 
                 saved_session = self._load_session(session_file)
 
                 if self._refresh_ready(saved_session):
-                    logger.info('Attempting to refresh session.')
+                    LOG.info('Attempting to refresh session.')
 
                     if self._auth(self.config):
                         auth_success = True
                         session_file.truncate(0)
                         session_file.seek(0)
                         session_file.write(self.sf.session_id)
-                        logger.info('Refreshed session successfully.')
+                        LOG.info('Refreshed session successfully.')
                     else:
-                        logger.error('Failed to refresh session.')
+                        LOG.error('Failed to refresh session.')
                 else:
-                    logger.info('Not refreshing. Reusing session.')
+                    LOG.info('Not refreshing. Reusing session.')
                     auth_success = self._reuse_session(saved_session)
 
         if auth_success is False:
-            logger.warn('Waiting 30 seconds before next attempt...')
+            LOG.warn('Waiting 30 seconds before next attempt...')
             time.sleep(30)
 
         return auth_success
 
     def auth(self, no_retry=False):
+        LOG.debug("Attempting to acquire SFDC sesion")
         auth_ok = self._acquire_session()
 
         if no_retry:
@@ -263,7 +263,7 @@ class SalesforceClient(object):
     def _create_case(self, subject, body, labels, alert_id):
 
         if alert_id in self._registered_alerts:
-            logger.warning('Duplicate case for alert: {}.'.format(alert_id))
+            LOG.warning('Duplicate case for alert: {}.'.format(alert_id))
             return 1, self._registered_alerts[alert_id]['Id']
 
         severity = labels.get('severity', 'unknown').upper()
@@ -285,22 +285,22 @@ class SalesforceClient(object):
         # if self._is_watchdog(labels):
         #     payload['IsWatchDogAlert__c'] = 'true'
 
-        logger.info('Try to create case: {}.'.format(payload))
+        LOG.info('Try to create case: {}.'.format(payload))
         try:
             self.metrics['sf_request_count'] += 1
             case = self.sf.Case.create(payload)
-            logger.info('Created case: {}.'.format(case))
+            LOG.info('Created case: {}.'.format(case))
         except sf_exceptions.SalesforceMalformedRequest as ex:
             msg = ex.content[0]['message']
             err_code = ex.content[0]['errorCode']
 
             if err_code == 'DUPLICATE_VALUE':
-                logger.warning('Duplicate case: {}.'.format(msg))
+                LOG.warning('Duplicate case: {}.'.format(msg))
                 case_id = msg.split()[-1]
                 self._registered_alerts[alert_id] = {'Id': case_id}
                 return 1, case_id
 
-            logger.error('Cannot create case: {}.'.format(msg))
+            LOG.error('Cannot create case: {}.'.format(msg))
             self.metrics['sf_error_count'] += 1
             raise
 
@@ -310,10 +310,11 @@ class SalesforceClient(object):
     @sf_auth_retry
     def _create_feed_item(self, subject, body, case_id):
         feed_item = {'Title': subject, 'ParentId': case_id, 'Body': body}
-        logger.debug('Creating feed item: {}.'.format(feed_item))
+        LOG.debug('Creating feed item: {}.'.format(feed_item))
         return self.sf.FeedItem.create(feed_item)
 
     def create_case(self, subject, body, labels):
+        LOG.debug("Attempting to create SFDC case")
         # alert_id = self._get_alert_id(labels)
         alert_id = labels.get('id')
 
@@ -326,6 +327,7 @@ class SalesforceClient(object):
             response['status'] = 'duplicate'
         else:
             response['status'] = 'created'
+            LOG.debug("SFDC #%s case created", response['case_id'])
 
         if self.feed_enabled or self._is_watchdog(labels):
             self._create_feed_item(subject, body, case_id)
