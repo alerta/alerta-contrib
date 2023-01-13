@@ -83,21 +83,9 @@ class SfNotifierError(Exception):
     pass
 
 class SFIntegration(PluginBase):
-    def pre_receive(self, alert):
-        # TODO
-        return alert
-    
-    def post_receive(self, alert):
-        self.client.create_case(alert.event, alert.text, alert.serialize)
-        return
-
-    def status_change(self, alert):
-        # TODO
-        return alert
-
-    def take_action(self, alert, action, text):
+    def __init__ (self, name=None):
         # need some logic to determine which is the appropriate environment from the config file to use
-        LOG.debug("SFDC take_action function reached")
+        LOG.info("Initializing SFDC client")
         try:
             configValues = {
                 'AUTH_URL': app.config.get('SFDC_AUTH_URL'),
@@ -109,10 +97,29 @@ class SFIntegration(PluginBase):
                 'FEED_ENABLED': app.config.get('SFDC_FEED_ENABLED'),
                 'HASH_FUNC': app.config.get('SFDC_HASH_FUNC')
             }
-            LOG.debug("SFDC values read for environment %s", configValues['ENVIRONMENT_ID'])
+            LOG.debug("SFDC values read from alertad.conf")
         except Exception as e:
             LOG.error(e)
         self.client = SalesforceClient(configValues)
+        super(SFIntegration, self).__init__(name)
+
+    def pre_receive(self, alert, **kwargs):
+        return alert
+    
+    def post_receive(self, alert, **kwargs):
+        return
+
+    def status_change(self, alert, status, text, **kwargs):
+        return alert
+
+    def take_action(self, alert, action, text, **kwargs):
+        LOG.debug("Preparing to send alert to SalesForce")
+        if action == 'salesforce':
+            sf_response = self.client.create_case(f'{alert.event} alert on {alert.resource}', alert.text, alert.serialize)
+            # alert.attributes['SalesForce_Case'] = sf_response['case_id']
+            if sf_response['status'] == 'created':
+                alert.attributes['Sent_to_SalesForce'] = True
+            text = "Creating SalesForce case"
         return alert, action, text
 
 class SalesforceClient(object):
@@ -255,10 +262,6 @@ class SalesforceClient(object):
             alert_id_data += labels[key].replace(".", "\\.")
         return self.hash_func(alert_id_data.encode('utf-8')).hexdigest()
 
-    @staticmethod
-    def _is_watchdog(labels):
-        return labels['alertname'].lower() == 'watchdog'
-
     @sf_auth_retry
     def _create_case(self, subject, body, labels, alert_id):
 
@@ -272,15 +275,18 @@ class SalesforceClient(object):
             'Description': body,
             'IsMosAlert__c': 'true',
             'Alert_Priority__c': STATE_MAP.get(severity, '070 Unknown'),
-            'Alert_Host__c': labels.get('host') or labels.get(
+            'Alert_Host__c': labels.get('resource') or labels.get(
                 'instance', 'UNKNOWN'
             ),
             'Alert_Service__c': labels.get('service', 'UNKNOWN')[0],
             'Environment2__c': self.environment,
             'Alert_ID__c': alert_id,
+            # 'ClusterId__c': labels.get('tags', []).get('cluster_id')
         }
-        if labels.get('cluster_id') is not None:
-            payload['ClusterId__c'] = labels['cluster_id']
+        for t in labels.get('tags', []):
+                if t.startswith("cluster_id"):
+                    x, cluster_id = t.split('=', 1)
+        payload['ClusterId__c'] = cluster_id
 
         # if self._is_watchdog(labels):
         #     payload['IsWatchDogAlert__c'] = 'true'
@@ -327,8 +333,7 @@ class SalesforceClient(object):
             response['status'] = 'duplicate'
         else:
             response['status'] = 'created'
-            LOG.debug("SFDC #%s case created", response['case_id'])
 
-        if self.feed_enabled or self._is_watchdog(labels):
+        if self.feed_enabled:
             self._create_feed_item(subject, body, case_id)
         return response
