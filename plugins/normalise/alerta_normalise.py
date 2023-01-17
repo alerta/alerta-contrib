@@ -5,9 +5,9 @@ from alerta.plugins import PluginBase
 from flask import current_app
 
 LOG = logging.getLogger('alerta.plugins.normalise')
-# LOG.setLevel(logging.DEBUG)
-handler = logging.FileHandler('/var/log/alertad.log')
-LOG.addHandler(handler)
+LOG.setLevel(logging.DEBUG)
+# handler = logging.FileHandler('/var/log/alertad.log')
+# LOG.addHandler(handler)
 
 def get_info(current_cluster):
     all_clusters = current_app.config['NORMALISE_ENVIRONMENTS']
