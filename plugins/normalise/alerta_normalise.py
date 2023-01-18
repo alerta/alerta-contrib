@@ -5,27 +5,22 @@ from alerta.plugins import PluginBase
 from flask import current_app
 
 LOG = logging.getLogger('alerta.plugins.normalise')
-# LOG.setLevel(logging.DEBUG)
-handler = logging.FileHandler('/var/log/alertad.log')
-LOG.addHandler(handler)
+LOG.setLevel(logging.DEBUG)
 
 def get_info(current_cluster):
     all_clusters = current_app.config['NORMALISE_ENVIRONMENTS']
     for customer, customer_data in all_clusters.items():
-        LOG.debug("Searching %s clusters", customer)
         for environment, env_data in customer_data.items():
-            LOG.debug("Searching %s", environment)
-            for cluster_name, id in env_data.items():
-                LOG.debug("Examining %s cluster", cluster_name)
-                if id == current_cluster:
-                    LOG.debug("cluster identified for %s", id)
+            for cluster_name, cid in env_data.items():
+                if cid == current_cluster:
+                    LOG.debug(f'{customer} cluster {cid} identified as {cluster_name} in {environment}')
                     return customer, environment, cluster_name
 
 class NormaliseAlert(PluginBase):
 
     def pre_receive(self, alert):
 
-        LOG.info("Normalising alert...")
+        LOG.info(f'Normalising {alert.event} alert {alert.id}')
 
         try:
             for t in alert.tags:
@@ -35,7 +30,6 @@ class NormaliseAlert(PluginBase):
             LOG.debug("Cluster information is %s", env)
             cluster_id = env[2]
             customer, environment, cluster_name = get_info(cluster_id)
-            # alert.attributes['client'] = customer
             alert.customer = customer
             alert.environment = environment
             alert.resource = cluster_name
