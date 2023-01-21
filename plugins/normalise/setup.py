@@ -1,7 +1,7 @@
 
 from setuptools import setup, find_packages
 
-version = '0.3'
+version = '1.1'
 
 setup(
     name="alerta-normalise",
