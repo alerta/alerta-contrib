@@ -12,12 +12,7 @@ from requests.exceptions import ConnectionError as RequestsConnectionError
 from simple_salesforce import Salesforce
 from simple_salesforce import exceptions as sf_exceptions
 
-try:
-    from alerta.plugins import app  # alerta >= 5.0
-except ImportError:
-    from alerta.app import app  # alerta < 5.0
-
-from alerta.plugins import PluginBase
+from alerta.plugins import PluginBase, app
 
 
 STATE_MAP = {
@@ -51,7 +46,6 @@ SESSION_FILE = '/tmp/session'
 SALESFORCE_CONFIG = 'temp_configuration'
 
 LOG = logging.getLogger('alerta.plugins.salesforce')
-LOG.setLevel(logging.DEBUG)
 
 @contextmanager
 def flocked(fd):
@@ -78,29 +72,54 @@ def sf_auth_retry(method):
         return method(self, *args, **kwargs)
     return wrapper
 
+def get_sf_env_credentials(customer, environment, cluster_name):
+    env_id = ""
+    username = ""
+    password = ""
+    try:
+        env_clusters = app.config.get('OPSCARE_CUSTOMER_INFO')[customer]['environments'][environment]
+        LOG.debug(f'env_clusters are {env_clusters}')
+        for cluster_id, cluster_info in env_clusters.items():
+            if cluster_info['name'] == cluster_name:
+                env_id = cluster_info['sf_env_id']
+                if 'sf_env_username' in cluster_info.keys():
+                    username = cluster_info['sf_env_username']
+                if 'sf_env_password' in cluster_info.keys():
+                    password = cluster_info['sf_env_password']
+                break
+        if not env_id:
+            raise LookupError
+        if not username:
+            username = env_clusters['sf_username']
+        if not password:
+            password = env_clusters['sf_password']
+    except Exception as e:
+        LOG.error(e)
+    return env_id, username, password
+
+def read_sf_auth_values(customer, environment, cluster_name):
+    try:
+        env_id, username, password = get_sf_env_credentials(customer, environment, cluster_name)
+        values = {
+            'AUTH_URL': f'instance_{customer.replace(" ", "-")}_{environment.replace(" ", "-")}_{cluster_name.replace(" ", "-")}',
+            'USERNAME': username,
+            'PASSWORD': password,
+            'ORGANIZATION_ID': app.config.get('OPSCARE_CUSTOMER_INFO')[customer]['sf_org_id'],
+            'ENVIRONMENT_ID': env_id,
+            'SANDBOX_ENABLED': app.config.get('SFDC_SANDBOX_ENABLED'),
+            'FEED_ENABLED': app.config.get('SFDC_FEED_ENABLED'),
+            'HASH_FUNC': app.config.get('SFDC_HASH_FUNC')
+        }
+        LOG.debug(f'SFDC values read from alertad.conf: {values}')
+        return values
+    except Exception as e:
+        LOG.error(e)
 
 class SfNotifierError(Exception):
     pass
 
 class SFIntegration(PluginBase):
     def __init__ (self, name=None):
-        # need some logic to determine which is the appropriate environment from the config file to use
-        LOG.info("Initializing SFDC client")
-        try:
-            configValues = {
-                'AUTH_URL': app.config.get('SFDC_AUTH_URL'),
-                'USERNAME': app.config.get('SFDC_USERNAME'),
-                'PASSWORD': app.config.get('SFDC_PASSWORD'),
-                'ORGANIZATION_ID': app.config.get('SFDC_ORGANIZATION_ID'),
-                'ENVIRONMENT_ID': app.config.get('SFDC_ENVIRONMENT_ID'),
-                'SANDBOX_ENABLED': app.config.get('SFDC_SANDBOX_ENABLED'),
-                'FEED_ENABLED': app.config.get('SFDC_FEED_ENABLED'),
-                'HASH_FUNC': app.config.get('SFDC_HASH_FUNC')
-            }
-            LOG.debug("SFDC values read from alertad.conf")
-        except Exception as e:
-            LOG.error(e)
-        self.client = SalesforceClient(configValues)
         super(SFIntegration, self).__init__(name)
 
     def pre_receive(self, alert, **kwargs):
@@ -113,13 +132,22 @@ class SFIntegration(PluginBase):
         return alert
 
     def take_action(self, alert, action, text, **kwargs):
+        configValues = read_sf_auth_values(alert.customer, alert.environment, alert.resource)
+        self.client = SalesforceClient(configValues)
         LOG.debug("Preparing to send alert to SalesForce")
         if action == 'salesforce':
-            sf_response = self.client.create_case(f'{alert.event} alert on {alert.resource}', alert.text, alert.serialize)
-            # alert.attributes['SalesForce_Case'] = sf_response['case_id']
-            if sf_response['status'] == 'created':
-                alert.attributes['Sent_to_SalesForce'] = True
-            text = "Creating SalesForce case"
+            if not 'case_link' in alert.attributes.keys():
+                sf_response = self.client.create_case(f'SRE [{alert.severity.upper()}] {alert.event}', alert.text, alert.serialize)
+                if sf_response['status'] == 'created':
+                    case_link = "https://mirantis.my.salesforce.com/{}".format(sf_response['case_id'])
+                    alert.attributes['Case link'] = "<a href={}>{}<a>".format(case_link,sf_response['case_id'])
+                    text = "SalesForce case created"
+                elif sf_response['status'] == 'duplicate':
+                    text = "SalesForce case exists for this alert"
+                else:
+                    text = "Failed to create SalesForce case, check logs"
+            else:
+                text = "SalesForce case already created for this alert"
         return alert, action, text
 
 class SalesforceClient(object):
@@ -157,7 +185,6 @@ class SalesforceClient(object):
         for param, value in config.items():
             field = CONFIG_FIELD_MAP.get(param.lower())
             if field is None:
-                # env_var = 'SFDC_{}'.format(param)
                 msg = ('Invalid config: missing "{}" field or "{}" environment'
                        ' variable.').format(field, param)
                 LOG.error(msg)
@@ -281,15 +308,8 @@ class SalesforceClient(object):
             'Alert_Service__c': labels.get('service', 'UNKNOWN')[0],
             'Environment2__c': self.environment,
             'Alert_ID__c': alert_id,
-            # 'ClusterId__c': labels.get('tags', []).get('cluster_id')
+            'ClusterId__c': labels['attributes'].get('cluster_id', '')
         }
-        for t in labels.get('tags', []):
-                if t.startswith("cluster_id"):
-                    x, cluster_id = t.split('=', 1)
-        payload['ClusterId__c'] = cluster_id
-
-        # if self._is_watchdog(labels):
-        #     payload['IsWatchDogAlert__c'] = 'true'
 
         LOG.info('Try to create case: {}.'.format(payload))
         try:
