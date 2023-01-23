@@ -16,10 +16,13 @@ LOG = logging.getLogger('alerta.plugins.jira')
 # retrieve plugin configurations
 JIRA_URL = app.config.get('JIRA_URL') or os.environ.get('JIRA_URL')
 JIRA_PROJECT = app.config.get('JIRA_PROJECT') or os.environ.get('JIRA_PROJECT')
+JIRA_ACTION_ONLY = app.config.get('JIRA_ACTION_ONLY', False) or os.environ.get('JIRA_ACTION_ONLY', False)
 JIRA_USER = app.config.get('JIRA_USER') or os.environ.get('JIRA_USER')
 JIRA_PASS = app.config.get('JIRA_PASS') or os.environ.get('JIRA_PASS')
 
 class JiraCreate(PluginBase):
+    def __init__ (self, name=None):
+        super(JiraCreate, self).__init__(name)
 
     def _sendjira(self, host, event, value, chart, text, severity):
         LOG.info('JIRA: Create task ...')
@@ -52,6 +55,35 @@ class JiraCreate(PluginBase):
         data = res.read()            
         data = json.loads(data)
         return data["key"]
+
+    def _alertjira(self, alert):
+        try:
+            LOG.info("Jira: Received an alert")
+            LOG.debug("Jira: ALERT       {}".format(alert))
+            LOG.debug("Jira: ID          {}".format(alert.id))
+            LOG.debug("Jira: RESOURCE    {}".format(alert.resource))
+            LOG.debug("Jira: EVENT       {}".format(alert.event))
+            LOG.debug("Jira: SEVERITY    {}".format(alert.severity))
+            LOG.debug("Jira: TEXT        {}".format(alert.text))
+
+            # get basic info from alert
+            host = alert.resource.split(':')[0]
+            LOG.debug("JIRA: HOST        {}".format(host))
+            chart = ".".join(alert.event.split('.')[:-1])
+            LOG.debug("JIRA: CHART       {}".format(chart))
+            event = alert.event.split('.')[-1]
+            LOG.debug("JIRA: EVENT       {}".format(event))
+
+            # call the _sendjira and modify de text (discription)
+            task = self._sendjira(host, event, alert.value, chart, alert.text, alert.severity)
+            task_url = "https://" + JIRA_URL + "/browse/" + task
+            href = '<a href="%s" target="_blank">%s</a>' %(task_url, task)
+            alert.attributes = {'Jira Task': href}
+            return alert
+
+        except Exception as e:
+            LOG.error('Jira: Failed to create task: %s', e)
+            return
         
     # reject or modify an alert before it hits the database
     def pre_receive(self, alert):
@@ -59,36 +91,25 @@ class JiraCreate(PluginBase):
 
     # after alert saved in database, forward alert to external systems
     def post_receive(self, alert):
-        try:
+        if not JIRA_ACTION_ONLY:
             # if the alert is critical and don't duplicate, create task in Jira
             if alert.status not in ['ack', 'closed', 'shelved'] and alert.duplicate_count == 0:
-                LOG.info("Jira: Received an alert")
-                LOG.debug("Jira: ALERT       {}".format(alert))
-                LOG.debug("Jira: ID          {}".format(alert.id))
-                LOG.debug("Jira: RESOURCE    {}".format(alert.resource))
-                LOG.debug("Jira: EVENT       {}".format(alert.event))
-                LOG.debug("Jira: SEVERITY    {}".format(alert.severity))
-                LOG.debug("Jira: TEXT        {}".format(alert.text))
-
-                # get basic info from alert
-                host = alert.resource.split(':')[0]
-                LOG.debug("JIRA: HOST        {}".format(host))
-                chart = ".".join(alert.event.split('.')[:-1])
-                LOG.debug("JIRA: CHART       {}".format(chart))
-                event = alert.event.split('.')[-1]
-                LOG.debug("JIRA: EVENT       {}".format(event))
-
-                # call the _sendjira and modify de text (discription)
-                task = self._sendjira(host, event, alert.value, chart, alert.text, alert.severity)
-                task_url = "https://" + JIRA_URL + "/browse/" + task
-                href = '<a href="%s" target="_blank">%s</a>' %(task_url, task)
-                alert.attributes = {'Jira Task': href}
+                self._alertjira(alert)
                 return alert
-
-        except Exception as e:
-            LOG.error('Jira: Failed to create task: %s', e)
+        else:
             return
 
     # triggered by external status changes, used by integrations
     def status_change(self, alert, status, text):
         return
+
+    def take_action(self, alert, action, text, **kwargs):
+        if not 'Jira Task' in alert.attributes:
+            try:
+                self._alertjira(alert)
+                text = "Jira task created"
+            except Exception:
+                text = "Jira task creation failed"
+        else:
+            text = "Jira task already exists for this alert"
+        return alert, action, text
