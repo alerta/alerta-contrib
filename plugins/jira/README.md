@@ -28,11 +28,16 @@ server configuration file or as environment variables.
 
 ```python
 PLUGINS = ['jira']
-JIRA_PROJECT = '' #project name in jira
-JIRA_URL = ''     #url access to the jira 
-JIRA_USER = ''    #defined to the according to the jira access data
-JIRA_PASS = ''    #defined to the according to the jira access data
+JIRA_PROJECT = ''         #project name in jira
+JIRA_URL = ''             #url access to the jira 
+JIRA_ACTION_ONLY = False  #allows alerts to be sent individually
+JIRA_USER = ''            #defined according to the jira access data
+JIRA_PASS = ''            #defined according to the jira access data
 ```
+
+Action-Only Option
+------------------
+If `JIRA_ACTION_ONLY` is set to True (default is False), automatic sending of open alerts to Jira is disabled. Instead, add `jira` to the list of `ACTIONS` in alertad.conf (see [https://docs.alerta.io/configuration.html](https://docs.alerta.io/configuration.html?#web-ui-settings)). This will add an action button on each alert to manually forward it to Jira.
 
 Troubleshooting
 ---------------
