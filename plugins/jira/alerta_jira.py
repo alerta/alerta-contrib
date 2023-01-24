@@ -106,7 +106,7 @@ class JiraCreate(PluginBase):
     def take_action(self, alert, action, text, **kwargs):
         if not 'Jira Task' in alert.attributes:
             self._alertjira(alert)
-            if 'Jira Task' in alert.attributes
+            if 'Jira Task' in alert.attributes:
                 text = "Jira task created"
             else:
                 text = "Jira task creation failed"
