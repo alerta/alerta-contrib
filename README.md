@@ -96,4 +96,3 @@ License
 -------
 
 Copyright (c) 2014-2020 Nick Satterly and [AUTHORS](AUTHORS). Available under the MIT License.
-

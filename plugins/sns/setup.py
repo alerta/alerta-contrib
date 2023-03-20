@@ -1,10 +1,9 @@
-
-from setuptools import setup, find_packages
+from setuptools import find_packages, setup
 
 version = '5.3.1'
 
 setup(
-    name="alerta-sns",
+    name='alerta-sns',
     version=version,
     description='Alerta plugin for AWS SNS',
     url='https://github.com/alerta/alerta-contrib',

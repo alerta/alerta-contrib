@@ -29,7 +29,8 @@ class FanoutConsumer(ConsumerMixin):
             )
         ]
         return [
-            Consumer(queues=queues, accept=['json'], callbacks=[self.on_message])
+            Consumer(queues=queues, accept=[
+                     'json'], callbacks=[self.on_message])
         ]
 
     def on_message(self, body, message):
@@ -38,6 +39,7 @@ class FanoutConsumer(ConsumerMixin):
         except Exception as e:
             print(str(e))
         message.ack()
+
 
 if __name__ == '__main__':
     from kombu.utils.debug import setup_logging

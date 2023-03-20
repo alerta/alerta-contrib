@@ -39,4 +39,3 @@ License
 -------
 
 Copyright (c) 2020 Matthieu Serrepuy. Available under the MIT License.
-

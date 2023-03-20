@@ -1,14 +1,13 @@
-
-import sys
-import platform
-import time
-import subprocess
-import threading
-import Queue
-import re
 import logging
-import yaml
+import platform
+import re
+import subprocess
+import sys
+import threading
+import time
 
+import Queue
+import yaml
 from alertaclient.api import Client
 
 __version__ = '3.3.0'
@@ -75,19 +74,23 @@ class WorkerThread(threading.Thread):
             environment, service, resource, retries, queue_time = item
 
             if time.time() - queue_time > LOOP_EVERY:
-                LOG.warning('Ping request to %s expired after %d seconds.', resource, int(time.time() - queue_time))
+                LOG.warning('Ping request to %s expired after %d seconds.',
+                            resource, int(time.time() - queue_time))
                 self.queue.task_done()
                 continue
 
             LOG.info('%s pinging %s...', self.getName(), resource)
             if retries > 1:
-                rc, rtt, loss, stdout = self.pinger(resource, count=2, timeout=5)
+                rc, rtt, loss, stdout = self.pinger(
+                    resource, count=2, timeout=5)
             else:
-                rc, rtt, loss, stdout = self.pinger(resource, count=5, timeout=PING_MAX_TIMEOUT)
+                rc, rtt, loss, stdout = self.pinger(
+                    resource, count=5, timeout=PING_MAX_TIMEOUT)
 
             if rc != PING_OK and retries:
                 LOG.info('Retrying ping %s %s more times', resource, retries)
-                self.queue.put((environment, service, resource, retries - 1, time.time()))
+                self.queue.put((environment, service, resource,
+                                retries - 1, time.time()))
                 self.queue.task_done()
                 continue
 
@@ -96,15 +99,18 @@ class WorkerThread(threading.Thread):
                 if avg > PING_SLOW_CRITICAL:
                     event = 'PingSlow'
                     severity = 'critical'
-                    text = 'Node responded to ping in %s ms avg (> %s ms)' % (avg, PING_SLOW_CRITICAL)
+                    text = 'Node responded to ping in {} ms avg (> {} ms)'.format(
+                        avg, PING_SLOW_CRITICAL)
                 elif avg > PING_SLOW_WARNING:
                     event = 'PingSlow'
                     severity = 'warning'
-                    text = 'Node responded to ping in %s ms avg (> %s ms)' % (avg, PING_SLOW_WARNING)
+                    text = 'Node responded to ping in {} ms avg (> {} ms)'.format(
+                        avg, PING_SLOW_WARNING)
                 else:
                     event = 'PingOK'
                     severity = 'normal'
-                    text = 'Node responding to ping avg/max %s/%s ms.' % tuple(rtt)
+                    text = 'Node responding to ping avg/max %s/%s ms.' % tuple(
+                        rtt)
                 value = '%s/%s ms' % tuple(rtt)
             elif rc == PING_FAILED:
                 event = 'PingFailed'
@@ -156,22 +162,26 @@ class WorkerThread(threading.Thread):
         if timeout > PING_MAX_TIMEOUT:
             timeout = PING_MAX_TIMEOUT
 
-        if sys.platform == "darwin":
-            cmd = "ping -q -c %s -i %s -t %s %s" % (count, interval, timeout, node)
+        if sys.platform == 'darwin':
+            cmd = 'ping -q -c {} -i {} -t {} {}'.format(
+                count, interval, timeout, node)
         else:
-            cmd = "ping -q -c %s -i %s -w %s %s" % (count, interval, timeout, node)
-        ping = subprocess.Popen(cmd.split(), stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+            cmd = 'ping -q -c {} -i {} -w {} {}'.format(
+                count, interval, timeout, node)
+        ping = subprocess.Popen(
+            cmd.split(), stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         stdout = ping.communicate()[0].rstrip('\n')
         rc = ping.returncode
         LOG.debug('Ping %s => %s (rc=%d)', cmd, stdout, rc)
 
-        m = re.search('(?P<loss>\d+(\.\d+)?)% packet loss', stdout)
+        m = re.search(r'(?P<loss>\d+(\.\d+)?)% packet loss', stdout)
         if m:
             loss = m.group('loss')
         else:
             loss = 'n/a'
 
-        m = re.search('(?P<min>\d+\.\d+)/(?P<avg>\d+\.\d+)/(?P<max>\d+\.\d+)/(?P<mdev>\d+\.\d+)\s+ms', stdout)
+        m = re.search(
+            r'(?P<min>\d+\.\d+)/(?P<avg>\d+\.\d+)/(?P<max>\d+\.\d+)/(?P<mdev>\d+\.\d+)\s+ms', stdout)
         if m:
             rtt = (float(m.group('avg')), float(m.group('max')))
         else:
@@ -185,7 +195,7 @@ class WorkerThread(threading.Thread):
         return rc, rtt, loss, stdout
 
 
-class PingerDaemon(object):
+class PingerDaemon:
 
     def __init__(self):
 
@@ -222,7 +232,8 @@ class PingerDaemon(object):
                             environment = p['environment']
                             service = p['service']
                             retries = p.get('retries', PING_MAX_RETRIES)
-                            self.queue.put((environment, service, target, retries, time.time()))
+                            self.queue.put(
+                                (environment, service, target, retries, time.time()))
 
                 LOG.debug('Send heartbeat...')
                 try:
@@ -249,6 +260,7 @@ def main():
 
     pinger = PingerDaemon()
     pinger.run()
+
 
 if __name__ == '__main__':
     main()

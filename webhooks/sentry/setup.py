@@ -1,9 +1,9 @@
-from setuptools import setup, find_packages
+from setuptools import find_packages, setup
 
 version = '5.0.0'
 
 setup(
-    name="alerta-sentry",
+    name='alerta-sentry',
     version=version,
     description='Alerta webhook for Sentry',
     url='https://github.com/alerta/alerta-contrib',

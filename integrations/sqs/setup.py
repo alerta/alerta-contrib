@@ -5,7 +5,7 @@ import setuptools
 version = '3.3.0'
 
 setuptools.setup(
-    name="alerta-sqs",
+    name='alerta-sqs',
     version=version,
     description='Alerta integration for AWS SQS',
     url='https://github.com/alerta/alerta-contrib',
@@ -24,7 +24,7 @@ setuptools.setup(
             'alerta-sqs = alerta_sqs:main'
         ]
     },
-    keywords="alerta monitoring amazon sqs",
+    keywords='alerta monitoring amazon sqs',
     classifiers=[
         'Topic :: System :: Monitoring',
     ]

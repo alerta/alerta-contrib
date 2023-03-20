@@ -1,4 +1,3 @@
-
 from alerta.models.alert import Alert
 from alerta.webhooks import WebhookBase
 
@@ -34,7 +33,8 @@ class SentryWebhook(WebhookBase):
             value=payload['level'],
             text='{} {}'.format(payload['message'], payload['url']),
             tags=['{}={}'.format(k, v) for k, v in payload['event']['tags']],
-            attributes={'modules': ['{}=={}'.format(k, v) for k, v in payload['event']['modules'].items()]},
+            attributes={'modules': ['{}=={}'.format(
+                k, v) for k, v in payload['event']['modules'].items()]},
             origin='sentry.io',
             raw_data=str(payload)
         )

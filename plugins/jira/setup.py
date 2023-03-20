@@ -1,9 +1,9 @@
-from setuptools import setup, find_packages
+from setuptools import find_packages, setup
 
 version = '1.0.0'
 
 setup(
-    name="alerta-jira",
+    name='alerta-jira',
     version=version,
     description='Alerta plugin for create tasks in jira',
     url='https://github.com/alerta/alerta-contrib',

@@ -1,9 +1,9 @@
-from setuptools import setup, find_packages
+from setuptools import find_packages, setup
 
 version = '0.0.1'
 
 setup(
-    name="alerta-statuscake",
+    name='alerta-statuscake',
     version=version,
     description='Alerta webhook for statuscake',
     url='https://github.com/alerta/alerta-contrib',
@@ -17,7 +17,7 @@ setup(
     zip_safe=True,
     entry_points={
         'alerta.webhooks': [
-          'statuscake = alerta_statuscake:StatusCakeWebhook'
+            'statuscake = alerta_statuscake:StatusCakeWebhook'
         ]
     }
 )

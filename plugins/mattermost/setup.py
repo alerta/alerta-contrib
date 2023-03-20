@@ -1,9 +1,9 @@
-from setuptools import setup, find_packages
+from setuptools import find_packages, setup
 
 version = '1.1.3'
 
 setup(
-    name="alerta-mattermost",
+    name='alerta-mattermost',
     version=version,
     description='Alerta plugin for Mattermost',
     url='https://github.com/alerta/alerta-contrib',

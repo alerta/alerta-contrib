@@ -1,17 +1,16 @@
-
 from setuptools import setup
 
 version = '1.1.1'
 
 setup(
-    name="alerta-consul",
+    name='alerta-consul',
     version=version,
     description='Send emails from Alerta',
     url='https://github.com/alerta/alerta-contrib',
     license='MIT',
     author='Marco Supino',
     author_email='marco@supino.org',
-    py_modules=['consulalerta','consulheartbeat'],
+    py_modules=['consulalerta', 'consulheartbeat'],
     install_requires=[
         'alerta',
         'python-consul'
@@ -24,7 +23,7 @@ setup(
             'consul-heartbeat = consulheartbeat:main'
         ]
     },
-    keywords="alerta monitoring consul",
+    keywords='alerta monitoring consul',
     classifiers=[
         'Topic :: System :: Monitoring',
     ]

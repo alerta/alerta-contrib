@@ -1,10 +1,9 @@
-
-from setuptools import setup, find_packages
+from setuptools import find_packages, setup
 
 version = '5.1.2'
 
 setup(
-    name="alerta-zabbix",
+    name='alerta-zabbix',
     version=version,
     description='Alerta plugin for Zabbix',
     url='https://github.com/alerta/alerta-contrib',

@@ -6,17 +6,20 @@ import queue
 import re
 import socket
 import ssl
+import sys
 import threading
+import time
 from http.server import BaseHTTPRequestHandler as BHRH
 from urllib.error import URLError  # pylint: disable=no-name-in-module
 from urllib.parse import urlparse  # pylint: disable=no-name-in-module
-from urllib.request import build_opener, ProxyHandler, HTTPBasicAuthHandler, install_opener, Request, urlopen  # pylint: disable=no-name-in-module
+from urllib.request import (  # pylint: disable=no-name-in-module
+    HTTPBasicAuthHandler, ProxyHandler, Request, build_opener, install_opener,
+    urlopen)
 
-import sys
-import time
+import settings
 from alertaclient.api import Client
 
-HTTP_RESPONSES = dict([(k, v[0]) for k, v in list(BHRH.responses.items())])
+HTTP_RESPONSES = {k: v[0] for k, v in list(BHRH.responses.items())}
 
 # Add missing responses
 HTTP_RESPONSES[102] = 'Processing'
@@ -43,7 +46,7 @@ _HTTP_ALERTS = [
 __version__ = '3.3.0'
 
 LOOP_EVERY = 60  # seconds
-#TARGET_FILE = 'urlmon.targets'  # FIXME -- or settings.py ???
+# TARGET_FILE = 'urlmon.targets'  # FIXME -- or settings.py ???
 SERVER_THREADS = 20
 SLOW_WARNING_THRESHOLD = 5000  # ms
 SLOW_CRITICAL_THRESHOLD = 10000  # ms
@@ -51,10 +54,10 @@ MAX_TIMEOUT = 15000  # ms
 SSL_DAYS = 30
 SSL_DAYS_PANIC = 7
 
-import settings
 
-LOG = logging.getLogger("alerta.urlmon")
-logging.basicConfig(format="%(asctime)s - %(name)s: %(levelname)s - %(message)s", level=logging.DEBUG)
+LOG = logging.getLogger('alerta.urlmon')
+logging.basicConfig(
+    format='%(asctime)s - %(name)s: %(levelname)s - %(message)s', level=logging.DEBUG)
 
 
 class WorkerThread(threading.Thread):
@@ -116,42 +119,49 @@ class WorkerThread(threading.Thread):
                     event = 'HttpResponseRegexOK'
                     severity = 'normal'
                     value = '%s (%d)' % (description, status)
-                    text = 'HTTP server responded with status code %d that matched "%s" in %dms' % (status, status_regex, rtt)
+                    text = 'HTTP server responded with status code %d that matched "%s" in %dms' % (
+                        status, status_regex, rtt)
                 else:
                     event = 'HttpResponseRegexError'
                     severity = 'major'
                     value = '%s (%d)' % (description, status)
-                    text = 'HTTP server responded with status code %d that failed to match "%s"' % (status, status_regex)
+                    text = 'HTTP server responded with status code %d that failed to match "%s"' % (
+                        status, status_regex)
 
             elif 100 <= status <= 199:
                 event = 'HttpInformational'
                 severity = 'normal'
                 value = '%s (%d)' % (description, status)
-                text = 'HTTP server responded with status code %d in %dms' % (status, rtt)
+                text = 'HTTP server responded with status code %d in %dms' % (
+                    status, rtt)
 
             elif 200 <= status <= 299:
                 event = 'HttpResponseOK'
                 severity = 'normal'
                 value = '%s (%d)' % (description, status)
-                text = 'HTTP server responded with status code %d in %dms' % (status, rtt)
+                text = 'HTTP server responded with status code %d in %dms' % (
+                    status, rtt)
 
             elif 300 <= status <= 399:
                 event = 'HttpRedirection'
                 severity = 'minor'
                 value = '%s (%d)' % (description, status)
-                text = 'HTTP server responded with status code %d in %dms' % (status, rtt)
+                text = 'HTTP server responded with status code %d in %dms' % (
+                    status, rtt)
 
             elif 400 <= status <= 499:
                 event = 'HttpClientError'
                 severity = 'minor'
                 value = '%s (%d)' % (description, status)
-                text = 'HTTP server responded with status code %d in %dms' % (status, rtt)
+                text = 'HTTP server responded with status code %d in %dms' % (
+                    status, rtt)
 
             elif 500 <= status <= 599:
                 event = 'HttpServerError'
                 severity = 'major'
                 value = '%s (%d)' % (description, status)
-                text = 'HTTP server responded with status code %d in %dms' % (status, rtt)
+                text = 'HTTP server responded with status code %d in %dms' % (
+                    status, rtt)
 
             else:
                 event = 'HttpUnknownError'
@@ -177,7 +187,8 @@ class WorkerThread(threading.Thread):
                         m = re.search(search_string, line)
                         if m:
                             found = True
-                            LOG.debug("Regex: Found %s in %s", search_string, line)
+                            LOG.debug('Regex: Found %s in %s',
+                                      search_string, line)
                             break
                     if not found:
                         event = 'HttpContentError'
@@ -191,9 +202,11 @@ class WorkerThread(threading.Thread):
                         try:
                             body = json.loads(body)
                         except ValueError as e:
-                            LOG.error('Could not evaluate rule %s: %s', rule, e)
+                            LOG.error(
+                                'Could not evaluate rule %s: %s', rule, e)
                     try:
-                        eval(rule)  # NOTE: assumes request body in variable called 'body'
+                        # NOTE: assumes request body in variable called 'body'
+                        eval(rule)
                     except (SyntaxError, NameError, ZeroDivisionError) as e:
                         LOG.error('Could not evaluate rule %s: %s', rule, e)
                     except Exception as e:
@@ -205,7 +218,7 @@ class WorkerThread(threading.Thread):
                             value = 'Rule failed'
                             text = 'Website available but rule evaluation failed (%s)' % rule
 
-            LOG.debug("URL: %s, Status: %s (%s), Round-Trip Time: %dms -> %s",
+            LOG.debug('URL: %s, Status: %s (%s), Round-Trip Time: %dms -> %s',
                       check['url'], description, status, rtt, event)
 
             resource = check['resource']
@@ -215,7 +228,8 @@ class WorkerThread(threading.Thread):
             service = check['service']
             text = text
             tags = check.get('tags', list())
-            threshold_info = "%s : RT > %d RT > %d x %s" % (check['url'], warn_thold, crit_thold, check.get('count', 1))
+            threshold_info = '%s : RT > %d RT > %d x %s' % (
+                check['url'], warn_thold, crit_thold, check.get('count', 1))
 
             try:
                 local_api.send_alert(
@@ -249,15 +263,18 @@ class WorkerThread(threading.Thread):
                 conn.settimeout(3.0)
                 conn.connect((domain, port))
                 ssl_info = conn.getpeercert()
-                days_left = datetime.datetime.strptime(ssl_info['notAfter'], ssl_date_fmt) - datetime.datetime.utcnow()
+                days_left = datetime.datetime.strptime(
+                    ssl_info['notAfter'], ssl_date_fmt) - datetime.datetime.utcnow()
                 if days_left < datetime.timedelta(days=0):
                     text = 'HTTPS cert for %s expired' % check['resource']
                     severity = 'critical'
                 elif days_left < datetime.timedelta(days=SSL_DAYS) and days_left > datetime.timedelta(days=SSL_DAYS_PANIC):
-                    text = 'HTTPS cert for %s will expire at %s' % (check['resource'], days_left)
+                    text = 'HTTPS cert for {} will expire at {}'.format(
+                        check['resource'], days_left)
                     severity = 'major'
                 elif days_left <= datetime.timedelta(days=SSL_DAYS_PANIC):
-                    text = 'HTTPS cert for %s will expire at %s' % (check['resource'], days_left)
+                    text = 'HTTPS cert for {} will expire at {}'.format(
+                        check['resource'], days_left)
                     severity = 'critical'
                 else:
                     severity = 'normal'
@@ -363,7 +380,7 @@ class WorkerThread(threading.Thread):
         return status, reason, body, rtt
 
 
-class UrlmonDaemon(object):
+class UrlmonDaemon:
 
     def __init__(self):
 
@@ -395,7 +412,8 @@ class UrlmonDaemon(object):
                 LOG.debug('Send heartbeat...')
                 try:
                     origin = '{}/{}'.format('urlmon', platform.uname()[1])
-                    self.api.heartbeat(origin, tags=[__version__], timeout=3600)
+                    self.api.heartbeat(
+                        origin, tags=[__version__], timeout=3600)
                 except Exception as e:
                     LOG.warning('Failed to send heartbeat: %s', e)
 
@@ -431,17 +449,17 @@ class UrlmonDaemon(object):
 
 def main():
 
-    LOG = logging.getLogger("alerta.urlmon")
+    LOG = logging.getLogger('alerta.urlmon')
 
     try:
         UrlmonDaemon().run()
     except Exception as e:
         LOG.error(e, exc_info=1)
         sys.exit(1)
-    except KeyboardInterrupt as e:
-        LOG.warning("Exiting alerta urlmon.")
+    except KeyboardInterrupt:
+        LOG.warning('Exiting alerta urlmon.')
         sys.exit(1)
+
 
 if __name__ == '__main__':
     main()
-

@@ -1,10 +1,9 @@
-
-from setuptools import setup, find_packages
+from setuptools import find_packages, setup
 
 version = '5.0.3'
 
 setup(
-    name="alerta-goalert",
+    name='alerta-goalert',
     version=version,
     description='Alerta plugin for GoAlert',
     url='https://github.com/alerta/alerta-contrib',

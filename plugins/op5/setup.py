@@ -1,10 +1,9 @@
-
-from setuptools import setup, find_packages
+from setuptools import find_packages, setup
 
 version = '5.0.2'
 
 setup(
-    name="alerta-op5",
+    name='alerta-op5',
     version=version,
     description='Alerta plugin for OP5 Monitor',
     url='https://github.com/alerta/alerta-contrib',
@@ -14,7 +13,7 @@ setup(
     packages=find_packages(),
     py_modules=['alerta_op5'],
     install_requires=[
-        "op5lib==1.0"
+        'op5lib==1.0'
     ],
     include_package_data=True,
     zip_safe=True,

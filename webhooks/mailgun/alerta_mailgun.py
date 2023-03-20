@@ -1,26 +1,25 @@
+import json
 
 from alerta.models.alert import Alert
 from alerta.webhooks import WebhookBase
-import json
-import datetime
 
 
 class MailgunWebhook(WebhookBase):
 
     def incoming(self, query_string, payload):
-        
+
         # Load variables from querystring
         try:
             environment = query_string['environment']
-        except:
+        except Exception:
             environment = 'Production'
         try:
             severity = query_string['severity']
-        except:
+        except Exception:
             severity = 'major'
         try:
             group = query_string['group']
-        except:
+        except Exception:
             group = 'Email'
 
         return Alert(

@@ -5,7 +5,7 @@ import setuptools
 version = '3.5.0'
 
 setuptools.setup(
-    name="alerta-syslog",
+    name='alerta-syslog',
     version=version,
     description='Alerta script for Syslog messages',
     url='https://github.com/alerta/alerta-contrib',
@@ -23,7 +23,7 @@ setuptools.setup(
             'alerta-syslog = syslogfwder:main'
         ]
     },
-    keywords="alerta syslog monitoring",
+    keywords='alerta syslog monitoring',
     classifiers=[
         'Topic :: System :: Monitoring',
     ]

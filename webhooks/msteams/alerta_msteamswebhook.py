@@ -1,11 +1,11 @@
-
-from flask import current_app, g, jsonify, request, make_response
+from uuid import UUID
 
 from alerta.models.alert import Alert
 from alerta.models.blackout import Blackout
 from alerta.utils.audit import write_audit_trail
 from alerta.webhooks import WebhookBase
-from uuid import UUID
+from flask import current_app, g, jsonify, make_response, request
+
 
 class MsteamsWebhook(WebhookBase):
 
@@ -14,13 +14,15 @@ class MsteamsWebhook(WebhookBase):
         # instead we're relying on alerta to validate X-API-Key header
 
         action = payload.get('action', 'missing')
-        if action not in [ 'ack', 'close', 'blackout' ]:
-            resp = make_response(jsonify(status='error', message='Invalid action'), 400)
+        if action not in ['ack', 'close', 'blackout']:
+            resp = make_response(
+                jsonify(status='error', message='Invalid action'), 400)
             return resp
 
-        if action in [ 'ack', 'close' ]:
+        if action in ['ack', 'close']:
             alert_id = payload.get('alert_id', None)
-            err = make_response(jsonify(status='error', message='Missing/invalid alert_id'), 400)
+            err = make_response(
+                jsonify(status='error', message='Missing/invalid alert_id'), 400)
             if not alert_id:
                 return err
 
@@ -32,13 +34,17 @@ class MsteamsWebhook(WebhookBase):
             except Exception:
                 return err
 
-            alert = Alert.find_by_id(alert_id, customers=g.get('customers', None))
+            alert = Alert.find_by_id(
+                alert_id, customers=g.get('customers', None))
             if not alert:
                 return err
             else:
-                alert.from_action(action, text='status changed via MS Teams webhook')
-                resp = make_response(jsonify(status='ok', message='status changed'), 200)
-                resp.headers['CARD-ACTION-STATUS'] = 'Alert {}d'.format(action.capitalize())
+                alert.from_action(
+                    action, text='status changed via MS Teams webhook')
+                resp = make_response(
+                    jsonify(status='ok', message='status changed'), 200)
+                resp.headers['CARD-ACTION-STATUS'] = 'Alert {}d'.format(
+                    action.capitalize())
 
                 text = 'alert updated via msteams webhook'
                 write_audit_trail.send(current_app._get_current_object(), event='webhook-updated', message=text,
@@ -51,7 +57,8 @@ class MsteamsWebhook(WebhookBase):
             event = payload.get('event', None)
 
             if environment and resource and event:
-                duration = payload.get('duration', None) or current_app.config['BLACKOUT_DURATION']
+                duration = payload.get(
+                    'duration', None) or current_app.config['BLACKOUT_DURATION']
                 try:
                     if not duration or float(duration) < 0.0:
                         # Should not happen: set default duration
@@ -59,13 +66,17 @@ class MsteamsWebhook(WebhookBase):
                 except ValueError:
                     # Should not happen: set default duration
                     duration = 3600
-                blackout = Blackout(environment, resource=resource, event=event, duration=duration)
+                blackout = Blackout(
+                    environment, resource=resource, event=event, duration=duration)
                 blackout.create()
-                resp = make_response(jsonify(status='ok', message='blackout created'), 201)
-                resp.headers['CARD-ACTION-STATUS'] = 'Blackout created for {0:.1f} hours'.format(float(duration) / 3600)
+                resp = make_response(
+                    jsonify(status='ok', message='blackout created'), 201)
+                resp.headers['CARD-ACTION-STATUS'] = 'Blackout created for {:.1f} hours'.format(
+                    float(duration) / 3600)
 
             else:
                 # Missging env, resource or event
-                resp = make_response(jsonify(status='error', message='Missing blackout params'), 412)
+                resp = make_response(
+                    jsonify(status='error', message='Missing blackout params'), 412)
 
         return resp

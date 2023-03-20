@@ -63,4 +63,3 @@ Yoshiharu Mori <y-mori@sraoss.co.jp>
 Карамышев Степан <karamyshev@corp.sputnik.ru>
 
 $ git log --format='%aN <%aE>' | sort -f | uniq
-

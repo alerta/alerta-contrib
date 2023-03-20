@@ -1,10 +1,9 @@
-
-from setuptools import setup, find_packages
+from setuptools import find_packages, setup
 
 version = '5.0.0'
 
 setup(
-    name="alerta-rocketchat",
+    name='alerta-rocketchat',
     version=version,
     description='Alerta plugin for Rocket.Chat',
     url='https://github.com/alerta/alerta-contrib',

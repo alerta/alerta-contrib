@@ -16,7 +16,7 @@
 <strong>Duplicate Count</strong>: {{ alert.duplicate_count }} <br>
 <strong>Origin</strong>: {{ alert.origin }} <br>
 <strong>Tags</strong>: {{ alert.tags|join(', ') }} <br>
-{% for key,value in alert.attributes.items() -%} 
+{% for key,value in alert.attributes.items() -%}
 {{ key|title }}: {{ value }}
 {% endfor -%}
 <br>

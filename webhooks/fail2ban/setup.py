@@ -1,9 +1,9 @@
-from setuptools import setup, find_packages
+from setuptools import find_packages, setup
 
 version = '1.0.0'
 
 setup(
-    name="alerta-fail2ban",
+    name='alerta-fail2ban',
     version=version,
     description='Alerta Webhook for Fail2Ban',
     url='https://github.com/alerta/alerta-contrib',

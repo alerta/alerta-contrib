@@ -1,4 +1,4 @@
-Jira Plugin 
+Jira Plugin
 ===========
 
 Creates a task in Jira and adds the Jira Task attribute in alarm. The created attribute is a link to the Jira task and opens in a new tab.
@@ -29,7 +29,7 @@ server configuration file or as environment variables.
 ```python
 PLUGINS = ['jira']
 JIRA_PROJECT = '' #project name in jira
-JIRA_URL = ''     #url access to the jira 
+JIRA_URL = ''     #url access to the jira
 JIRA_USER = ''    #defined to the according to the jira access data
 JIRA_PASS = ''    #defined to the according to the jira access data
 ```

@@ -1,10 +1,9 @@
-
-from setuptools import setup, find_packages
+from setuptools import find_packages, setup
 
 version = '5.4.1'
 
 setup(
-    name="alerta-amqp",
+    name='alerta-amqp',
     version=version,
     description='Alerta plugin for AMQP messaging',
     url='https://github.com/alerta/alerta-contrib',

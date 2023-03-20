@@ -1,10 +1,9 @@
-
-from setuptools import setup, find_packages
+from setuptools import find_packages, setup
 
 version = '5.4.3'
 
 setup(
-    name="alerta-influxdb",
+    name='alerta-influxdb',
     version=version,
     description='Alerta plugin for InfluxDB',
     url='https://github.com/alerta/alerta-contrib',

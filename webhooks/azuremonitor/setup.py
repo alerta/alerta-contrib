@@ -1,9 +1,9 @@
-from setuptools import setup, find_packages
+from setuptools import find_packages, setup
 
 version = '5.0.2'
 
 setup(
-    name="alerta-azure-monitor",
+    name='alerta-azure-monitor',
     version=version,
     description='Alerta webhook for Azure Monitor',
     url='https://github.com/alerta/alerta-contrib',

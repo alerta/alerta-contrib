@@ -1,13 +1,13 @@
 #!/usr/bin/env python
 
-import sys
 import json
 import platform
+import sys
 
 from alertaclient.api import Client
 
 
-class Listener(object):
+class Listener:
 
     def wait(self):
         data = sys.stdin.readline()
@@ -55,7 +55,8 @@ def main():
                 severity = 'normal'
             try:
                 api.send_alert(
-                    resource='%s:%s' % (platform.uname()[1], body['processname']),
+                    resource='{}:{}'.format(
+                        platform.uname()[1], body['processname']),
                     environment='Production',
                     service=['supervisord'],
                     event=event,
@@ -72,14 +73,17 @@ def main():
                     value='serial=%s' % headers['serial'],
                     severity=severity,
                     origin=headers['server'],
-                    text='State changed from %s to %s.' % (body['from_state'], event),
-                    raw_data='%s\n\n%s' % (json.dumps(headers), json.dumps(body))
+                    text='State changed from {} to {}.'.format(
+                        body['from_state'], event),
+                    raw_data='{}\n\n{}'.format(
+                        json.dumps(headers), json.dumps(body))
                 )
             except Exception as e:
                 listener.log_stderr(e)
                 listener.send_cmd('RESULT 4\nFAIL')
             else:
                 listener.send_cmd('RESULT 2\nOK')
+
 
 if __name__ == '__main__':
     main()

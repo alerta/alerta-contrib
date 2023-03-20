@@ -1,9 +1,9 @@
-from setuptools import setup, find_packages
+from setuptools import find_packages, setup
 
 version = '0.0.1'
 
 setup(
-    name="alerta-ding",
+    name='alerta-ding',
     version=version,
     description='Example Alerta plugin for test alerts',
     url='https://github.com/alerta/alerta-contrib',
@@ -21,4 +21,3 @@ setup(
         ]
     }
 )
-

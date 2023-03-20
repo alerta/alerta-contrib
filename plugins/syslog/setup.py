@@ -1,10 +1,9 @@
-
-from setuptools import setup, find_packages
+from setuptools import find_packages, setup
 
 version = '5.3.2'
 
 setup(
-    name="alerta-logger",
+    name='alerta-logger',
     version=version,
     description='Alerta plugin for syslog logging',
     url='https://github.com/alerta/alerta-contrib',

@@ -165,8 +165,8 @@ Snmptrap Format
 | $A      | the hostname corresponding to the contents of the agent-addr field of the PDU, if available, |
 |         | otherwise the contents of the agent-addr field of the PDU (v1 TRAPs only).                   |
 | $b      | PDU source address (Note: this is not necessarily an IPv4 address)                           |
-| $B      | PDU source hostname if available, otherwise PDU source address (see note above)              | 
-| $N      | enterprise string                                                                            | 
+| $B      | PDU source hostname if available, otherwise PDU source address (see note above)              |
+| $N      | enterprise string                                                                            |
 | $O      | oid as name or numbers                                                                       |
 | $P      | security information from the PDU (community name for v1/v2c, user and context for v3)       |
 | $q      | trap sub-type (numeric, in decimal)                                                          |

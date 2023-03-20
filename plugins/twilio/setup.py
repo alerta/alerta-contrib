@@ -1,10 +1,9 @@
-
-from setuptools import setup, find_packages
+from setuptools import find_packages, setup
 
 version = '5.4.0'
 
 setup(
-    name="alerta-twilio",
+    name='alerta-twilio',
     version=version,
     description='Alerta plugin for Twilio SMS',
     url='https://github.com/alerta/alerta-contrib',

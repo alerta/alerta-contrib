@@ -1,10 +1,9 @@
-
-from setuptools import setup, find_packages
+from setuptools import find_packages, setup
 
 version = '5.4.0'
 
 setup(
-    name="alerta-prometheus",
+    name='alerta-prometheus',
     version=version,
     description='Alerta plugin for Prometheus Alertmanager',
     url='https://github.com/alerta/alerta-contrib',

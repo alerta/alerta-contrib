@@ -1,5 +1,5 @@
-import os
 import logging
+import os
 
 from alerta.plugins import PluginBase
 from alertaclient.api import Client
@@ -18,6 +18,7 @@ FORWARD_API_KEY = os.environ.get(
 FORWARD_MAX_LENGTH = os.environ.get(
     'FORWARD_MAX_LENGTH') or app.config.get('FORWARD_MAX_LENGTH') or 3
 
+
 class ForwardAlert(PluginBase):
 
     def pre_receive(self, alert):
@@ -28,7 +29,7 @@ class ForwardAlert(PluginBase):
             return
         client = Client(endpoint=FORWARD_URL, key=FORWARD_API_KEY)
         fw_count = alert.attributes.get('fw_count') or 0
-        fw_count = fw_count+1
+        fw_count = fw_count + 1
         if fw_count >= FORWARD_MAX_LENGTH:
             LOG.debug('alert discarded by cycle overflow')
             return
