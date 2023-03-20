@@ -4,13 +4,11 @@ alerta
 kombu
 six
 mock
-mypy
-pre-commit
+mypy==1.0.1
+pre-commit==2.20.0
 PyJWT>=2.0.0
-pylint
+pylint==2.16.2
 pytest>=5.4.3
 pytest-cov
 python-dotenv
 requests_mock
-twine
-wheel
