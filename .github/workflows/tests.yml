@@ -64,7 +64,12 @@ jobs:
           DATABASE_URL: postgres://postgres:postgres@localhost:5432/alerta
         run: |
           pytest -v webhooks/*/test*.py --cov=webhooks
-
+      - name: Unit Test Integrations
+        id: unit-test-integrations
+        env:
+          DATABASE_URL: mongodb://127.0.0.1:27017/alerta
+        run: |
+          pytest -v integrations/*/test*.py --cov=integrations
       - uses: act10ns/slack@v2
         with:
           status: ${{ job.status }}
@@ -117,62 +122,12 @@ jobs:
           DATABASE_URL: mongodb://127.0.0.1:27017/alerta
         run: |
           pytest -v webhooks/*/test*.py --cov=webhooks
-
-      - uses: act10ns/slack@v2
-        with:
-          status: ${{ job.status }}
-          steps: ${{ toJson(steps) }}
-        if: failure()
-
-  test-integration:
-    runs-on: ubuntu-latest
-
-    services:
-      mongodb:
-        image: mongo
-        ports:
-          - 27017:27017
-      ldap:
-        image: rroemhild/test-openldap
-        ports:
-          - 389:389
-      saml-idp:
-        image: jamedjo/test-saml-idp
-        ports:
-          - 9443:8443
-          - 9080:8080
-        env:
-          SIMPLESAMLPHP_SP_ENTITY_ID: http://localhost:8080
-          SIMPLESAMLPHP_SP_ASSERTION_CONSUMER_SERVICE: http://localhost:8080/auth/saml
-
-    steps:
-      - uses: actions/checkout@v3
-      - name: Install packages
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y \
-            build-essential \
-            python3-dev \
-            libldap2-dev \
-            libsasl2-dev \
-            xmlsec1
-      - name: Set up Python 3.8
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.8'
-          architecture: 'x64'
-      - name: Install dependencies
-        id: install-deps
-        run: |
-          python -m pip install --upgrade pip
-          pip install flake8 pytest
-          pip install -r requirements-dev.txt
-      - name: Integration Tests
-        id: integration-test
+      - name: Unit Test Integrations
+        id: unit-test-integrations
         env:
           DATABASE_URL: mongodb://127.0.0.1:27017/alerta
         run: |
-          pytest tests/integration
+          pytest -v integrations/*/test*.py --cov=integrations
       - uses: act10ns/slack@v2
         with:
           status: ${{ job.status }}
