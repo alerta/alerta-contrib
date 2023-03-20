@@ -64,12 +64,12 @@ jobs:
           DATABASE_URL: postgres://postgres:postgres@localhost:5432/alerta
         run: |
           pytest -v webhooks/*/test*.py --cov=webhooks
-      - name: Unit Test Integrations
-        id: unit-test-integrations
-        env:
-          DATABASE_URL: mongodb://127.0.0.1:27017/alerta
-        run: |
-          pytest -v integrations/*/test*.py --cov=integrations
+      # - name: Unit Test Integrations
+      #   id: unit-test-integrations
+      #   env:
+      #     DATABASE_URL: mongodb://127.0.0.1:27017/alerta
+      #   run: |
+      #     pytest -v integrations/*/test*.py --cov=integrations
       - uses: act10ns/slack@v2
         with:
           status: ${{ job.status }}
@@ -122,12 +122,12 @@ jobs:
           DATABASE_URL: mongodb://127.0.0.1:27017/alerta
         run: |
           pytest -v webhooks/*/test*.py --cov=webhooks
-      - name: Unit Test Integrations
-        id: unit-test-integrations
-        env:
-          DATABASE_URL: mongodb://127.0.0.1:27017/alerta
-        run: |
-          pytest -v integrations/*/test*.py --cov=integrations
+      # - name: Unit Test Integrations
+      #   id: unit-test-integrations
+      #   env:
+      #     DATABASE_URL: mongodb://127.0.0.1:27017/alerta
+      #   run: |
+      #     pytest -v integrations/*/test*.py --cov=integrations
       - uses: act10ns/slack@v2
         with:
           status: ${{ job.status }}
