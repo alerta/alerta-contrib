@@ -1,0 +1,10 @@
+{
+    "resource": "myresourc2",
+    "status": "open",
+    "attributes": {
+        "type": "fqdn",
+        "assigned_group": "myresource.com"
+    },
+    "event": "host down"
+
+}
