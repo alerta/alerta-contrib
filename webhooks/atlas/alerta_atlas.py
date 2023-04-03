@@ -55,6 +55,8 @@ class MongodbAtlasWebhook(WebhookBase):
             event = atlas_alert.get('metricName','AtlasEvent')
         elif atlas_alert.get('typeName') == "HOST":
             event = atlas_alert.get('eventTypeName','AtlasEvent')
+        else:
+            event = atlas_alert.get('metricName','AtlasEvent')
 
         return Alert(
             resource=atlas_alert['clusterName'],
