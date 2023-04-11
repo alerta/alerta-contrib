@@ -17,13 +17,13 @@ class GraylogWebhook(WebhookBase):
         try:
             return Alert(
                 resource=payload["backlog"][0]["source"],
-                event=payload["event"]["message"],
+                text=payload["event"]["message"],
                 # event_type=payload["event"]["event_definition_type"],
                 environment=query_string.get("environment", "Production"),
                 service=["Graylog"],
                 severity=query_string.get("severity", "warning"),
                 # value=payload["TITLE"],
-                text=payload["backlog"][0]["message"],
+                event=payload["backlog"][0]["message"],
                 # attributes={
                 #     "Device URL": payload["DEVICE_URL"],
                 #     "Entity Description": payload["ENTITY_DESCRIPTION"],
