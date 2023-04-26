@@ -94,8 +94,9 @@ class GraylogWebhook(WebhookBase):
                 elif "MacAddress" in data:
                     event = data["MacAddress"]
                     value = f"MAC flapping on VLAN {data['VLANID']} between {data['Original-Port']} and {data['port']}"
-                elif "Flapping-Port" in data:
-                    text = f"MAC move on VLAN {data.get('VLAN', 'unknown')} between {data.get('Original-Port', 'unknown port')} and {data.get('Flapping-Port', 'unknown port')}"
+                elif "Flapping-Port" in data and "VLAN" in data:
+                    event = data["VLAN"]
+                    value = f"MAC move on VLAN {data.get('VLAN', 'unknown')} between {data.get('Original-Port', 'unknown port')} and {data.get('Flapping-Port', 'unknown port')}"
                 else:
                     # Parsed successfully, but we don't understand the data, so we default to the entire message in the description
                     event = msg
