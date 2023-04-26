@@ -88,15 +88,16 @@ class GraylogWebhook(WebhookBase):
 
                 # Horrible way to do detection, not sure if there's a cleaner one right now
                 if "RelativeResource" in data and "ReasonDescription" in data:
-                    text = data["RelativeResource"]
+                    event = data["RelativeResource"]
                     value = data["ReasonDescription"]
 
                 elif "MacAddress" in data:
-                    text = data["MacAddress"]
+                    event = data["MacAddress"]
                     value = f"MAC flapping on VLAN {data['VLANID']} between {data['Original-Port']} and {data['port']}"
                 else:
                     # Parsed successfully, but we don't understand the data, so we default to the entire message in the description
-                    text = msg
+                    event = msg
+                    text = payload["event"]["message"]
 
             except (SyntaxError, ValueError):
                 event = payload["backload"][0]["message"]
@@ -109,6 +110,7 @@ class GraylogWebhook(WebhookBase):
                 environment=environment,
                 service=service,
                 severity=severity,
+                value=value,
                 event=event,
                 origin=origin,
                 raw_data=raw_data,
