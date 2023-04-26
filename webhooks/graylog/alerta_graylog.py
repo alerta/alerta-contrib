@@ -67,7 +67,7 @@ class GraylogWebhook(WebhookBase):
         resource: str
         event: str
         text: str
-        value: str
+        value: str = ""
         service: List[str] = ["graylog"]
         severity: str = query_string.get("severity", "warning")
         environment: str = query_string.get("environment", "Production")
