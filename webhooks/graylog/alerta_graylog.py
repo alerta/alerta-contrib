@@ -99,12 +99,13 @@ class GraylogWebhook(WebhookBase):
                     value = f"MAC move on VLAN {data.get('VLAN', 'unknown')} between {data.get('Original-Port', 'unknown port')} and {data.get('Flapping-Port', 'unknown port')}"
                 else:
                     # Parsed successfully, but we don't understand the data, so we default to the entire message in the description
-                    event = msg
-                    text = payload["event"]["message"]
+                    value = msg
+                    event = text
 
             except (SyntaxError, ValueError):
-                event = payload["backload"][0]["message"]
+                value = payload["backload"][0]["message"]
                 text = payload["event"]["message"]
+                event = text
 
         try:
             return Alert(

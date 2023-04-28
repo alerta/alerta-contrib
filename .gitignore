@@ -41,3 +41,6 @@ TODO
 
 venv
 .venv
+
+# Local editor settings
+.vscode/
