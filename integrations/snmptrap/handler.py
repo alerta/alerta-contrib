@@ -1,4 +1,3 @@
-
 import datetime
 import logging
 import os
@@ -11,11 +10,12 @@ from alertaclient.api import Client
 __version__ = '5.0.0'
 
 
-LOG = logging.getLogger("alerta.snmptrap")
-logging.basicConfig(format="%(asctime)s - %(name)s: %(levelname)s - %(message)s", level=logging.DEBUG)
+LOG = logging.getLogger('alerta.snmptrap')
+logging.basicConfig(
+    format='%(asctime)s - %(name)s: %(levelname)s - %(message)s', level=logging.DEBUG)
 
 
-class SnmpTrapHandler(object):
+class SnmpTrapHandler:
 
     def __init__(self):
 
@@ -37,7 +37,8 @@ class SnmpTrapHandler(object):
         LOG.debug('unicoded -> %s', data)
 
         try:
-            resource, event, correlate, trap_version, trapvars = self.parse_snmptrap(data)
+            resource, event, correlate, trap_version, trapvars = self.parse_snmptrap(
+                data)
             if resource and event:
                 self.api.send_alert(
                     resource=resource,
@@ -50,9 +51,11 @@ class SnmpTrapHandler(object):
                     service=['Network'],
                     text=trapvars['$W'],
                     event_type='snmptrapAlert',
-                    attributes={'trapvars': {k.replace('$', '_'): v for k, v in trapvars.items()}},
+                    attributes={'trapvars': {
+                        k.replace('$', '_'): v for k, v in trapvars.items()}},
                     tags=[trap_version],
-                    create_time=datetime.datetime.strptime('%sT%s.000Z' % (trapvars['$x'], trapvars['$X']), '%Y-%m-%dT%H:%M:%S.%fZ'),
+                    create_time=datetime.datetime.strptime('{}T{}.000Z'.format(
+                        trapvars['$x'], trapvars['$X']), '%Y-%m-%dT%H:%M:%S.%fZ'),
                     raw_data=data
                 )
         except Exception as e:
@@ -107,7 +110,8 @@ class SnmpTrapHandler(object):
             trapvars['$' + str(idx)] = value  # $n
             LOG.debug('$%s %s', str(idx), value)
 
-        trapvars['$q'] = trapvars['$q'].lstrip('.')  # if numeric, remove leading '.'
+        trapvars['$q'] = trapvars['$q'].lstrip(
+            '.')  # if numeric, remove leading '.'
         trapvars['$#'] = str(idx)
 
         LOG.debug('varbinds = %s', varbinds)
@@ -132,7 +136,8 @@ class SnmpTrapHandler(object):
                 trapvars['$O'] = 'egpNeighborLoss'
             elif trapvars['$w'] == '6':  # enterpriseSpecific(6)
                 if trapvars['$q'].isdigit():  # XXX - specific trap number was not decoded
-                    trapvars['$O'] = '%s.0.%s' % (trapvars['$N'], trapvars['$q'])
+                    trapvars['$O'] = '{}.0.{}'.format(
+                        trapvars['$N'], trapvars['$q'])
                 else:
                     trapvars['$O'] = trapvars['$q']
 
@@ -161,7 +166,8 @@ class SnmpTrapHandler(object):
             trapvars['$O'] = trapvars['$2']  # SNMPv2-MIB::snmpTrapOID.0
         LOG.debug('trapvars = %s', trapvars)
 
-        LOG.info('%s-Trap-PDU %s from %s at %s %s', trap_version, trapvars['$O'], trapvars['$B'], trapvars['$x'], trapvars['$X'])
+        LOG.info('%s-Trap-PDU %s from %s at %s %s', trap_version,
+                 trapvars['$O'], trapvars['$B'], trapvars['$x'], trapvars['$X'])
 
         if trapvars['$B'] != '<UNKNOWN>':
             resource = trapvars['$B']
@@ -179,16 +185,17 @@ class SnmpTrapHandler(object):
 
 def main():
 
-    LOG = logging.getLogger("alerta.snmptrap")
+    LOG = logging.getLogger('alerta.snmptrap')
 
     try:
         SnmpTrapHandler().run()
     except (SystemExit, KeyboardInterrupt):
-        LOG.info("Exiting alerta SNMP trapper.")
+        LOG.info('Exiting alerta SNMP trapper.')
         sys.exit(0)
     except Exception as e:
         LOG.error(e, exc_info=1)
         sys.exit(1)
+
 
 if __name__ == '__main__':
     main()

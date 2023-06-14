@@ -33,10 +33,10 @@ server configuration file or the environment variables:
 The `ALERTOPS_URL` variable is generated during integration configuration within the AlertOps console. This should be added to the server configuration file.
 
 ```python
-PLUGINS = ['alertops'] 
+PLUGINS = ['alertops']
 ALERTOPS_URL = ''  # default="Not configured"
 ```
-The `DASHBOARD_URL` setting should be configured in the server configuration file to link pushover messages to the Alerta console through the AlertOps webhook: 
+The `DASHBOARD_URL` setting should be configured in the server configuration file to link pushover messages to the Alerta console through the AlertOps webhook:
 
 ```python
 DASHBOARD_URL = '' # default="Not Set"
@@ -53,11 +53,10 @@ DASHBOARD_URL = 'https://try.alerta.io'
 References
 ----------
 
-  * AlertOps Integration Docs: 
+  * AlertOps Integration Docs:
  https://help.alertops.com/integrations/pre-built-integration-guides/alerta
 
 License
 -------
 
-Copyright (c) 2019 AlertOps. 
-
+Copyright (c) 2019 AlertOps.

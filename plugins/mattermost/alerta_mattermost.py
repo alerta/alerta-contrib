@@ -1,5 +1,7 @@
 import logging
 import os
+
+from alerta.plugins import PluginBase
 from matterhook import Webhook
 
 try:
@@ -7,7 +9,6 @@ try:
 except ImportError:
     from alerta.app import app  # alerta < 5.0
 
-from alerta.plugins import PluginBase
 
 LOG = logging.getLogger('alerta.plugins.mattermost')
 
@@ -42,7 +43,7 @@ class ServiceIntegration(PluginBase):
 
     def _prepare_payload(self, alert):
         LOG.debug('Mattermost: %s', alert)
-        return "{} **{}** **{}**\n`{}` ```{}```".format(
+        return '{} **{}** **{}**\n`{}` ```{}```'.format(
             self.get_icon(alert.severity),
             alert.severity,
             alert.environment,

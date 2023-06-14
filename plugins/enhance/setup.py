@@ -1,10 +1,9 @@
-
-from setuptools import setup, find_packages
+from setuptools import find_packages, setup
 
 version = '5.3.3'
 
 setup(
-    name="alerta-enhance",
+    name='alerta-enhance',
     version=version,
     description='Alerta plugin for alert enhancement',
     url='https://github.com/alerta/alerta-contrib',

@@ -1,10 +1,9 @@
-
-from setuptools import setup, find_packages
+from setuptools import find_packages, setup
 
 version = '5.0.1'
 
 setup(
-    name="alerta-cachet",
+    name='alerta-cachet',
     version=version,
     description='Alerta plugin for Cachet status page',
     url='https://github.com/alerta/alerta-contrib',

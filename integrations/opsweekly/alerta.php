@@ -95,4 +95,3 @@ function doAlertaAPICall($path, $parameters, $alerta_baseurl, $alerta_apikey) {
     }
 }
 ?>
-

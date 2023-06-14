@@ -9,16 +9,14 @@ import re
 import signal
 import smtplib
 import socket
-from configparser import RawConfigParser
-from functools import reduce
-import six
-
 import sys
 import threading
 import time
+from configparser import RawConfigParser
 from email.header import Header
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
+from functools import reduce
 
 import jinja2
 from alertaclient.api import Client
@@ -33,7 +31,7 @@ DNS_RESOLVER_AVAILABLE = False
 try:
     import dns.resolver
     DNS_RESOLVER_AVAILABLE = True
-except:
+except Exception:
     sys.stdout.write('Python dns.resolver unavailable. The skip_mta option will be forced to False\n')  # nopep8
 
 
@@ -42,34 +40,39 @@ LOG = logging.getLogger(__name__)
 root = logging.getLogger()
 
 DEFAULT_OPTIONS = {
-    'config_file':   '~/.alerta.conf',
-    'profile':       None,
-    'endpoint':      'http://localhost:8080',
-    'key':           '',
-    'amqp_url':      'redis://localhost:6379/',
-    'amqp_topic':    'notify',
-    'amqp_queue_name':    '', # Name of the AMQP queue. Default is no name (default queue destination).
-    'amqp_queue_exclusive': True, # Exclusive queues may only be consumed by the current connection.
-    'smtp_host':     'smtp.gmail.com',
-    'smtp_port':     587,
-    'smtp_username': '', # application-specific username if it differs from the specified 'mail_from' user
+    'config_file': '~/.alerta.conf',
+    'profile': None,
+    'endpoint': 'http://localhost:8080',
+    'key': '',
+    'amqp_url': 'redis://localhost:6379/',
+    'amqp_topic': 'notify',
+    # Name of the AMQP queue. Default is no name (default queue destination).
+    'amqp_queue_name': '',
+    # Exclusive queues may only be consumed by the current connection.
+    'amqp_queue_exclusive': True,
+    'smtp_host': 'smtp.gmail.com',
+    'smtp_port': 587,
+    # application-specific username if it differs from the specified 'mail_from' user
+    'smtp_username': '',
     'smtp_password': '',  # application-specific password if gmail used
     'smtp_starttls': True,  # use the STARTTLS SMTP extension
     'smtp_use_ssl': False,  # whether or not SSL is being used for the SMTP connection
-    'ssl_key_file': None, # a PEM formatted private key file for the SSL connection
-    'ssl_cert_file': None, # a certificate chain file for the SSL connection
-    'mail_from':     '',  # alerta@example.com
-    'mail_to':       [],  # devops@example.com, support@example.com
+    'ssl_key_file': None,  # a PEM formatted private key file for the SSL connection
+    'ssl_cert_file': None,  # a certificate chain file for the SSL connection
+    'mail_from': '',  # alerta@example.com
+    'mail_to': [],  # devops@example.com, support@example.com
     'mail_localhost': None,  # fqdn to use in the HELO/EHLO command
-    'mail_template':  os.path.dirname(__file__) + os.sep + 'email.tmpl',
+    'mail_template': os.path.dirname(__file__) + os.sep + 'email.tmpl',
     'mail_template_html': os.path.dirname(__file__) + os.sep + 'email.html.tmpl',  # nopep8
-    'mail_subject':  ('[{{ alert.status|capitalize }}] {{ alert.environment }}: '
-                      '{{ alert.severity|capitalize }} {{ alert.event }} on '
-                      '{{ alert.service|join(\',\') }} {{ alert.resource }}'),
+    'mail_subject': (
+        '[{{ alert.status|capitalize }}] {{ alert.environment }}: '
+        '{{ alert.severity|capitalize }} {{ alert.event }} on '
+        '{{ alert.service|join(\',\') }} {{ alert.resource }}'
+    ),
     'dashboard_url': 'http://try.alerta.io',
-    'debug':         False,
-    'skip_mta':      False,
-    'email_type':    'text',  # options are: text, html
+    'debug': False,
+    'skip_mta': False,
+    'email_type': 'text',  # options are: text, html
     'severities': []
 }
 
@@ -135,10 +138,7 @@ class FanoutConsumer(ConsumerMixin):
             message.ack()
             return
 
-        if (
-            alert.severity not in sevs and
-            alert.previous_severity not in sevs
-        ):
+        if alert.severity not in sevs and alert.previous_severity not in sevs:
             LOG.debug('Ignored alert %s: severity or previous_severity does not matche the severities configuration (%s)',
                       alertid, sevs)
             message.ack()
@@ -177,7 +177,7 @@ class MailSender(threading.Thread):
             self._template_name_html = os.path.basename(
                 OPTIONS['mail_template_html'])
 
-        super(MailSender, self).__init__()
+        super().__init__()
 
     def run(self):
 
@@ -199,9 +199,10 @@ class MailSender(threading.Thread):
 
             if keep_alive >= 10:
                 try:
-                    origin = '{}/{}'.format('alerta-mailer', OPTIONS['smtp_host'])
+                    origin = '{}/{}'.format('alerta-mailer',
+                                            OPTIONS['smtp_host'])
                     api.heartbeat(origin, tags=[__version__])
-                except Exception as e:
+                except Exception:
                     time.sleep(5)
                     continue
                 keep_alive = 0
@@ -221,7 +222,7 @@ class MailSender(threading.Thread):
                     return True
             LOG.debug('Regex %s matches nothing', regex)
             return False
-        elif isinstance(value, six.string_types):  # pylint: disable=undefined-variable
+        elif isinstance(value, str):  # pylint: disable=undefined-variable
             LOG.debug('Trying to match %s to %s',
                       value, regex)
             return re.search(regex, value) is not None
@@ -266,7 +267,7 @@ class MailSender(threading.Thread):
                                      ' adding for this rule only')
                             del contacts[:]
                             contacts.extend(new_contacts)
-        
+
         # Don't loose time (and try to send an email) if there is no contact...
         if not contacts:
             return
@@ -284,10 +285,7 @@ class MailSender(threading.Thread):
         text = self._template_env.get_template(
             self._template_name).render(**template_vars)
 
-        if (
-            OPTIONS['email_type'] == 'html' and
-            self._template_name_html
-        ):
+        if OPTIONS['email_type'] == 'html' and self._template_name_html:
             html = self._template_env.get_template(
                 self._template_name_html).render(**template_vars)
         else:
@@ -296,7 +294,7 @@ class MailSender(threading.Thread):
         msg = MIMEMultipart('alternative')
         msg['Subject'] = Header(subject, 'utf-8').encode()
         msg['From'] = OPTIONS['mail_from']
-        msg['To'] = ", ".join(contacts)
+        msg['To'] = ', '.join(contacts)
         msg.preamble = msg['Subject']
 
         # by default we are going to assume that the email is going to be text
@@ -308,15 +306,15 @@ class MailSender(threading.Thread):
 
         try:
             self._send_email_message(msg, contacts)
-            LOG.debug('%s : Email sent to %s' % (alert.get_id(),
-                                                 ','.join(contacts)))
+            LOG.debug('{} : Email sent to {}'.format(alert.get_id(),
+                                                     ','.join(contacts)))
             return (msg, contacts)
         except smtplib.SMTPException as e:
             LOG.error('Failed to send mail to %s on %s:%s : %s',
-                      ", ".join(contacts),
+                      ', '.join(contacts),
                       OPTIONS['smtp_host'], OPTIONS['smtp_port'], e)
             return None
-        except (socket.error, socket.herror, socket.gaierror) as e:
+        except (OSError, socket.herror, socket.gaierror) as e:
             LOG.error('Mail server connection error: %s', e)
             return None
         except Exception as e:
@@ -337,10 +335,10 @@ class MailSender(threading.Thread):
                     msg['To'] = dest
                     if OPTIONS['smtp_use_ssl']:
                         mx = smtplib.SMTP_SSL(mxhost,
-                                          OPTIONS['smtp_port'],
-                                          local_hostname=OPTIONS['mail_localhost'],
-                                          keyfile=OPTIONS['ssl_key_file'],
-                                          certfile=OPTIONS['ssl_cert_file'])
+                                              OPTIONS['smtp_port'],
+                                              local_hostname=OPTIONS['mail_localhost'],
+                                              keyfile=OPTIONS['ssl_key_file'],
+                                              certfile=OPTIONS['ssl_cert_file'])
                     else:
                         mx = smtplib.SMTP(mxhost,
                                           OPTIONS['smtp_port'],
@@ -356,10 +354,10 @@ class MailSender(threading.Thread):
         else:
             if OPTIONS['smtp_use_ssl']:
                 mx = smtplib.SMTP_SSL(OPTIONS['smtp_host'],
-                                  OPTIONS['smtp_port'],
-                                  local_hostname=OPTIONS['mail_localhost'],
-                                  keyfile=OPTIONS['ssl_key_file'],
-                                  certfile=OPTIONS['ssl_cert_file'])
+                                      OPTIONS['smtp_port'],
+                                      local_hostname=OPTIONS['mail_localhost'],
+                                      keyfile=OPTIONS['ssl_key_file'],
+                                      certfile=OPTIONS['ssl_cert_file'])
             else:
                 mx = smtplib.SMTP(OPTIONS['smtp_host'],
                                   OPTIONS['smtp_port'],
@@ -428,7 +426,7 @@ def validate_rules(rules):
 
 
 def parse_group_rules(config_file):
-    rules_dir = "{}/alerta.rules.d".format(os.path.dirname(config_file))
+    rules_dir = '{}/alerta.rules.d'.format(os.path.dirname(config_file))
     LOG.debug('Looking for rules files in %s', rules_dir)
     if os.path.exists(rules_dir):
         rules_d = []
@@ -436,11 +434,11 @@ def parse_group_rules(config_file):
             for filename in files[2]:
                 LOG.debug('Parsing %s', filename)
                 try:
-                    with open(os.path.join(files[0], filename), 'r') as f:
+                    with open(os.path.join(files[0], filename)) as f:
                         rules = validate_rules(json.load(f))
                         if rules is not None:
                             rules_d.extend(rules)
-                except:
+                except Exception:
                     LOG.exception('Could not parse file')
         return rules_d
     return ()
@@ -460,12 +458,12 @@ def main():
     defopts = {k: str(v) if type(v) is bool else v for k, v in DEFAULT_OPTIONS.items()}  # nopep8
     config = RawConfigParser(defaults=defopts)
 
-    if os.path.exists("{}.d".format(config_file)):
-        config_path = "{}.d".format(config_file)
+    if os.path.exists('{}.d'.format(config_file)):
+        config_path = '{}.d'.format(config_file)
         config_list = []
         for files in os.walk(config_path):
             for filename in files[2]:
-                config_list.append("{}/{}".format(config_path, filename))
+                config_list.append('{}/{}'.format(config_path, filename))
 
         config_list.append(os.path.expanduser(config_file))
         config_file = config_list
@@ -477,8 +475,8 @@ def main():
             config.read(config_file)
         else:
             config.read(os.path.expanduser(config_file))
-    except Exception as e:
-        LOG.warning("Problem reading configuration file %s - is this an ini file?", config_file)  # nopep8
+    except Exception:
+        LOG.warning('Problem reading configuration file %s - is this an ini file?', config_file)  # nopep8
         sys.exit(1)
 
     if config.has_section(CONFIG_SECTION):
@@ -489,7 +487,8 @@ def main():
             int: config.getint,
             float: config.getfloat,
             bool: config.getboolean,
-            list: lambda s, o: [e.strip() for e in config.get(s, o).split(',')] if len(config.get(s, o)) else []
+            list: lambda s, o: [e.strip() for e in config.get(
+                s, o).split(',')] if len(config.get(s, o)) else []
         }
         for opt in DEFAULT_OPTIONS:
             # Convert the options to the expected type
@@ -500,7 +499,8 @@ def main():
 
     OPTIONS['endpoint'] = os.environ.get('ALERTA_ENDPOINT') or OPTIONS['endpoint']  # nopep8
     OPTIONS['key'] = os.environ.get('ALERTA_API_KEY') or OPTIONS['key']
-    OPTIONS['smtp_username'] = os.environ.get('SMTP_USERNAME') or OPTIONS['smtp_username'] or OPTIONS['mail_from']
+    OPTIONS['smtp_username'] = os.environ.get(
+        'SMTP_USERNAME') or OPTIONS['smtp_username'] or OPTIONS['mail_from']
     OPTIONS['smtp_password'] = os.environ.get('SMTP_PASSWORD') or OPTIONS['smtp_password']  # nopep8
 
     if os.environ.get('DEBUG'):
@@ -542,6 +542,7 @@ def main():
         except Exception as e:
             print(str(e))
             sys.exit(1)
+
 
 if __name__ == '__main__':
     main()

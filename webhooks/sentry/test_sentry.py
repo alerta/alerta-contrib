@@ -1,10 +1,8 @@
-
 import json
 import unittest
 
-from alerta.app import create_app, custom_webhooks
-
 import alerta_sentry
+from alerta.app import create_app, custom_webhooks
 
 
 class SentryWebhookTestCase(unittest.TestCase):
@@ -405,17 +403,22 @@ class SentryWebhookTestCase(unittest.TestCase):
             }
         """
 
-        response = self.client.post('/webhooks/sentry', data=payload, content_type='application/json')
+        response = self.client.post(
+            '/webhooks/sentry', data=payload, content_type='application/json')
         self.assertEqual(response.status_code, 201)
         data = json.loads(response.data.decode('utf-8'))
-        self.assertEqual(data['alert']['resource'], 'raven.scripts.runner in main')
-        self.assertEqual(data['alert']['event'], '0476467adf8f499ea795a48fcc4bf290')
+        self.assertEqual(data['alert']['resource'],
+                         'raven.scripts.runner in main')
+        self.assertEqual(data['alert']['event'],
+                         '0476467adf8f499ea795a48fcc4bf290')
         self.assertEqual(data['alert']['environment'], 'Production')
         self.assertEqual(data['alert']['value'], 'error')
-        self.assertEqual(data['alert']['text'], 'This is an example Python exception https://sentry.io/alertaio/alerta5/issues/541485531/')
-        self.assertEqual(sorted(data['alert']['tags']), ['browser=Chrome 28.0', 'device=Other', 'level=error', 'os=Windows 8', 'sentry:user=id:1', 'url=http://example.com/foo'])
-        self.assertEqual(data['alert']['attributes']['modules'], ['my.package==1.0.0'])
-
+        self.assertEqual(
+            data['alert']['text'], 'This is an example Python exception https://sentry.io/alertaio/alerta5/issues/541485531/')
+        self.assertEqual(sorted(data['alert']['tags']), ['browser=Chrome 28.0', 'device=Other',
+                                                         'level=error', 'os=Windows 8', 'sentry:user=id:1', 'url=http://example.com/foo'])
+        self.assertEqual(data['alert']['attributes']
+                         ['modules'], ['my.package==1.0.0'])
 
     def test_sentry_webhook_v9(self):
 
@@ -822,13 +825,19 @@ class SentryWebhookTestCase(unittest.TestCase):
         }
         """
 
-        response = self.client.post('/webhooks/sentry', data=payload_v9, content_type='application/json')
+        response = self.client.post(
+            '/webhooks/sentry', data=payload_v9, content_type='application/json')
         self.assertEqual(response.status_code, 201)
         data = json.loads(response.data.decode('utf-8'))
-        self.assertEqual(data['alert']['resource'], 'raven.scripts.runner in main')
-        self.assertEqual(data['alert']['event'], '2c02659ec60b48f3b31f8de77e1a2510')
+        self.assertEqual(data['alert']['resource'],
+                         'raven.scripts.runner in main')
+        self.assertEqual(data['alert']['event'],
+                         '2c02659ec60b48f3b31f8de77e1a2510')
         self.assertEqual(data['alert']['environment'], 'Production')
         self.assertEqual(data['alert']['value'], 'error')
-        self.assertEqual(data['alert']['text'], 'This is an example Python exception https://sentry.io/alertaio/alerta5/issues/541485531/')
-        self.assertEqual(sorted(data['alert']['tags']), ['browser.name=Chrome', 'browser=Chrome 28.0.1500', 'level=error', 'os.name=Windows 8', 'sentry:user=id:1', 'url=http://example.com/foo'])
-        self.assertEqual(data['alert']['attributes']['modules'], ['my.package==1.0.0'])
+        self.assertEqual(
+            data['alert']['text'], 'This is an example Python exception https://sentry.io/alertaio/alerta5/issues/541485531/')
+        self.assertEqual(sorted(data['alert']['tags']), ['browser.name=Chrome', 'browser=Chrome 28.0.1500',
+                                                         'level=error', 'os.name=Windows 8', 'sentry:user=id:1', 'url=http://example.com/foo'])
+        self.assertEqual(data['alert']['attributes']
+                         ['modules'], ['my.package==1.0.0'])

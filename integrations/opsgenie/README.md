@@ -2,11 +2,11 @@ Set up OpsGenie with an OpsGenie Edge Connector integration.
 ==================
 
 
-While the OpsGenie plugin provided by Alerta can send alerts to OpsGenie it does not allow OpsGenie to update Alerta. 
-Fortunately, OpsGenie has an edge connector we can install and configure to use some code to do this for us. 
+While the OpsGenie plugin provided by Alerta can send alerts to OpsGenie it does not allow OpsGenie to update Alerta.
+Fortunately, OpsGenie has an edge connector we can install and configure to use some code to do this for us.
 
 
-Set up OpsGenie Edge Connector (oec) 
+Set up OpsGenie Edge Connector (oec)
 ------------------
 
     Log in to OpsGenie
@@ -17,10 +17,10 @@ Set up OpsGenie Edge Connector (oec)
 
           - from OEC "alert is acknowledged"  -> Alerta will ack the alert
           - from OEC "alert is closed" -> Alerta will close the alert
-          - from OEC "alert is unacknowledged" -> Alerta will unack the alert  
-          - from OEC "a note is added" -> Alerta will add a note to the alert  
-          - from OEC "A user executes assign ownership" -> Alerta will assign the alert  
-          - from OEC "A user takes ownership" -> Alerta will assign the alert   
+          - from OEC "alert is unacknowledged" -> Alerta will unack the alert
+          - from OEC "a note is added" -> Alerta will add a note to the alert
+          - from OEC "A user executes assign ownership" -> Alerta will assign the alert
+          - from OEC "A user takes ownership" -> Alerta will assign the alert
 
 
     Click "Add new action" and add whichever actions you desire from OEC.
@@ -47,7 +47,7 @@ As mentioned all actions will be shown to be executed by the user you chose to a
 Install and configure OpsGenie Edge Connector on a host in your network. Alerta has been tested with OEC version 1.1.3
 ------------------
 
-    Some links to OpsGenie OEC documentation: 
+    Some links to OpsGenie OEC documentation:
 
 [Installation docs for OEC provided by Atlassian](https://support.atlassian.com/opsgenie/docs/opsgenie-edge-connector-installation-packs/)
 
@@ -110,10 +110,10 @@ Remove some things that OEC installs by default
 
     If Alerta is configured to send alerts to OpsGenie then OEC should get updates and be able to update alerts in Alerta from any of the OpsGenie interfaces (web/phone etc..)
 
-Troubleshooting 
+Troubleshooting
 ------------------
-    If alerts are not firing it could be due to the alert source not being set.  This requires an update to the OpsGenie plugin that hasn't been accepted yet. 
-    Including a line in the plugin to set the source from the config or a reasonable default should address this. 
+    If alerts are not firing it could be due to the alert source not being set.  This requires an update to the OpsGenie plugin that hasn't been accepted yet.
+    Including a line in the plugin to set the source from the config or a reasonable default should address this.
 
     ```OPSGENIE_ALERT_SOURCE = os.environ.get('OPSGENIE_ALERT_SOURCE') or app.config.get('OPSGENIE_ALERT_SOURCE', 'Alerta'```
 
@@ -131,8 +131,8 @@ Troubleshooting
             }
     ```
 
-   This is useful for OpsGenie Edge Connector to not update ALL Edge connector integrations if you have more than one running in your env.  This will send updates to Alerta when the 
-   source was Alerta.  So if JIRA is also integrated through OEC it won't be trying to send any updates to Alerta etc. 
+   This is useful for OpsGenie Edge Connector to not update ALL Edge connector integrations if you have more than one running in your env.  This will send updates to Alerta when the
+   source was Alerta.  So if JIRA is also integrated through OEC it won't be trying to send any updates to Alerta etc.
 
 ![Limiting which integrations can update Alerta in OpsGenie](./images/alert-filter.png)
 

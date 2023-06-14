@@ -1,10 +1,9 @@
-
-from setuptools import setup, find_packages
+from setuptools import find_packages, setup
 
 version = '5.2.1'
 
 setup(
-    name="alerta-msteams",
+    name='alerta-msteams',
     version=version,
     description='Alerta plugin for Microsoft Teams',
     url='https://github.com/alerta/alerta-contrib',

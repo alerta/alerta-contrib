@@ -35,7 +35,7 @@ MATTERMOST_USERNAME = # '' default="alerta"
 Create a new incoming webhook in your Mattermost installation.
 See https://docs.mattermost.com/developer/webhooks-incoming.html
 
-Templating 
+Templating
 ----------
 
 No templating support at this time. Use hardcoded reasonable one.

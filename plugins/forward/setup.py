@@ -1,10 +1,9 @@
-
-from setuptools import setup, find_packages
+from setuptools import find_packages, setup
 
 version = '5.0.0'
 
 setup(
-    name="alerta-forward",
+    name='alerta-forward',
     version=version,
     description='Alerta plugin for forwarding alerts',
     url='https://github.com/alerta/alerta-contrib',

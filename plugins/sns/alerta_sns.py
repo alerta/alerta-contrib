@@ -1,24 +1,28 @@
+import logging
+import os
 
 import boto.exception
 import boto.sns
-import logging
-import os
+from alerta.plugins import PluginBase
 
 try:
     from alerta.plugins import app  # alerta >= 5.0
 except ImportError:
     from alerta.app import app  # alerta < 5.0
-from alerta.plugins import PluginBase
 
 LOG = logging.getLogger('alerta.plugins.sns')
 
 DEFAULT_AWS_REGION = 'eu-west-1'
 DEFAULT_AWS_SNS_TOPIC = 'notify'
 
-AWS_REGION = os.environ.get('AWS_REGION') or app.config.get('AWS_REGION', DEFAULT_AWS_REGION)
-AWS_ACCESS_KEY_ID = os.environ.get('AWS_ACCESS_KEY_ID') or app.config.get('AWS_ACCESS_KEY_ID')
-AWS_SECRET_ACCESS_KEY = os.environ.get('AWS_SECRET_ACCESS_KEY') or app.config.get('AWS_SECRET_ACCESS_KEY')
-AWS_SNS_TOPIC = os.environ.get('AWS_SNS_TOPIC') or app.config.get('AWS_SNS_TOPIC', DEFAULT_AWS_SNS_TOPIC)
+AWS_REGION = os.environ.get('AWS_REGION') or app.config.get(
+    'AWS_REGION', DEFAULT_AWS_REGION)
+AWS_ACCESS_KEY_ID = os.environ.get(
+    'AWS_ACCESS_KEY_ID') or app.config.get('AWS_ACCESS_KEY_ID')
+AWS_SECRET_ACCESS_KEY = os.environ.get(
+    'AWS_SECRET_ACCESS_KEY') or app.config.get('AWS_SECRET_ACCESS_KEY')
+AWS_SNS_TOPIC = os.environ.get('AWS_SNS_TOPIC') or app.config.get(
+    'AWS_SNS_TOPIC', DEFAULT_AWS_SNS_TOPIC)
 
 
 class SnsTopicPublisher(PluginBase):
@@ -35,7 +39,8 @@ class SnsTopicPublisher(PluginBase):
             raise RuntimeError
 
         if not self.connection:
-            LOG.error('Failed to connect to SNS topic %s - check AWS credentials and region', AWS_SNS_TOPIC)
+            LOG.error(
+                'Failed to connect to SNS topic %s - check AWS credentials and region', AWS_SNS_TOPIC)
             raise RuntimeError
 
         try:
@@ -50,7 +55,7 @@ class SnsTopicPublisher(PluginBase):
             LOG.error('Failed to get SNS TopicArn for %s', AWS_SNS_TOPIC)
             raise RuntimeError
 
-        super(SnsTopicPublisher, self).__init__(name)
+        super().__init__(name)
 
         LOG.info('Configured SNS publisher on topic "%s"', self.topic_arn)
 
@@ -59,10 +64,12 @@ class SnsTopicPublisher(PluginBase):
 
     def post_receive(self, alert):
 
-        LOG.info('Sending message %s to SNS topic "%s"', alert.get_id(), self.topic_arn)
+        LOG.info('Sending message %s to SNS topic "%s"',
+                 alert.get_id(), self.topic_arn)
         LOG.debug('Message: %s', alert.get_body())
 
-        response = self.connection.publish(topic=self.topic_arn, message=alert.get_body())
+        response = self.connection.publish(
+            topic=self.topic_arn, message=alert.get_body())
         LOG.debug('Response: %s', response)
 
     def status_change(self, alert, status, text):

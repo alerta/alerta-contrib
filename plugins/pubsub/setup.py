@@ -1,10 +1,9 @@
-
-from setuptools import setup, find_packages
+from setuptools import find_packages, setup
 
 version = '5.2.2'
 
 setup(
-    name="alerta-pubsub",
+    name='alerta-pubsub',
     version=version,
     description='Alerta plugin for sending alerts to pubsub',
     url='https://github.com/alerta/alerta-contrib',

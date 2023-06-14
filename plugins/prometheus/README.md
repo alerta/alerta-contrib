@@ -48,13 +48,13 @@ ALERTMANAGER_SILENCE_FROM_ACK = True
 ```
 
 
-Prometheus docs specify that prometheus should send all alerts to all alertmanagers.  If you have configured your 
-ALERTMANAGER_API_URL to be a load balanced endpoint that mirrors requests to a set of alertmanagers then the following setting 
+Prometheus docs specify that prometheus should send all alerts to all alertmanagers.  If you have configured your
+ALERTMANAGER_API_URL to be a load balanced endpoint that mirrors requests to a set of alertmanagers then the following setting
 will create/remove silences if alertmanager has set the externalUrl, the following will configure alerta to use that for silences
- instead of the Alertmanager API URL. 
+ instead of the Alertmanager API URL.
 
-Alertmanager syncs silences across all alertmanagers so only sendng it to one AM is appropriate. Using a load-balanced API that mirrors 
-requests will create one unique silenceId per alertmanager instance and sync them across all alertmanagers, which is not necessary. 
+Alertmanager syncs silences across all alertmanagers so only sendng it to one AM is appropriate. Using a load-balanced API that mirrors
+requests will create one unique silenceId per alertmanager instance and sync them across all alertmanagers, which is not necessary.
 ```python
 ALERTMANAGER_USE_EXTERNALURL_FOR_SILENCES = True
 ```

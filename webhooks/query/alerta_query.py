@@ -1,4 +1,3 @@
-
 from alerta.models.alert import Alert
 from alerta.webhooks import WebhookBase
 
@@ -8,60 +7,60 @@ class QueryWebhook(WebhookBase):
     def incoming(self, query_string, payload):
 
         # Load variables from querystring
-		# resource
+        # resource
         try:
             resource = query_string['resource']
-        except:
+        except Exception:
             resource = 'QueryDefaultResource'
-		# environment
+            # environment
         try:
             environment = query_string['environment']
-        except:
+        except Exception:
             environment = 'Production'
-		# severity
+            # severity
         try:
             severity = query_string['severity']
-        except:
+        except Exception:
             severity = 'major'
-		# group
+            # group
         try:
             group = query_string['group']
-        except:
+        except Exception:
             group = 'QueryDefaultGroup'
-		# event
+            # event
         try:
             event = query_string['event']
-        except:
+        except Exception:
             event = 'QueryDefaultEvent'
-		# service (Must be an array)
+            # service (Must be an array)
         try:
             service = [query_string['service']]
-        except:
+        except Exception:
             service = ['QueryDefaultService']
-		# value
+            # value
         try:
             value = query_string['value']
-        except:
+        except Exception:
             value = ''
-		# text
+            # text
         try:
             text = query_string['text']
-        except:
+        except Exception:
             text = ''
-		# tags (Must be an array)
+            # tags (Must be an array)
         try:
             tags = query_string['tags'].split(',')
-        except:
+        except Exception:
             tags = []
-		# origin
+            # origin
         try:
             origin = query_string['origin']
-        except:
+        except Exception:
             origin = 'QueryDefaultOrigin'
-		# timeout
+            # timeout
         try:
             timeout = int(query_string['timeout'])
-        except:
+        except Exception:
             timeout = 86400
 
         return Alert(
@@ -75,6 +74,6 @@ class QueryWebhook(WebhookBase):
             text=text,
             tags=tags,
             origin=origin,
-			timeout=timeout,
+            timeout=timeout,
             raw_data=query_string
         )

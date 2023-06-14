@@ -3,7 +3,7 @@
 import setuptools
 
 setuptools.setup(
-    name="alerta-snmptrap",
+    name='alerta-snmptrap',
     version='5.0.0',
     description='Alerta script for SNMP traps',
     url='https://github.com/alerta/alerta-contrib',
@@ -21,7 +21,7 @@ setuptools.setup(
             'alerta-snmptrap = handler:main'
         ]
     },
-    keywords="alerta snmp trap monitoring",
+    keywords='alerta snmp trap monitoring',
     classifiers=[
         'Topic :: System :: Monitoring',
     ]

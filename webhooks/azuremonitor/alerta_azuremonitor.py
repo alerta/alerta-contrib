@@ -1,9 +1,8 @@
 import json
 
-from dateutil.parser import parse as parse_date
-
 from alerta.models.alert import Alert
 from alerta.webhooks import WebhookBase
+from dateutil.parser import parse as parse_date
 
 SEVERITY_MAP = {
     '0': 'critical',       # Critical
@@ -32,7 +31,8 @@ class AzureMonitorWebhook(WebhookBase):
             if status == 'Resolved' or status == 'Deactivated':
                 severity = 'ok'
             else:
-                severity = SEVERITY_MAP[context.get('severity', DEFAULT_SEVERITY_LEVEL)]
+                severity = SEVERITY_MAP[context.get(
+                    'severity', DEFAULT_SEVERITY_LEVEL)]
 
             resource = context['resourceName']
             event = context['name']
@@ -40,7 +40,7 @@ class AzureMonitorWebhook(WebhookBase):
             service = [context['resourceType']]
             group = context['resourceGroupName']
             tags = [] if payload['data']['properties'] is None else ['{}={}'.format(k, v) for k, v in
-                                                             payload['data']['properties'].items()]
+                                                                     payload['data']['properties'].items()]
             create_time = parse_date(context['timestamp'])
 
             if payload['schemaId'] == 'AzureMonitorMetricAlert':

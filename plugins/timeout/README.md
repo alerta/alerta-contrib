@@ -16,7 +16,7 @@ setting and the default global timeout value may not be too large.
 
 
 Timeout actions:
- 
+
   * The alert 'timeout' attribute is (re)set for each alert to the value specified
 
 
@@ -57,4 +57,3 @@ Restart Alerta API and confirm that the plugin has been loaded and enabled.
 
 Set `DEBUG=True` in the `alertad.conf` configuration file and look for log
 entries referencing `Setting timeout for alert to 2400`
-

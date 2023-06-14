@@ -70,8 +70,10 @@ class SlackPluginTestCase(unittest.TestCase):
                 'tags': []
             }
 
-            response = self.client.post('/alert', data=json.dumps(self.alert), headers={'Content-type': 'application/json'})
+            response = self.client.post(
+                '/alert', data=json.dumps(self.alert), headers={'Content-type': 'application/json'})
             self.assertEqual(response.status_code, 201)
             data = json.loads(response.data.decode('utf-8'))
             self.assertEqual(data['status'], 'ok')
-            self.assertRegex(data['id'], '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}')
+            self.assertRegex(
+                data['id'], '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}')

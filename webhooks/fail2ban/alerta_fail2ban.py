@@ -1,7 +1,8 @@
+import json
 
 from alerta.models.alert import Alert
 from alerta.webhooks import WebhookBase
-import json
+
 
 class Fail2BanWebhook(WebhookBase):
 
@@ -9,8 +10,8 @@ class Fail2BanWebhook(WebhookBase):
 
         # Default parameters
         environment = 'Production'
-        severity ='security'
-        group ='Fail2Ban'
+        severity = 'security'
+        group = 'Fail2Ban'
         text = ''
         tags = []
         attributes = {}

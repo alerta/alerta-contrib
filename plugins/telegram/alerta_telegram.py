@@ -1,16 +1,17 @@
 import logging
 import os
 
+import telepot
+from alerta.plugins import PluginBase
+from jinja2 import Template, UndefinedError
+
 try:
     from alerta.plugins import app  # alerta >= 5.0
 except ImportError:
     from alerta.app import app  # alerta < 5.0
-from alerta.plugins import PluginBase
 
-import telepot
-from jinja2 import Template, UndefinedError
 
-DEFAULT_TMPL = """
+DEFAULT_TMPL = r"""
 {% if customer %}Customer: `{{customer}}` {% endif %}
 
 *[{{ status.capitalize() }}] {{ environment }} {{ severity.capitalize() }}*
@@ -24,26 +25,26 @@ DEFAULT_TMPL = """
 LOG = logging.getLogger('alerta.plugins.telegram')
 
 TELEGRAM_TOKEN = app.config.get('TELEGRAM_TOKEN') \
-                 or os.environ.get('TELEGRAM_TOKEN')
+    or os.environ.get('TELEGRAM_TOKEN')
 TELEGRAM_CHAT_ID = app.config.get('TELEGRAM_CHAT_ID') \
-                   or os.environ.get('TELEGRAM_CHAT_ID')
+    or os.environ.get('TELEGRAM_CHAT_ID')
 TELEGRAM_WEBHOOK_URL = app.config.get('TELEGRAM_WEBHOOK_URL', None) \
-                       or os.environ.get('TELEGRAM_WEBHOOK_URL')
+    or os.environ.get('TELEGRAM_WEBHOOK_URL')
 TELEGRAM_TEMPLATE = app.config.get('TELEGRAM_TEMPLATE') \
-                    or os.environ.get('TELEGRAM_TEMPLATE')
+    or os.environ.get('TELEGRAM_TEMPLATE')
 TELEGRAM_PROXY = app.config.get('TELEGRAM_PROXY') \
-                 or os.environ.get('TELEGRAM_PROXY')
+    or os.environ.get('TELEGRAM_PROXY')
 TELEGRAM_PROXY_USERNAME = app.config.get('TELEGRAM_PROXY_USERNAME') \
-                          or os.environ.get('TELEGRAM_PROXY_USERNAME')
+    or os.environ.get('TELEGRAM_PROXY_USERNAME')
 TELEGRAM_PROXY_PASSWORD = app.config.get('TELEGRAM_PROXY_PASSWORD') \
-                          or os.environ.get('TELEGRAM_PROXY_PASSWORD')
+    or os.environ.get('TELEGRAM_PROXY_PASSWORD')
 TELEGRAM_SOUND_NOTIFICATION_SEVERITY = app.config.get('TELEGRAM_SOUND_NOTIFICATION_SEVERITY') \
-                          or os.environ.get('TELEGRAM_SOUND_NOTIFICATION_SEVERITY')
+    or os.environ.get('TELEGRAM_SOUND_NOTIFICATION_SEVERITY')
 TELEGRAM_DISABLE_NOTIFICATION_SEVERITY = app.config.get('TELEGRAM_DISABLE_NOTIFICATION_SEVERITY') \
-                          or os.environ.get('TELEGRAM_DISABLE_NOTIFICATION_SEVERITY')
+    or os.environ.get('TELEGRAM_DISABLE_NOTIFICATION_SEVERITY')
 
 DASHBOARD_URL = app.config.get('DASHBOARD_URL', '') \
-                or os.environ.get('DASHBOARD_URL')
+    or os.environ.get('DASHBOARD_URL')
 
 # use all the same, but telepot.aio.api.set_proxy for async telepot
 if all([TELEGRAM_PROXY, TELEGRAM_PROXY_USERNAME, TELEGRAM_PROXY_PASSWORD]):
@@ -54,6 +55,7 @@ elif TELEGRAM_PROXY is not None:
     telepot.api.set_proxy(TELEGRAM_PROXY)
     LOG.debug('Telegram: using proxy %s', TELEGRAM_PROXY)
 
+
 class TelegramBot(PluginBase):
     def __init__(self, name=None):
 
@@ -61,14 +63,14 @@ class TelegramBot(PluginBase):
         LOG.debug('Telegram: %s', self.bot.getMe())
 
         if TELEGRAM_WEBHOOK_URL and \
-                        TELEGRAM_WEBHOOK_URL != self.bot.getWebhookInfo()['url']:
+                TELEGRAM_WEBHOOK_URL != self.bot.getWebhookInfo()['url']:
             self.bot.setWebhook(TELEGRAM_WEBHOOK_URL)
             LOG.debug('Telegram: %s', self.bot.getWebhookInfo())
 
-        super(TelegramBot, self).__init__(name)
+        super().__init__(name)
         if TELEGRAM_TEMPLATE:
             if os.path.exists(TELEGRAM_TEMPLATE):
-                with open(TELEGRAM_TEMPLATE, 'r') as f:
+                with open(TELEGRAM_TEMPLATE) as f:
                     self.template = Template(f.read())
             else:
                 self.template = Template(TELEGRAM_TEMPLATE)
@@ -86,7 +88,7 @@ class TelegramBot(PluginBase):
         try:
             text = self.template.render(alert.__dict__)
         except UndefinedError:
-            text = "Something bad has happened but also we " \
+            text = 'Something bad has happened but also we ' \
                    "can't handle your telegram template message."
 
         LOG.debug('Telegram: message=%s', text)
@@ -117,12 +119,14 @@ class TelegramBot(PluginBase):
                 return
 
         if alert.severity in ['ok', 'normal', 'cleared', app.config.get('DEFAULT_NORMAL_SEVERITY')] and alert.previous_severity in TELEGRAM_DISABLE_NOTIFICATION_SEVERITY:
-            LOG.debug("Alert severity is %s but previous_severity was %s (included in DEFAULT_NORMAL_SEVERITY list), thus it will not be forwarded to Telegram." % (alert.severity, alert.previous_severity))
+            LOG.debug('Alert severity is {} but previous_severity was {} (included in DEFAULT_NORMAL_SEVERITY list), thus it will not be forwarded to Telegram.'.format(
+                alert.severity, alert.previous_severity))
             return
 
-        LOG.debug('Telegram: post_receive sendMessage disable_notification=%s', str(disable_notification))
+        LOG.debug('Telegram: post_receive sendMessage disable_notification=%s', str(
+            disable_notification))
 
-        chat_ids = TELEGRAM_CHAT_ID.split(",")
+        chat_ids = TELEGRAM_CHAT_ID.split(',')
         for chat_id in chat_ids:
             try:
                 response = self.bot.sendMessage(chat_id,
@@ -131,13 +135,13 @@ class TelegramBot(PluginBase):
                                                 disable_notification=disable_notification,
                                                 reply_markup=keyboard)
             except telepot.exception.TelegramError as e:
-                raise RuntimeError("Telegram (ChatId: %s): ERROR - %s, description= %s, json=%s",
-                                chat_id,
-                                e.error_code,
-                                e.description,
-                                e.json)
+                raise RuntimeError('Telegram (ChatId: %s): ERROR - %s, description= %s, json=%s',
+                                   chat_id,
+                                   e.error_code,
+                                   e.description,
+                                   e.json)
             except Exception as e:
-                raise RuntimeError("Telegram: ERROR - %s", e)
+                raise RuntimeError('Telegram: ERROR - %s', e)
 
             LOG.debug('Telegram (ChatId: %s):  %s', chat_id, response)
 

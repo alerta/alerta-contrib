@@ -1,4 +1,3 @@
-
 import json
 import unittest
 
@@ -17,10 +16,10 @@ class AzureMonitoringWebhookTestCase(unittest.TestCase):
         self.app = create_app(test_config)
         self.client = self.app.test_client()
 
-        custom_webhooks.webhooks['azuremonitor'] = alerta_azuremonitor.AzureMonitorWebhook()
+        custom_webhooks.webhooks['azuremonitor'] = alerta_azuremonitor.AzureMonitorWebhook(
+        )
 
     def test_azuremonitor_webhook_classic(self):
-
         """ See https://docs.microsoft.com/en-us/azure/azure-monitor/platform/alerts-webhooks """
 
         classic_metric_alert = r"""
@@ -56,7 +55,8 @@ class AzureMonitoringWebhookTestCase(unittest.TestCase):
         }
         """
 
-        response = self.client.post('/webhooks/azuremonitor', data=classic_metric_alert, content_type='application/json')
+        response = self.client.post(
+            '/webhooks/azuremonitor', data=classic_metric_alert, content_type='application/json')
 
         self.assertEqual(response.status_code, 201, response.data)
         data = json.loads(response.data.decode('utf-8'))
@@ -68,8 +68,10 @@ class AzureMonitoringWebhookTestCase(unittest.TestCase):
         self.assertEqual(data['alert']['service'], ['microsoft.foo/sites'])
         self.assertEqual(data['alert']['group'], 'useast')
         self.assertEqual(data['alert']['value'], '10 Requests')
-        self.assertEqual(data['alert']['text'], 'CRITICAL: 10 Requests (GreaterThanOrEqual 10)')
-        self.assertEqual(sorted(data['alert']['tags']), ['key1=value1', 'key2=value2'])
+        self.assertEqual(data['alert']['text'],
+                         'CRITICAL: 10 Requests (GreaterThanOrEqual 10)')
+        self.assertEqual(sorted(data['alert']['tags']), [
+                         'key1=value1', 'key2=value2'])
 
         classic_metric_alert = r"""
         {
@@ -108,7 +110,8 @@ class AzureMonitoringWebhookTestCase(unittest.TestCase):
         }
         """
 
-        response = self.client.post('/webhooks/azuremonitor', data=classic_metric_alert, content_type='application/json')
+        response = self.client.post(
+            '/webhooks/azuremonitor', data=classic_metric_alert, content_type='application/json')
 
         self.assertEqual(response.status_code, 201, response.data)
         data = json.loads(response.data.decode('utf-8'))
@@ -117,10 +120,12 @@ class AzureMonitoringWebhookTestCase(unittest.TestCase):
         self.assertEqual(data['alert']['environment'], 'Production')
         self.assertEqual(data['alert']['severity'], 'critical')
         self.assertEqual(data['alert']['status'], 'open')
-        self.assertEqual(data['alert']['service'], ['microsoft.compute/virtualmachines'])
+        self.assertEqual(data['alert']['service'], [
+                         'microsoft.compute/virtualmachines'])
         self.assertEqual(data['alert']['group'], 'montest')
         self.assertEqual(data['alert']['value'], '1032190976 Memory available')
-        self.assertEqual(data['alert']['text'], 'CRITICAL: 1032190976 Memory available (GreaterThan 2)')
+        self.assertEqual(
+            data['alert']['text'], 'CRITICAL: 1032190976 Memory available (GreaterThan 2)')
         self.assertEqual(sorted(data['alert']['tags']), [
             'customId=wd39ue9832ue9iuhd9iuewhd9edh',
             'hello1=World1!',
@@ -129,7 +134,6 @@ class AzureMonitoringWebhookTestCase(unittest.TestCase):
         )
 
     def test_azuremonitor_webhook_new(self):
-
         """ See https://docs.microsoft.com/en-us/azure/azure-monitor/platform/alerts-metric-near-real-time """
 
         new_metric_alert = r"""
@@ -181,7 +185,8 @@ class AzureMonitoringWebhookTestCase(unittest.TestCase):
         }
         """
 
-        response = self.client.post('/webhooks/azuremonitor', data=new_metric_alert, content_type='application/json')
+        response = self.client.post(
+            '/webhooks/azuremonitor', data=new_metric_alert, content_type='application/json')
 
         self.assertEqual(response.status_code, 201, response.data)
         data = json.loads(response.data.decode('utf-8'))
@@ -190,11 +195,14 @@ class AzureMonitoringWebhookTestCase(unittest.TestCase):
         self.assertEqual(data['alert']['environment'], 'Production')
         self.assertEqual(data['alert']['severity'], 'informational')
         self.assertEqual(data['alert']['status'], 'open')
-        self.assertEqual(data['alert']['service'], ['Microsoft.Storage/storageAccounts'])
+        self.assertEqual(data['alert']['service'], [
+                         'Microsoft.Storage/storageAccounts'])
         self.assertEqual(data['alert']['group'], 'Contoso')
         self.assertEqual(data['alert']['value'], '1 Transactions')
-        self.assertEqual(data['alert']['text'], 'INFORMATIONAL: 1 Transactions (GreaterThan 0)')
-        self.assertEqual(sorted(data['alert']['tags']), ['key1=value1', 'key2=value2'])
+        self.assertEqual(data['alert']['text'],
+                         'INFORMATIONAL: 1 Transactions (GreaterThan 0)')
+        self.assertEqual(sorted(data['alert']['tags']), [
+                         'key1=value1', 'key2=value2'])
 
         new_metric_alert = r"""
         {
@@ -244,7 +252,8 @@ class AzureMonitoringWebhookTestCase(unittest.TestCase):
         }
         """
 
-        response = self.client.post('/webhooks/azuremonitor?environment=Development', data=new_metric_alert, content_type='application/json')
+        response = self.client.post('/webhooks/azuremonitor?environment=Development',
+                                    data=new_metric_alert, content_type='application/json')
 
         self.assertEqual(response.status_code, 201, response.data)
         data = json.loads(response.data.decode('utf-8'))
@@ -253,8 +262,10 @@ class AzureMonitoringWebhookTestCase(unittest.TestCase):
         self.assertEqual(data['alert']['environment'], 'Development')
         self.assertEqual(data['alert']['severity'], 'ok')
         self.assertEqual(data['alert']['status'], 'closed')
-        self.assertEqual(data['alert']['service'], ['Microsoft.Compute/virtualMachines'])
+        self.assertEqual(data['alert']['service'], [
+                         'Microsoft.Compute/virtualMachines'])
         self.assertEqual(data['alert']['group'], 'Web')
         self.assertEqual(data['alert']['value'], '85 Percentage CPU')
-        self.assertEqual(data['alert']['text'], 'OK: 85 Percentage CPU (GreaterThan 90)')
+        self.assertEqual(data['alert']['text'],
+                         'OK: 85 Percentage CPU (GreaterThan 90)')
         self.assertEqual(sorted(data['alert']['tags']), [])

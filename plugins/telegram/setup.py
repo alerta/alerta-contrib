@@ -1,10 +1,9 @@
-
-from setuptools import setup, find_packages
+from setuptools import find_packages, setup
 
 version = '5.1.3'
 
 setup(
-    name="alerta-telegram",
+    name='alerta-telegram',
     version=version,
     description='Alerta plugin for Telegram',
     url='https://github.com/alerta/alerta-contrib',

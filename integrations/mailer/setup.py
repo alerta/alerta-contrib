@@ -5,7 +5,7 @@ import setuptools
 version = '5.2.1'
 
 setuptools.setup(
-    name="alerta-mailer",
+    name='alerta-mailer',
     version=version,
     description='Send emails from Alerta',
     url='https://github.com/alerta/alerta-contrib',
@@ -29,7 +29,7 @@ setuptools.setup(
             'alerta-mailer = mailer:main'
         ]
     },
-    keywords="alerta monitoring mailer sendmail smtp",
+    keywords='alerta monitoring mailer sendmail smtp',
     classifiers=[
         'Topic :: System :: Monitoring',
     ]

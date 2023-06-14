@@ -1,10 +1,10 @@
 '''
 Unit test definitions for all rules
 '''
-import pytest
 import mailer
+import pytest
 from alertaclient.models.alert import Alert
-from mock import MagicMock, patch, DEFAULT
+from mock import DEFAULT, MagicMock, patch
 
 
 def test_rules_dont_exist():
@@ -13,7 +13,7 @@ def test_rules_dont_exist():
     '''
     with patch('mailer.os') as system_os:
         system_os.path.exists.return_value = False
-        res = mailer.parse_group_rules('config_file')
+        # res = mailer.parse_group_rules('config_file')
         system_os.path.exists.called_once_with('confile_file')
         # assert res is None
 
@@ -57,38 +57,38 @@ TESTDOCS = [
     ({}, False),
     ([], True),
     ([
-        {"name": "invalid_no_fields",
-         "contacts": []}
+        {'name': 'invalid_no_fields',
+         'contacts': []}
     ], False),
     ([
-        {"name": "invalid_empty_fields",
-         "fields": [],
-         "contacts": []}
+        {'name': 'invalid_empty_fields',
+         'fields': [],
+         'contacts': []}
     ], False),
     ([
-        {"name": "invalid_no_contacts",
-         "fields": [{"field": "resource", "regex": r"\d{4}"}]}
+        {'name': 'invalid_no_contacts',
+         'fields': [{'field': 'resource', 'regex': r'\d{4}'}]}
     ], False),
     ([
-        {"name": "invalid_no_field_on_fields",
-         "fields": [{"regex": r"\d{4}"}],
-         "contacts": []}
+        {'name': 'invalid_no_field_on_fields',
+         'fields': [{'regex': r'\d{4}'}],
+         'contacts': []}
     ], False),
     ([
-        {"name": "invalid_fields_not_list",
-         "fields": {"regex": r"\d{4}"},
-         "contacts": []}
+        {'name': 'invalid_fields_not_list',
+         'fields': {'regex': r'\d{4}'},
+         'contacts': []}
     ], False),
     ([
-        {"name": "invalid_no_fields_regex",
-         "fields": [{"field": "test"}],
-         "contacts": []}
+        {'name': 'invalid_no_fields_regex',
+         'fields': [{'field': 'test'}],
+         'contacts': []}
     ], False),
     ([
-        {"name": "invalid_no_fields_regex",
-         "fields": [{"field": "tags", "regex": "atag"}],
-         "exclude": True,
-         "contacts": []}
+        {'name': 'invalid_no_fields_regex',
+         'fields': [{'field': 'tags', 'regex': 'atag'}],
+         'exclude': True,
+         'contacts': []}
     ], True),
 ]
 
@@ -108,9 +108,9 @@ def test_rules_validation(doc, is_valid):
 RULES_DATA = [
     # ({'resource': 'server-1234', 'event': '5678'}, [], []),
     ({'resource': '1234', 'event': '5678'},
-     [{"name": "Test1",
-       "fields": [{"field": "resource", "regex": r"(\w.*)?\d{4}"}],
-       "contacts": ["test@example.com"]}],
+     [{'name': 'Test1',
+       'fields': [{'field': 'resource', 'regex': r'(\w.*)?\d{4}'}],
+       'contacts': ['test@example.com']}],
      ['test@example.com'])
 ]
 
@@ -144,7 +144,7 @@ def test_rule_matches_list():
             regex.match.side_effect = [MagicMock(), None]
             assert mail_sender._rule_matches('regex', ['item1']) is True
             regex.match.assert_called_with('regex', 'item1')
-            assert mail_sender._rule_matches('regex', ['item2']) is False 
+            assert mail_sender._rule_matches('regex', ['item2']) is False
             regex.match.assert_called_with('regex', 'item2')
 
 
@@ -162,4 +162,3 @@ def test_rule_matches_string():
             regex.search.assert_called_with('regex', 'value1')
             assert mail_sender._rule_matches('regex', 'value2') is False
             regex.search.assert_called_with('regex', 'value2')
-

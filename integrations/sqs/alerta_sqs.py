@@ -1,15 +1,13 @@
 #!/usr/bin/env python
 
+import logging
 import os
 import sys
 import time
-import logging
-
-from flask.config import Config
 
 import boto.sqs
 from boto.sqs.message import RawMessage
-from boto import exception
+from flask.config import Config
 
 LOG = logging.getLogger('alerta.sqs')
 
@@ -20,13 +18,17 @@ config.from_envvar('ALERTA_SVR_CONF_FILE', silent=True)
 DEFAULT_AWS_REGION = 'eu-west-1'
 DEFAULT_AWS_SQS_QUEUE = 'alerts'
 
-AWS_REGION = os.environ.get('AWS_REGION') or config.get('AWS_REGION', DEFAULT_AWS_REGION)
-AWS_ACCESS_KEY_ID = os.environ.get('AWS_ACCESS_KEY_ID') or config.get('AWS_ACCESS_KEY_ID')
-AWS_SECRET_ACCESS_KEY = os.environ.get('AWS_SECRET_ACCESS_KEY') or config.get('AWS_SECRET_ACCESS_KEY')
-AWS_SQS_QUEUE = os.environ.get('AWS_SQS_QUEUE') or config.get('AWS_SQS_QUEUE', DEFAULT_AWS_SQS_QUEUE)
+AWS_REGION = os.environ.get('AWS_REGION') or config.get(
+    'AWS_REGION', DEFAULT_AWS_REGION)
+AWS_ACCESS_KEY_ID = os.environ.get(
+    'AWS_ACCESS_KEY_ID') or config.get('AWS_ACCESS_KEY_ID')
+AWS_SECRET_ACCESS_KEY = os.environ.get(
+    'AWS_SECRET_ACCESS_KEY') or config.get('AWS_SECRET_ACCESS_KEY')
+AWS_SQS_QUEUE = os.environ.get('AWS_SQS_QUEUE') or config.get(
+    'AWS_SQS_QUEUE', DEFAULT_AWS_SQS_QUEUE)
 
 
-class Worker(object):
+class Worker:
 
     def __init__(self):
 
@@ -71,6 +73,7 @@ def main():
         Worker().run()
     except (SystemExit, KeyboardInterrupt):
         sys.exit(0)
+
 
 if __name__ == '__main__':
     main()

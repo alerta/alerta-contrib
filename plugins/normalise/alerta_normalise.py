@@ -1,4 +1,3 @@
-
 import logging
 
 from alerta.plugins import PluginBase
@@ -10,10 +9,10 @@ class NormaliseAlert(PluginBase):
 
     def pre_receive(self, alert):
 
-        LOG.info("Normalising alert...")
+        LOG.info('Normalising alert...')
 
         # prepend severity to alert text
-        alert.text = '%s: %s' % (alert.severity.upper(), alert.text)
+        alert.text = '{}: {}'.format(alert.severity.upper(), alert.text)
 
         # supply different default values if missing
         if not alert.group or alert.group == 'Misc':

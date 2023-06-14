@@ -1,10 +1,9 @@
-
-from setuptools import setup, find_packages
+from setuptools import find_packages, setup
 
 version = '5.5.2'
 
 setup(
-    name="alerta-slack",
+    name='alerta-slack',
     version=version,
     description='Alerta plugin for Slack',
     url='https://github.com/alerta/alerta-contrib',

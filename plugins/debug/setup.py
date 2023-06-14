@@ -1,10 +1,9 @@
-
-from setuptools import setup, find_packages
+from setuptools import find_packages, setup
 
 version = '7.0.0'
 
 setup(
-    name="alerta-debug",
+    name='alerta-debug',
     version=version,
     description='Alerta plugin for debug & tracing',
     url='https://github.com/alerta/alerta-contrib',

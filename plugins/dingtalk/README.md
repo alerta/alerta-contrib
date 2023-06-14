@@ -52,6 +52,3 @@ DING_WEBHOOK_URL = 'https://oapi.dingtalk.com/robot/send?access_token=fc89e66e'
 WEBHOOK_MATCHERS = [ {"regex":"proxy[\\d+]", "webhook":"https://oapi.dingtalk.com/robot/send?access_token=f9216e240af"} ]
 DASHBOARD_URL = 'https://try.alerta.io'
 ```
-
-
-

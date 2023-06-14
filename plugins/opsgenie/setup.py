@@ -1,10 +1,9 @@
-
-from setuptools import setup, find_packages
+from setuptools import find_packages, setup
 
 version = '5.0.3'
 
 setup(
-    name="alerta-opsgenie",
+    name='alerta-opsgenie',
     version=version,
     description='Alerta plugin for OpsGenie',
     url='https://github.com/alerta/alerta-contrib',

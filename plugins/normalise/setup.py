@@ -1,10 +1,9 @@
-
-from setuptools import setup, find_packages
+from setuptools import find_packages, setup
 
 version = '5.3.1'
 
 setup(
-    name="alerta-normalise",
+    name='alerta-normalise',
     version=version,
     description='Alerta plugin for alert normalisation',
     url='https://github.com/alerta/alerta-contrib',

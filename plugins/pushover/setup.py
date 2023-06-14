@@ -1,10 +1,9 @@
-
-from setuptools import setup, find_packages
+from setuptools import find_packages, setup
 
 version = '5.3.2'
 
 setup(
-    name="alerta-pushover",
+    name='alerta-pushover',
     version=version,
     description='Alerta plugin for Pushover',
     url='https://github.com/alerta/alerta-contrib',

@@ -23,7 +23,7 @@ discover them.
 Configuration
 -------------
 
-You can specify all the parameters on the query except Attributes for the moment. 
+You can specify all the parameters on the query except Attributes for the moment.
 https://[ALERTA-URL]/api/webhooks/query?api-key=[YOUR-API-KEY]&service=TheForce&severity=critical&resource=Alderaan&event=SomethingTerribleHappened&text=AGreatDisturbanceInTheForce&tags=Force,Alderaan,DeathStar&origin=ObiWanKenobi&group=Jedi&timeout=300
 
 References

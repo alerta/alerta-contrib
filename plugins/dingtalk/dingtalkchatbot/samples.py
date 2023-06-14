@@ -1,11 +1,12 @@
 #!/usr/bin/env python
-# _*_ coding:utf-8 _*_
 # create time: 15/01/2018 17:08
 __author__ = 'Devin -- http://zhangchuzhao.site'
-import json
+import json  # noqa: F401
 import logging
-import requests
-from dingtalkchatbot.chatbot import DingtalkChatbot, ActionCard, FeedLink, CardItem
+
+import requests  # noqa: F401
+from dingtalkchatbot.chatbot import FeedLink  # noqa: F401
+from dingtalkchatbot.chatbot import ActionCard, CardItem, DingtalkChatbot
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -13,7 +14,8 @@ if __name__ == '__main__':
     # *************************************这里填写自己钉钉群自定义机器人的token*****************************************
     webhook = 'https://oapi.dingtalk.com/robot/send?access_token=52d9034cc78680bc0d4ba6a65748e77fa7b96ee43d57b96116910606f7863d59'
     # 用户手机号列表
-    at_mobiles = ['*************************这里填写需要提醒的用户的手机号码，字符串或数字都可以****************************']
+    at_mobiles = [
+        '*************************这里填写需要提醒的用户的手机号码，字符串或数字都可以****************************']
     # 初始化机器人小丁
     xiaoding = DingtalkChatbot(webhook)
     # text
@@ -21,10 +23,12 @@ if __name__ == '__main__':
     xiaoding.send_text(msg='我就是小丁，小丁就是我！', at_mobiles=at_mobiles)
 
     # image表情
-    xiaoding.send_image(pic_url='http://uc-test-manage-00.umlife.net/jenkins/pic/flake8.png')
+    xiaoding.send_image(
+        pic_url='http://uc-test-manage-00.umlife.net/jenkins/pic/flake8.png')
 
     # link
-    xiaoding.send_link(title='万万没想到，某小璐竟然...', text='故事是这样子的...', message_url='http://www.kwongwah.com.my/?p=454748", pic_url="https://pbs.twimg.com/media/CEwj7EDWgAE5eIF.jpg')
+    xiaoding.send_link(title='万万没想到，某小璐竟然...', text='故事是这样子的...',
+                       message_url='http://www.kwongwah.com.my/?p=454748", pic_url="https://pbs.twimg.com/media/CEwj7EDWgAE5eIF.jpg')
 
     # markdown
     # 1、提醒所有人
@@ -41,7 +45,7 @@ if __name__ == '__main__':
                            at_mobiles=at_mobiles)
 
     # 整体跳转ActionCard
-    btns1 = [CardItem(title="查看详情", url="https://www.dingtalk.com/")]
+    btns1 = [CardItem(title='查看详情', url='https://www.dingtalk.com/')]
     actioncard1 = ActionCard(title='万万没想到，竟然...',
                              text='![markdown](http://www.songshan.es/wp-content/uploads/2016/01/Yin-Yang.png) \n### 故事是这样子的...',
                              btns=btns1,
@@ -51,7 +55,8 @@ if __name__ == '__main__':
 
     # 单独跳转ActionCard
     # 1、两个按钮选择
-    btns2 = [CardItem(title="支持", url="https://www.dingtalk.com/"), CardItem(title="反对", url="https://www.dingtalk.com/")]
+    btns2 = [CardItem(title='支持', url='https://www.dingtalk.com/'),
+             CardItem(title='反对', url='https://www.dingtalk.com/')]
     actioncard2 = ActionCard(title='万万没想到，竟然...',
                              text='![markdown](http://www.songshan.es/wp-content/uploads/2016/01/Yin-Yang.png) \n### 故事是这样子的...',
                              btns=btns2,
@@ -59,7 +64,8 @@ if __name__ == '__main__':
                              hide_avatar=1)
     xiaoding.send_action_card(actioncard2)
     # 2、三个按钮选择
-    btns3 = [CardItem(title="支持", url="https://www.dingtalk.com/"), CardItem(title="中立", url="https://www.dingtalk.com/"), CardItem(title="反对", url="https://www.dingtalk.com/")]
+    btns3 = [CardItem(title='支持', url='https://www.dingtalk.com/'), CardItem(title='中立',
+                                                                             url='https://www.dingtalk.com/'), CardItem(title='反对', url='https://www.dingtalk.com/')]
     actioncard3 = ActionCard(title='万万没想到，竟然...',
                              text='![markdown](http://www.songshan.es/wp-content/uploads/2016/01/Yin-Yang.png) \n### 故事是这样子的...',
                              btns=btns3,
@@ -68,9 +74,12 @@ if __name__ == '__main__':
     xiaoding.send_action_card(actioncard3)
 
     # FeedCard类型
-    card1 = CardItem(title="氧气美女", url="https://www.dingtalk.com/", pic_url="https://unzippedtv.com/wp-content/uploads/sites/28/2016/02/asian.jpg")
-    card2 = CardItem(title="氧眼美女", url="https://www.dingtalk.com/", pic_url="https://unzippedtv.com/wp-content/uploads/sites/28/2016/02/asian.jpg")
-    card3 = CardItem(title="氧神美女", url="https://www.dingtalk.com/", pic_url="https://unzippedtv.com/wp-content/uploads/sites/28/2016/02/asian.jpg")
+    card1 = CardItem(title='氧气美女', url='https://www.dingtalk.com/',
+                     pic_url='https://unzippedtv.com/wp-content/uploads/sites/28/2016/02/asian.jpg')
+    card2 = CardItem(title='氧眼美女', url='https://www.dingtalk.com/',
+                     pic_url='https://unzippedtv.com/wp-content/uploads/sites/28/2016/02/asian.jpg')
+    card3 = CardItem(title='氧神美女', url='https://www.dingtalk.com/',
+                     pic_url='https://unzippedtv.com/wp-content/uploads/sites/28/2016/02/asian.jpg')
     cards = [card1, card2, card3]
     xiaoding.send_feed_card(cards)
 

@@ -5,7 +5,7 @@ import setuptools
 version = '3.3.0'
 
 setuptools.setup(
-    name="alerta-urlmon",
+    name='alerta-urlmon',
     version=version,
     description='Alerta script for URL monitoring',
     url='https://github.com/alerta/alerta-contrib',
@@ -23,7 +23,7 @@ setuptools.setup(
             'alerta-urlmon = urlmon:main'
         ]
     },
-    keywords="alerta url monitoring",
+    keywords='alerta url monitoring',
     classifiers=[
         'Topic :: System :: Monitoring',
     ]

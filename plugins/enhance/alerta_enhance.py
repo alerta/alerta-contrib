@@ -1,4 +1,3 @@
-
 import logging
 
 from alerta.plugins import PluginBase
@@ -12,7 +11,7 @@ class EnhanceAlert(PluginBase):
 
     def pre_receive(self, alert):
 
-        LOG.info("Enhancing alert...")
+        LOG.info('Enhancing alert...')
 
         # Set "isOutOfHours" flag for later use by notification plugins
         dayOfWeek = alert.create_time.strftime('%a')
@@ -23,7 +22,8 @@ class EnhanceAlert(PluginBase):
             alert.attributes['isOutOfHours'] = False
 
         # Add link to Run Book based on event name
-        alert.attributes['runBookUrl'] = '%s/%s' % (RUNBOOK_URL, alert.event.replace(' ', '-'))
+        alert.attributes['runBookUrl'] = '{}/{}'.format(
+            RUNBOOK_URL, alert.event.replace(' ', '-'))
 
         return alert
 

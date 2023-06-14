@@ -1,9 +1,9 @@
-from setuptools import setup, find_packages
+from setuptools import find_packages, setup
 
 version = '1.0.0'
 
 setup(
-    name="alerta-query",
+    name='alerta-query',
     version=version,
     description='Alerta Generic Webhook by query parameters',
     url='https://github.com/alerta/alerta-contrib',
@@ -21,4 +21,3 @@ setup(
         ]
     }
 )
-

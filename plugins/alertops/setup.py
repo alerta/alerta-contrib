@@ -1,9 +1,9 @@
-from setuptools import setup, find_packages
+from setuptools import find_packages, setup
 
 version = '1.0.0.1'
 
 setup(
-    name="alerta-alertops",
+    name='alerta-alertops',
     version=version,
     description='Alerta plugin for AlertOps',
     url='https://github.com/alerta/alerta-contrib',

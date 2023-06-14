@@ -1,27 +1,29 @@
-
 import logging
 import os
-
 from datetime import datetime
+
+from alerta.plugins import PluginBase
+from influxdb import InfluxDBClient
 
 try:
     from alerta.plugins import app  # alerta >= 5.0
 except ImportError:
     from alerta.app import app  # alerta < 5.0
-from alerta.plugins import PluginBase
 
-from influxdb import InfluxDBClient
 
 LOG = logging.getLogger('alerta.plugins.influxdb')
 
 # 'influxdb://username:password@localhost:8086/databasename'
 DEFAULT_INFLUXDB_DSN = 'influxdb://user:pass@localhost:8086/alerta'
 
-INFLUXDB_DSN = os.environ.get('INFLUXDB_DSN') or app.config.get('INFLUXDB_DSN', DEFAULT_INFLUXDB_DSN)
-INFLUXDB_DATABASE = os.environ.get('INFLUXDB_DATABASE') or app.config.get('INFLUXDB_DATABASE', None)
+INFLUXDB_DSN = os.environ.get('INFLUXDB_DSN') or app.config.get(
+    'INFLUXDB_DSN', DEFAULT_INFLUXDB_DSN)
+INFLUXDB_DATABASE = os.environ.get(
+    'INFLUXDB_DATABASE') or app.config.get('INFLUXDB_DATABASE', None)
 
 # Specify the name of a measurement to which all alerts will be logged
-INFLUXDB_MEASUREMENT = os.environ.get('INFLUXDB_MEASUREMENT') or app.config.get('INFLUXDB_MEASUREMENT', 'event')
+INFLUXDB_MEASUREMENT = os.environ.get(
+    'INFLUXDB_MEASUREMENT') or app.config.get('INFLUXDB_MEASUREMENT', 'event')
 
 
 class InfluxDBWrite(PluginBase):
@@ -38,7 +40,7 @@ class InfluxDBWrite(PluginBase):
         except Exception as e:
             LOG.error('InfluxDB: ERROR - %s' % e)
 
-        super(InfluxDBWrite, self).__init__(name)
+        super().__init__(name)
 
     def pre_receive(self, alert):
         return alert
@@ -90,7 +92,7 @@ class InfluxDBWrite(PluginBase):
         try:
             self.client.write_points([point], time_precision='ms')
         except Exception as e:
-            raise RuntimeError("InfluxDB: ERROR - %s" % e)
+            raise RuntimeError('InfluxDB: ERROR - %s' % e)
 
     def status_change(self, alert, status, text):
         if status not in ['ack', 'assign']:
@@ -102,4 +104,4 @@ class InfluxDBWrite(PluginBase):
         try:
             self.client.write_points([point], time_precision='ms')
         except Exception as e:
-            raise RuntimeError("InfluxDB: ERROR - %s" % e)
+            raise RuntimeError('InfluxDB: ERROR - %s' % e)
