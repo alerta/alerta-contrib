@@ -103,7 +103,7 @@ class GraylogWebhook(WebhookBase):
                     event = text
 
             except (SyntaxError, ValueError):
-                value = payload["backload"][0]["message"]
+                value = payload["backlog"][0]["message"]
                 text = payload["event"]["message"]
                 event = text
 
