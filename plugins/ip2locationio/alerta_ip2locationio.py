@@ -35,17 +35,10 @@ class IP2Locationio(PluginBase):
         LOG.debug('Result: %s', r.text)
         try:
             ip2locationio_result = r.json()
+            if 'country' in ip2locationio_result and 'language' in ip2locationio_result['country']:
+                ip2locationio_result['country']['official_language'] = ip2locationio_result['country'].pop('language')
             alert.attributes = {
-                'ip': ip2locationio_result['ip'],
-                'country': ip2locationio_result['country_code'],
-                'country': ip2locationio_result['country_code'],
-                'state': ip2locationio_result['region_name'],
-                'city': ip2locationio_result['city_name'],
-                'latitude': ip2locationio_result['latitude'],
-                'longitude': ip2locationio_result['longitude'],
-                'time_zone': ip2locationio_result['time_zone'],
-                'asn': ip2locationio_result['asn'],
-                'as': ip2locationio_result['as']
+                'ip2locationio_result': ip2locationio_result
             }
         except Exception as e:
             LOG.error('IP2Location.io lookup failed: %s' % str(e))

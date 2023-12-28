@@ -10,9 +10,11 @@ setup(
     license='MIT',
     author='IP2Location',
     author_email='support@ip2location.com',
-    py_modules=['ip2locationio'],
+    py_modules=['alerta_ip2locationio'],
     packages=find_packages(),
-    install_requires=[],
+    install_requires=[
+        'requests'
+    ],
     include_package_data=True,
     zip_safe=True,
     entry_points={
