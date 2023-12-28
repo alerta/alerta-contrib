@@ -42,6 +42,7 @@ Plugins
   * [Forward](plugins/forward)
   * [GeoIP](plugins/geoip)
   * [InfluxDB](plugins/influxdb)
+  * [Ip2Location.io](plugins/ip2locationio)
   * [Logstash](plugins/logstash)
   * [Matrix](plugins/matrix)
   * [Mattermost](plugins/mattermost)
