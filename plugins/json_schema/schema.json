@@ -1,0 +1,157 @@
+{
+	"$schema": "http://json-schema.org/draft-07/schema#", 
+	"$id": "https://example.com/object1655122948.json", 
+	"title": "Alert",
+	"type": "object",
+	"properties": {
+		"resource": {
+			"title": "Resource", 
+			"type": "string",
+			"examples": [
+				"resource"
+			],
+			"pattern": "^.*$"
+		},
+		"event": {
+			"title": "Event", 
+			"type": "string",
+			"examples": [
+				"event"
+			],
+			"pattern": "^.*$"
+		},
+		"tags": {
+			"title": "Tags", 
+			"type": "array",
+			"default": [],
+			"items":{
+				"$id": "#root/tags/items", 
+				"title": "Items", 
+				"type": "string",
+				"default": "",
+				"examples": [
+					"tag1"
+				],
+				"pattern": "^.*$"
+			}
+		},
+		"services": {
+			"title": "Services", 
+			"type": "array",
+			"default": [],
+			"items":{
+				"title": "Items", 
+				"type": "string",
+				"default": "",
+				"examples": [
+					"service"
+				],
+				"pattern": "^.*$"
+			}
+		},
+		"correlate": {
+			"title": "Correlate", 
+			"type": "array",
+			"default": [],
+			"items":{
+				"$id": "#root/correlate/items", 
+				"title": "Items", 
+				"type": "string",
+				"default": "",
+				"examples": [
+					"correlate"
+				],
+				"pattern": "^$"
+			}
+		},
+		"severity": {
+			"title": "Severity", 
+			"type": "string",
+			"default": "None",
+			"examples": [
+				"High",
+				"Medium",
+				"Low",
+				"None"
+			],
+			"pattern": "High|Medium|Low|None"
+		},
+		"status": {
+			"title": "status", 
+			"type": "string",
+			"default": "None",
+			"examples": [
+				"open",
+				"shelved"
+			],
+			"pattern": "open|shelved"
+		},
+		"environment": {
+			"title": "Environment", 
+			"type": "string",
+			"examples": [
+				"Production"
+			],
+			"pattern": "^Production$"
+		},
+		"group": {
+			"title": "Group", 
+			"type": "string",
+			"default": "",
+			"examples": [
+				"tool"
+			],
+			"pattern": "^.*$"
+		},
+		"value": {
+			"title": "Value", 
+			"type": "integer",
+			"default": "",
+			"examples": [
+				"10"
+			],
+			"pattern": "^.*$"
+		},
+		"text": {
+			"title": "Text", 
+			"type": "string",
+			"default": "",
+			"examples": [
+				"ticket text"
+			],
+			"pattern": "^.*$"
+		},
+		"timeout": {
+			"title": "Timeout", 
+			"type": "integer",
+			"default": "",
+			"examples": [
+				"100"
+			],
+			"pattern": "^.*$"
+		},"attributes": {
+			"title": "attributes", 
+			"type": "object",
+            "properties": {
+                "type": {
+                    "title" : "type",
+                    "type" : "string",
+                    "pattern": "^.*$"  
+                },"assigned_group": {
+                    "title" : "assigned_group",
+                    "type" : "string",
+                    "pattern": "^.*$"  
+                }
+            },
+            "required": ["type, assigned_group"]
+		}
+	},
+	"required": [
+		"resource",
+		"event",
+		"severity",
+		"environment",
+		"text",
+		"attributes"
+	]
+}
