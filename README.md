@@ -37,6 +37,7 @@ Plugins
   * [AlertOps](plugins/alertops)
   * [AMQP](plugins/amqp)
   * [Cachet](plugins/cachet)
+  * [Delay](plugins/delay)
   * [DingTalk](plugins/dingtalk)
   * [Enhance](plugins/enhance)
   * [Forward](plugins/forward)
