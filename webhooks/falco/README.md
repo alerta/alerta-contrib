@@ -79,7 +79,8 @@ This is an example of a payload sent by `falcosidekick`:
              "user": "jdelacamara",
              "user.loginuid": -1,
              "user.name": "root",
-             "user.uid": 0
+             "user.uid": 0,
+             "environment": "Development"
            },
            "source": "syscall",
            "tags": [
