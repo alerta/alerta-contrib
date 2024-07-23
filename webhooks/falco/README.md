@@ -28,7 +28,7 @@ discover them.
 Configuration
 -------------
 
-`falcosidekick` custom outputs is used here.
+`falcosidekick` custom outputs are used here.
 
 Specifically, the `webhook` output. Read more [here](https://github.com/falcosecurity/falcosidekick/blob/master/docs/outputs/webhook.md).
 
