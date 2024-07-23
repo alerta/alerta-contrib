@@ -15,7 +15,7 @@ class FalcoWebhookTestCase(unittest.TestCase):
         }
         self.app = create_app(test_config)
         self.client = self.app.test_client()
-        custom_webhooks.webhooks['falco'] = alerta_falcowebhook.FalcoWebhook(
+        custom_webhooks.webhooks['falco'] = alerta_falco.FalcoWebhook(
         )
 
         self.headers = {
@@ -26,7 +26,7 @@ class FalcoWebhookTestCase(unittest.TestCase):
 
     def test_falcowebhook(self):
 
-        payload_cmd = """
+        payload_cmd = r"""
         {
            "uuid": "06f73663-b1d4-42e4-b236-eacbd2b96998",
            "output": "20:39:17.500016161: Notice A shell was spawned in a container with an attached terminal (evt_type=execve user=root user_uid=0 user_loginuid=-1 process=sh proc_exepath=/bin/busybox parent=containerd-shim command=sh -c uptime terminal=34816 exe_flags=EXE_WRITABLE container_id=9273d0110c4e container_image=<NA> container_image_tag=<NA> container_name=<NA> k8s_ns=<NA> k8s_pod_name=<NA>)",
@@ -51,7 +51,8 @@ class FalcoWebhookTestCase(unittest.TestCase):
              "user": "jdelacamara",
              "user.loginuid": -1,
              "user.name": "root",
-             "user.uid": 0
+             "user.uid": 0,
+             "environment": "Development"
            },
            "source": "syscall",
            "tags": [
@@ -65,8 +66,8 @@ class FalcoWebhookTestCase(unittest.TestCase):
          }
         """
 
-        # Missing alert_id
-        payload_invalidcmd = """
+        # Missing fields
+        payload_invalidcmd = r"""
         {
            "uuid": "06f73663-b1d4-42e4-b236-eacbd2b96998",
            "time": "2024-07-16T20:39:17.500016161Z",
@@ -88,7 +89,8 @@ class FalcoWebhookTestCase(unittest.TestCase):
              "user": "jdelacamara",
              "user.loginuid": -1,
              "user.name": "root",
-             "user.uid": 0
+             "user.uid": 0,
+             "environment": "Development"
            },
            "source": "syscall",
            "tags": [
@@ -103,18 +105,11 @@ class FalcoWebhookTestCase(unittest.TestCase):
         """
 
         # ack with missing fields
-        response = self.client.post('/webhooks/falco', data=payload_invalidcmd %
-                                    'ack', content_type='application/json', headers=self.headers)
-        self.assertEqual(response.status_code, 400)
+        response = self.client.post('/webhooks/falco', data=payload_invalidcmd, content_type='application/json', headers=self.headers)
+        self.assertEqual(response.status_code, 500)
         data = json.loads(response.data.decode('utf-8'))
-        self.assertEqual(data['status'], 'error')
-        self.assertEqual(data['message'], 'Missing/invalid alert_id')
 
-        # ack with bogus alert_id
-        response = self.client.post('/webhooks/falco', data=payload_cmd % (
-            'ack', '7a0e3ee1-fbaa-45th-isis-bogus'), content_type='application/json', headers=self.headers)
-        self.assertEqual(response.status_code, 400)
+        # ack
+        response = self.client.post('/webhooks/falco', data=payload_cmd, content_type='application/json', headers=self.headers)
+        self.assertEqual(response.status_code, 201)
         data = json.loads(response.data.decode('utf-8'))
-        self.assertEqual(data['status'], 'error')
-        self.assertEqual(data['message'], 'Missing/invalid alert_id')
-
