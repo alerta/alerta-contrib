@@ -12,7 +12,7 @@ from requests.adapters import HTTPAdapter
 LOG = logging.getLogger("alerta.plugins.netbox")
 
 GQL_QUERY = """query FindDevice($q: [String]) {{
-    device_list(name__ie: $q) {{
+    device_list(filters: {name__ie: $q}) {{
         id
         {fields}
     }}
