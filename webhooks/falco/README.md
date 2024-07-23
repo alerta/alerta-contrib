@@ -32,7 +32,7 @@ Configuration
 
 Specifically, the `webhook` output. Read more [here](https://github.com/falcosecurity/falcosidekick/blob/master/docs/outputs/webhook.md).
 
-First, an Api Key has to be set. It can be created in the UI, under "Api Keys" menu.
+First, an Alerta Api Key has to be set. It can be created in the Alerta's UI, under "Api Keys" menu.
 
 Then, note a custom field is being used to identify environments. This is set in the installation with `customfields="environment:Development"`. Set the right environment for your Falco deployment here.
 
