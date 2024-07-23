@@ -82,6 +82,7 @@ Webhooks
   * [Slack](https://github.com/alerta/alerta/blob/master/alerta/webhooks/slack.py)
   * [Stackdriver](https://github.com/alerta/alerta/blob/master/alerta/webhooks/stackdriver.py)
   * [Telegram](https://github.com/alerta/alerta/blob/master/alerta/webhooks/telegram.py)
+  * [Falco](webhooks/falco)
 
 Tests
 -----
