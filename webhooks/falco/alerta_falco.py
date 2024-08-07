@@ -37,7 +37,7 @@ class FalcoWebhook(WebhookBase):
         # falco priorities: emergency, alert, critical, error, warning, notice, informational, debug
         if payload['priority'].lower() in ['emergency', 'alert', 'critical', 'error']:
             severity = 'critical'
-        elif payload['priority'].lower() in ['notice', 'informational', 'debug']:
+        elif payload['priority'].lower() in ['warning', 'notice', 'informational', 'debug']:
             severity = 'warning'
         else:
             severity = alarm_model.DEFAULT_NORMAL_SEVERITY
