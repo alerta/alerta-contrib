@@ -17,7 +17,7 @@ class FalcoWebhook(WebhookBase):
 
         # checking fields
         #
-        expected_fields = ['priority', 'hostname', 'rule', 'output_fields', 'source', 'output', 'tags']
+        expected_fields = ['priority', 'hostname', 'rule', 'output_fields', 'source', 'output']
         for field in expected_fields:
             if not field in payload:
                 raise Exception(f'{field} not found in payload')
@@ -55,9 +55,11 @@ class FalcoWebhook(WebhookBase):
         attributes = additional_attributes
 
         # tags
-        if not type(payload['tags']) == list:
-            raise Exception('tags should be a list')
-        tags = additional_tags.extend(payload['tags'])
+        tags = []
+        if 'tags' in payload and type(payload['tags']) == list:
+            tags = additional_tags.extend(payload['tags'])
+        else:
+            tags = additional_tags
 
         # group
         #
