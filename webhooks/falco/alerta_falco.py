@@ -1,9 +1,8 @@
 from flask import current_app
-
 from alerta.app import alarm_model
 from alerta.models.alert import Alert
+from alerta.webhooks import WebhookBase
 
-from alerta.webhooks  import WebhookBase
 
 class FalcoWebhook(WebhookBase):
     """
@@ -17,27 +16,47 @@ class FalcoWebhook(WebhookBase):
 
         # checking fields
         #
-        expected_fields = ['priority', 'hostname', 'rule', 'output_fields', 'source', 'output']
+        expected_fields = [
+            'priority',
+            'hostname',
+            'rule',
+            'output_fields',
+            'source',
+            'output'
+        ]
         for field in expected_fields:
-            if not field in payload:
+            if field not in payload:
                 raise Exception(f'{field} not found in payload')
         expected_fields_in_outputfields = ['environment']
         for field in expected_fields_in_outputfields:
-            if not field in payload['output_fields']:
+            if field not in payload['output_fields']:
                 raise Exception(f'{field} not found in payload->output_fields')
 
         # resource+event
         #
-        # these are the fields used for de duplication, so we fill their values here
-        resource=f"{payload['hostname']}"
+        # these are the fields used for de duplication,
+        # so we fill their values here
+        resource = f"{payload['hostname']}"
         event = payload['rule']
 
         # priority
         #
-        # falco priorities: emergency, alert, critical, error, warning, notice, informational, debug
-        if payload['priority'].lower() in ['emergency', 'alert', 'critical', 'error']:
+        # falco priorities:
+        # emergency, alert, critical, error, warning, notice,
+        # informational, debug
+        if payload['priority'].lower() in [
+                'emergency',
+                'alert',
+                'critical',
+                'error'
+        ]:
             severity = 'critical'
-        elif payload['priority'].lower() in ['warning', 'notice', 'informational', 'debug']:
+        elif payload['priority'].lower() in [
+                'warning',
+                'notice',
+                'informational',
+                'debug'
+        ]:
             severity = 'warning'
         else:
             severity = alarm_model.DEFAULT_NORMAL_SEVERITY
@@ -56,7 +75,7 @@ class FalcoWebhook(WebhookBase):
 
         # tags
         tags = []
-        if 'tags' in payload and type(payload['tags']) == list:
+        if 'tags' in payload and isinstance(payload['tags'], list):
             tags = additional_tags.extend(payload['tags'])
         else:
             tags = additional_tags
@@ -73,7 +92,7 @@ class FalcoWebhook(WebhookBase):
         # service
         #
         # service is a List
-        service = [ payload['source'] ]
+        service = [payload['source']]
 
         # origin
         #
