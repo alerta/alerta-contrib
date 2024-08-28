@@ -124,4 +124,4 @@ class FalcoWebhook(WebhookBase):
             attributes=attributes,
             event_type=event_type,
             raw_data=payload
-            )
+        )

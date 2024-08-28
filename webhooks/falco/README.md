@@ -93,4 +93,3 @@ This is an example of a payload sent by `falcosidekick`:
            "hostname": "nixos"
          }
 ```
-

@@ -105,11 +105,13 @@ class FalcoWebhookTestCase(unittest.TestCase):
         """
 
         # ack with missing fields
-        response = self.client.post('/webhooks/falco', data=payload_invalidcmd, content_type='application/json', headers=self.headers)
+        response = self.client.post('/webhooks/falco', data=payload_invalidcmd,
+                                    content_type='application/json', headers=self.headers)
         self.assertEqual(response.status_code, 500)
         data = json.loads(response.data.decode('utf-8'))
 
         # ack
-        response = self.client.post('/webhooks/falco', data=payload_cmd, content_type='application/json', headers=self.headers)
+        response = self.client.post(
+            '/webhooks/falco', data=payload_cmd, content_type='application/json', headers=self.headers)
         self.assertEqual(response.status_code, 201)
         data = json.loads(response.data.decode('utf-8'))
