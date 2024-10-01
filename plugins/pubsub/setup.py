@@ -15,7 +15,7 @@ setup(
     install_requires=[
         'google-cloud-pubsub',
         'oauth2client',
-        'grpcio==1.30.0'
+        'grpcio==1.53.0'
     ],
     include_package_data=True,
     zip_safe=True,
