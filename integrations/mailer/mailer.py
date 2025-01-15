@@ -170,7 +170,6 @@ class MailSender(threading.Thread):
         self._subject_template = jinja2.Template(OPTIONS['mail_subject'])
         self._template_env = jinja2.Environment(
             loader=jinja2.FileSystemLoader(self._template_dir),
-            extensions=['jinja2.ext.autoescape'],
             autoescape=True
         )
         if OPTIONS['mail_template_html']:
