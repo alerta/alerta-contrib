@@ -170,7 +170,6 @@ class MailSender(threading.Thread):
         self._subject_template = jinja2.Template(OPTIONS['mail_subject'])
         self._template_env = jinja2.Environment(
             loader=jinja2.FileSystemLoader(self._template_dir),
-            extensions=['jinja2.ext.autoescape'],
             autoescape=True
         )
         if OPTIONS['mail_template_html']:
@@ -523,9 +522,6 @@ def main():
         mailer.start()
     except (SystemExit, KeyboardInterrupt):
         sys.exit(0)
-    except Exception as e:
-        print(str(e))
-        sys.exit(1)
 
     from kombu.utils.debug import setup_logging
     loginfo = 'DEBUG' if OPTIONS['debug'] else 'INFO'
@@ -539,9 +535,6 @@ def main():
             mailer.should_stop = True
             mailer.join()
             sys.exit(0)
-        except Exception as e:
-            print(str(e))
-            sys.exit(1)
 
 
 if __name__ == '__main__':
