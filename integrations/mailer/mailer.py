@@ -152,6 +152,7 @@ class FanoutConsumer(ConsumerMixin):
                     pass
                 message.ack()
             else:
+
                 on_hold[alertid] = (alert, time.time() + HOLD_TIME)
                 message.ack()
         else:
@@ -184,6 +185,7 @@ class MailSender(threading.Thread):
         keep_alive = 0
 
         while not self.should_stop:
+            LOG.debug("running mailsender loop")
             for alertid in list(on_hold.keys()):
                 try:
                     (alert, hold_time) = on_hold[alertid]
@@ -195,6 +197,8 @@ class MailSender(threading.Thread):
                         del on_hold[alertid]
                     except KeyError:
                         continue
+                else:
+                    LOG.info(f"not sending {alert.get_id()} due to hold time (expires in {hold_time - time.time()} seconds)")
 
             if keep_alive >= 10:
                 try:
@@ -213,16 +217,16 @@ class MailSender(threading.Thread):
         its provided value considering its type
         '''
         if isinstance(value, list):
-            LOG.debug('%s is a list, at least one item must match %s',
+            LOG.debug('%r is a list, at least one item must match %r',
                       value, regex)
             for item in value:
                 if re.match(regex, item) is not None:
-                    LOG.debug('Regex %s matches item %s', regex, item)
+                    LOG.debug('Regex %r matches item %r', regex, item)
                     return True
-            LOG.debug('Regex %s matches nothing', regex)
+            LOG.debug('Regex %r matches nothing', regex)
             return False
         elif isinstance(value, str):  # pylint: disable=undefined-variable
-            LOG.debug('Trying to match %s to %s',
+            LOG.debug('Trying to match %r to %r',
                       value, regex)
             return re.search(regex, value) is not None
         LOG.warning('Field type is not supported')
@@ -248,24 +252,30 @@ class MailSender(threading.Thread):
                                     field['field'])
                         break
                     if self._rule_matches(field['regex'], value):
+                        LOG.debug("rule %r matches", field)
                         is_matching = True
                     else:
+                        LOG.debug("rule %r does not match", field)
                         is_matching = False
                         break
                 if is_matching:
                     # Add up any new contacts
-                    new_contacts = [x.strip() for x in rule['contacts']
+                    rule_contacts = [x.strip() for x in rule['contacts']]
+                    new_contacts = [c for c in rule_contacts
                                     if x.strip() not in contacts]
-                    if len(new_contacts) > 0:
-                        if not rule.get('exclude', False):
+
+                    exclude = rule.get('exclude', False)
+                    if not exclude:
+                        if len(new_contacts) > 0:
                             LOG.debug('Extending contact to include %s' % (
                                 new_contacts))
                             contacts.extend(new_contacts)
-                        else:
-                            LOG.info('Clearing initial list of contacts and'
-                                     ' adding for this rule only')
-                            del contacts[:]
-                            contacts.extend(new_contacts)
+                    else:
+                        LOG.info('Clearing initial list of contacts and'
+                                    ' adding for this rule only')
+                        del contacts[:]
+                        contacts.extend(rule_contacts)
+                        break
 
         # Don't loose time (and try to send an email) if there is no contact...
         if not contacts:
@@ -516,6 +526,13 @@ def main():
 
     # Registering action for SIGTERM signal handling
     signal.signal(signal.SIGTERM, on_sigterm)
+
+    def re_raise(args):
+        import traceback
+        traceback.print_exception(args.exc_value, tb=args.exc_traceback)
+        sys.exit(1)
+
+    threading.excepthook = re_raise
 
     try:
         mailer = MailSender()
