@@ -5,6 +5,10 @@ Two-way integration with Prometheus which will silence alerts in
 Alertmanager when alerts are ack'ed in the Alerta console and delete
 silences if those alerts are manually re-opened.
 
+Uses the [Alertmanager API v2](https://github.com/prometheus/alertmanager/blob/main/api/v2/openapi.yaml).
+Requires Alertmanager >= 0.16.0 (v2 API). Alertmanager removed the
+v1 API entirely in version 0.28.0.
+
 For help, join [![Slack chat](https://img.shields.io/badge/chat-on%20slack-blue?logo=slack)](https://slack.alerta.dev)
 
 Installation
@@ -33,30 +37,27 @@ the server configuration file or as environment variables.
 PLUGINS = ['prometheus']
 ```
 
-The below settings are configured with reasonable defaults:
+**Settings**
+
+| Setting | Default | Description |
+|---------|---------|-------------|
+| `ALERTMANAGER_API_URL` | `http://localhost:9093` | Alertmanager base URL |
+| `ALERTMANAGER_SILENCE_DAYS` | `1` | Silence duration in days |
+| `ALERTMANAGER_SILENCE_DURATION` | *none* | Silence duration with units (see below). Takes precedence over `ALERTMANAGER_SILENCE_DAYS`. |
+| `ALERTMANAGER_SILENCE_FROM_ACK` | `False` | Create silences when alerts are ack'ed |
+| `ALERTMANAGER_USE_EXTERNALURL_FOR_SILENCES` | `False` | Use Alertmanager's `externalUrl` for silence API calls |
+| `ALERTMANAGER_SSL_VERIFY` | `True` | SSL verification. Set to `False` to disable, or a file path for a custom CA bundle. |
+| `ALERTMANAGER_USERNAME` | *none* | Basic auth username |
+| `ALERTMANAGER_PASSWORD` | *none* | Basic auth password |
+
+All settings can be set as environment variables or in `alertad.conf`.
+
+**Basic Example**
 
 ```python
-ALERTMANAGER_API_URL = 'http://localhost:9093'
-ALERTMANAGER_SILENCE_DAYS = 1
-```
-
-Or, if you want to inherit silence timeout from ack timeout:
-
-```python
+PLUGINS = ['reject', 'prometheus']
 ALERTMANAGER_API_URL = 'http://localhost:9093'
 ALERTMANAGER_SILENCE_FROM_ACK = True
-```
-
-
-Prometheus docs specify that prometheus should send all alerts to all alertmanagers.  If you have configured your
-ALERTMANAGER_API_URL to be a load balanced endpoint that mirrors requests to a set of alertmanagers then the following setting
-will create/remove silences if alertmanager has set the externalUrl, the following will configure alerta to use that for silences
- instead of the Alertmanager API URL.
-
-Alertmanager syncs silences across all alertmanagers so only sendng it to one AM is appropriate. Using a load-balanced API that mirrors
-requests will create one unique silenceId per alertmanager instance and sync them across all alertmanagers, which is not necessary.
-```python
-ALERTMANAGER_USE_EXTERNALURL_FOR_SILENCES = True
 ```
 
 **Silence Duration**
@@ -73,17 +74,22 @@ ALERTMANAGER_SILENCE_DURATION = '90s'  # 90 seconds
 
 Supported units: `s` (seconds), `m` (minutes), `h` (hours), `d` (days), `w` (weeks).
 Plain integers without a unit are treated as days for backward compatibility
-with `ALERTMANAGER_SILENCE_DAYS`. If both are set, `ALERTMANAGER_SILENCE_DURATION`
-takes precedence.
+with `ALERTMANAGER_SILENCE_DAYS`.
 
-**Robust Perception Demo Example**
+**Clustered Alertmanagers**
+
+Prometheus docs specify that Prometheus should send all alerts to all
+Alertmanagers. If you have configured `ALERTMANAGER_API_URL` to be a
+load-balanced endpoint that mirrors requests, the following setting will
+use Alertmanager's `externalUrl` for silence API calls instead:
 
 ```python
-PLUGINS = ['reject','prometheus']
-ALERTMANAGER_API_URL = 'http://demo.robustperception.io:9093'  # default=http://localhost:9093
-ALERTMANAGER_SILENCE_DAYS = 2  # default=1
+ALERTMANAGER_USE_EXTERNALURL_FOR_SILENCES = True
 ```
 
+Alertmanager syncs silences across instances, so sending to a single
+instance is sufficient. A load-balanced API that mirrors requests would
+create duplicate silences.
 
 SSL Verification
 ----------------
@@ -105,10 +111,7 @@ by default. For convenience, this plugin will support Basic Auth if it has
 been configured (using a reverse proxy or otherwise). Any other form of
 authentication will require development work by the user.
 
-**Example of BasicAuth configuration**
-
 ```python
-ALERTMANAGER_API_URL = 'http://localhost:9093'
 ALERTMANAGER_USERNAME = 'promuser'
 ALERTMANAGER_PASSWORD = 'prompass'
 ```
@@ -122,22 +125,16 @@ Set `DEBUG=True` in the `alertad.conf` configuration file and look for log
 entries similar to below:
 
 ```
-2016-11-20 23:02:40,623 - alerta.plugins[7394]: DEBUG - Server plug-in 'prometheus' found. [in /var/lib/.virtualenvs/alerta/lib/python2.7/site-packages/alerta_server-4.8.11-py2.7.egg/alerta/plugins/__init__.py:50]
-2016-11-20 23:02:40,623 - alerta.plugins[7394]: DEBUG - Server plug-in 'prometheus' not enabled in 'PLUGINS'. [in /var/lib/.virtualenvs/alerta/lib/python2.7/site-packages/alerta_server-4.8.11-py2.7.egg/alerta/plugins/__init__.py:59]
-```
-```
-2016-11-21 10:42:55,572 - alerta.plugins.prometheus[8268]: DEBUG - Alertmanager: Add silence for alertname=DiskFull instance=web01 [in build/bdist.macosx-10.12-x86_64/egg/alerta_prometheus.py:35]
-2016-11-21 10:42:55,582 - requests.packages.urllib3.connectionpool[8268]: INFO - Starting new HTTP connection (1): demo.robustperception.io [in /var/lib/.virtualenvs/alerta/lib/python2.7/site-packages/requests-2.11.1-py2.7.egg/requests/packages/urllib3/connectionpool.py:214]
-2016-11-21 10:42:55,677 - requests.packages.urllib3.connectionpool[8268]: DEBUG - "POST /api/v1/silences HTTP/1.1" 200 44 [in /var/lib/.virtualenvs/alerta/lib/python2.7/site-packages/requests-2.11.1-py2.7.egg/requests/packages/urllib3/connectionpool.py:401]
-2016-11-21 10:42:55,711 - alerta.plugins.prometheus[8268]: DEBUG - Alertmanager: 200 - {"status":"success","data":{"silenceId":29}} [in build/bdist.macosx-10.12-x86_64/egg/alerta_prometheus.py:59]
-2016-11-21 10:42:55,715 - alerta.plugins.prometheus[8268]: DEBUG - Alertmanager: Added silenceId 29 to attributes [in build/bdist.macosx-10.12-x86_64/egg/alerta_prometheus.py:67]
+alerta.plugins.prometheus: DEBUG - Alertmanager: Add silence for alertname=DiskFull instance=web01 timeout=86400
+alerta.plugins.prometheus: DEBUG - Alertmanager: 200 - {"silenceID":"73373e3f-a928-450a-ba75-e9254297b483"}
+alerta.plugins.prometheus: DEBUG - Alertmanager: Added silenceId 73373e3f-a928-450a-ba75-e9254297b483 to attributes
 ```
 
 References
 ----------
 
+  * Alertmanager API v2 OpenAPI Spec: https://github.com/prometheus/alertmanager/blob/main/api/v2/openapi.yaml
   * Alertmanager Silences: https://prometheus.io/docs/alerting/alertmanager/#silences
-  * Robust Perception On-line Demo: http://demo.robustperception.io:9090/consoles/index.html
 
 License
 -------
