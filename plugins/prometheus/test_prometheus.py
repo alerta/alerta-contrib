@@ -10,11 +10,8 @@ import os
 import unittest
 from unittest.mock import MagicMock, patch
 
-os.environ['ALERTMANAGER_API_URL'] = 'http://alertmanager:9093'
-os.environ['ALERTMANAGER_SILENCE_FROM_ACK'] = 'true'
-
-from alerta.app import create_app  # noqa: E402
-from alerta_prometheus import AlertmanagerSilence, parse_duration  # noqa: E402
+from alerta.app import create_app
+from alerta_prometheus import AlertmanagerSilence, parse_duration
 
 
 class ParseDurationTestCase(unittest.TestCase):
@@ -102,6 +99,7 @@ class AlertmanagerSilenceTestCase(unittest.TestCase):
         data = json.loads(response.data.decode('utf-8'))
         return data['alert']
 
+    @patch('alerta_prometheus.ALERTMANAGER_SILENCE_FROM_ACK', True)
     @patch('alerta_prometheus.requests.post')
     def test_ack_creates_silence_via_v2_api(self, mock_post):
         """POST /api/v2/silences should be called on ack.
