@@ -9,13 +9,14 @@ from mock import DEFAULT, MagicMock, patch
 
 def test_rules_dont_exist():
     '''
-    Test the rules file is read
+    Test that parse_group_rules returns None when rules dir does not exist
     '''
     with patch('mailer.os') as system_os:
         system_os.path.exists.return_value = False
-        # res = mailer.parse_group_rules('config_file')
-        system_os.path.exists.called_once_with('confile_file')
-        # assert res is None
+        system_os.path.dirname.return_value = '/etc'
+        res = mailer.parse_group_rules('/etc/alerta.conf')
+        system_os.path.exists.assert_called_once_with('/etc/alerta.rules.d')
+        assert res == ()
 
 
 def test_rules_parsing():
@@ -25,6 +26,7 @@ def test_rules_parsing():
     with patch.multiple(mailer, os=DEFAULT, open=DEFAULT,
                         json=DEFAULT, validate_rules=DEFAULT) as mocks:
         mocks['os'].path.exists.return_value = True
+        mocks['os'].path.dirname.return_value = '/etc'
         mocks['os'].walk().__iter__\
             .return_value = [('/', None,
                               ['cantopen.json', 'invalid.json', 'valid.json'])]
@@ -34,10 +36,10 @@ def test_rules_parsing():
         doc = [{'notify': {'fields': []}}]
         mocks['json'].load.side_effect = [TypeError, doc]
         mocks['validate_rules'].return_value = doc
-        res = mailer.parse_group_rules('config_file')
+        res = mailer.parse_group_rules('/etc/alerta.conf')
 
         # Assert that we checked for folder existence
-        mocks['os'].path.exists.called_once_with('confile_file')
+        mocks['os'].path.exists.assert_called_once_with('/etc/alerta.rules.d')
 
         # Check that validation was called for valid file
         mocks['validate_rules'].assert_called_once_with(doc)
