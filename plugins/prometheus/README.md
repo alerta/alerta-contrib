@@ -59,6 +59,23 @@ requests will create one unique silenceId per alertmanager instance and sync the
 ALERTMANAGER_USE_EXTERNALURL_FOR_SILENCES = True
 ```
 
+**Silence Duration**
+
+By default, silences last 1 day. Use `ALERTMANAGER_SILENCE_DURATION` for
+finer-grained control with time unit suffixes:
+
+```python
+ALERTMANAGER_SILENCE_DURATION = '2h'   # 2 hours
+ALERTMANAGER_SILENCE_DURATION = '30m'  # 30 minutes
+ALERTMANAGER_SILENCE_DURATION = '1w'   # 1 week
+ALERTMANAGER_SILENCE_DURATION = '90s'  # 90 seconds
+```
+
+Supported units: `s` (seconds), `m` (minutes), `h` (hours), `d` (days), `w` (weeks).
+Plain integers without a unit are treated as days for backward compatibility
+with `ALERTMANAGER_SILENCE_DAYS`. If both are set, `ALERTMANAGER_SILENCE_DURATION`
+takes precedence.
+
 **Robust Perception Demo Example**
 
 ```python
@@ -67,6 +84,18 @@ ALERTMANAGER_API_URL = 'http://demo.robustperception.io:9093'  # default=http://
 ALERTMANAGER_SILENCE_DAYS = 2  # default=1
 ```
 
+
+SSL Verification
+----------------
+
+By default, SSL certificates are verified when connecting to Alertmanager.
+To disable verification (e.g. for self-signed certificates) or to specify
+a custom CA bundle:
+
+```python
+ALERTMANAGER_SSL_VERIFY = False               # disable SSL verification
+ALERTMANAGER_SSL_VERIFY = '/path/to/ca.pem'   # use a custom CA bundle
+```
 
 Authentication
 --------------
