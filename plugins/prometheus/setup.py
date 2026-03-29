@@ -1,6 +1,6 @@
 from setuptools import find_packages, setup
 
-version = '5.4.0'
+version = '6.0.0'
 
 setup(
     name='alerta-prometheus',
