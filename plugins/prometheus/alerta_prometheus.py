@@ -91,7 +91,8 @@ class AlertmanagerSilence(PluginBase):
                     'externalUrl', DEFAULT_ALERTMANAGER_API_URL)
                 url = base_url + '/api/v1/silence/%s' % silenceId
                 try:
-                    r = requests.delete(url, auth=self.auth, timeout=2, verify=ALERTMANAGER_SSL_VERIFY)
+                    r = requests.delete(
+                        url, auth=self.auth, timeout=2, verify=ALERTMANAGER_SSL_VERIFY)
                 except Exception as e:
                     raise RuntimeError('Alertmanager: ERROR - %s' % e)
                 LOG.debug('Alertmanager: %s - %s', r.status_code, r.text)
@@ -130,7 +131,8 @@ class AlertmanagerSilence(PluginBase):
                 type(raw_data), raw_data))
             data = [raw_data]
             try:
-                r = requests.post(url, json=data, auth=self.auth, timeout=2, verify=ALERTMANAGER_SSL_VERIFY)
+                r = requests.post(url, json=data, auth=self.auth,
+                                  timeout=2, verify=ALERTMANAGER_SSL_VERIFY)
             except Exception as e:
                 raise RuntimeError('Alertmanager: ERROR - %s' % e)
             LOG.debug('Alertmanager response was: %s - %s',
@@ -140,10 +142,13 @@ class AlertmanagerSilence(PluginBase):
 
             if ALERTMANAGER_SILENCE_DURATION:
                 try:
-                    silence_seconds = parse_duration(ALERTMANAGER_SILENCE_DURATION)
+                    silence_seconds = parse_duration(
+                        ALERTMANAGER_SILENCE_DURATION)
                 except ValueError as e:
-                    LOG.error("Alertmanager: Could not parse 'ALERTMANAGER_SILENCE_DURATION': %s", e)
-                    raise RuntimeError("Could not parse 'ALERTMANAGER_SILENCE_DURATION': %s" % e)
+                    LOG.error(
+                        "Alertmanager: Could not parse 'ALERTMANAGER_SILENCE_DURATION': %s", e)
+                    raise RuntimeError(
+                        "Could not parse 'ALERTMANAGER_SILENCE_DURATION': %s" % e)
             elif not ALERTMANAGER_SILENCE_DAYS:
                 silence_seconds = kwargs.get('timeout', alert.timeout)
             else:
@@ -187,7 +192,8 @@ class AlertmanagerSilence(PluginBase):
             url = base_url + '/api/v1/silences'
 
             try:
-                r = requests.post(url, json=data, auth=self.auth, timeout=2, verify=ALERTMANAGER_SSL_VERIFY)
+                r = requests.post(url, json=data, auth=self.auth,
+                                  timeout=2, verify=ALERTMANAGER_SSL_VERIFY)
             except Exception as e:
                 raise RuntimeError('Alertmanager: ERROR - %s' % e)
             LOG.debug('Alertmanager: %s - %s', r.status_code, r.text)
@@ -215,7 +221,8 @@ class AlertmanagerSilence(PluginBase):
                     'externalUrl', DEFAULT_ALERTMANAGER_API_URL)
                 url = base_url + '/api/v1/silence/%s' % silenceId
                 try:
-                    r = requests.delete(url, auth=self.auth, timeout=2, verify=ALERTMANAGER_SSL_VERIFY)
+                    r = requests.delete(
+                        url, auth=self.auth, timeout=2, verify=ALERTMANAGER_SSL_VERIFY)
                 except Exception as e:
                     raise RuntimeError('Alertmanager: ERROR - %s' % e)
                 LOG.debug('Alertmanager: %s - %s', r.status_code, r.text)
