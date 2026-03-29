@@ -89,7 +89,7 @@ class AlertmanagerSilence(PluginBase):
                           alert.event, alert.resource)
                 base_url = ALERTMANAGER_API_URL or alert.attributes.get(
                     'externalUrl', DEFAULT_ALERTMANAGER_API_URL)
-                url = base_url + '/api/v1/silence/%s' % silenceId
+                url = base_url + '/api/v2/silence/%s' % silenceId
                 try:
                     r = requests.delete(
                         url, auth=self.auth, timeout=2, verify=ALERTMANAGER_SSL_VERIFY)
@@ -121,7 +121,7 @@ class AlertmanagerSilence(PluginBase):
         if action == 'close':
             LOG.warning(
                 'Got a close action so trying to close this in alertmanager too')
-            url = base_url + '/api/v1/alerts'
+            url = base_url + '/api/v2/alerts'
             raw_data_string = alert.raw_data
             raw_data = json.loads(raw_data_string)
             # set the endsAt to now so alertmanager will consider it expired or whatever
@@ -166,11 +166,13 @@ class AlertmanagerSilence(PluginBase):
                 'matchers': [
                     {
                         'name': 'alertname',
-                        'value': alert.event
+                        'value': alert.event,
+                        'isRegex': False
                     },
                     {
                         'name': 'instance',
-                        'value': alert.resource
+                        'value': alert.resource,
+                        'isRegex': False
                     }
                 ],
                 'startsAt': datetime.datetime.utcnow().replace(microsecond=0).isoformat() + '.000Z',
@@ -189,7 +191,7 @@ class AlertmanagerSilence(PluginBase):
                 base_url = ALERTMANAGER_API_URL or alert.attributes.get(
                     'externalUrl', DEFAULT_ALERTMANAGER_API_URL)
 
-            url = base_url + '/api/v1/silences'
+            url = base_url + '/api/v2/silences'
 
             try:
                 r = requests.post(url, json=data, auth=self.auth,
@@ -198,11 +200,11 @@ class AlertmanagerSilence(PluginBase):
                 raise RuntimeError('Alertmanager: ERROR - %s' % e)
             LOG.debug('Alertmanager: %s - %s', r.status_code, r.text)
 
-            # example r={"status":"success","data":{"silenceId":8}}
+            # v2 API returns {"silenceID": "..."} directly
             try:
-                data = r.json().get('data', [])
-                if data:
-                    silenceId = data['silenceId']
+                response_data = r.json()
+                silenceId = response_data.get('silenceID')
+                if silenceId:
                     alert.attributes['silenceId'] = silenceId
                 else:
                     silenceId = alert.attributes.get('silenceId', 'unknown')
@@ -219,7 +221,7 @@ class AlertmanagerSilence(PluginBase):
             if silenceId:
                 base_url = ALERTMANAGER_API_URL or alert.attributes.get(
                     'externalUrl', DEFAULT_ALERTMANAGER_API_URL)
-                url = base_url + '/api/v1/silence/%s' % silenceId
+                url = base_url + '/api/v2/silence/%s' % silenceId
                 try:
                     r = requests.delete(
                         url, auth=self.auth, timeout=2, verify=ALERTMANAGER_SSL_VERIFY)
