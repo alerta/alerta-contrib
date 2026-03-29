@@ -14,10 +14,7 @@ os.environ['ALERTMANAGER_API_URL'] = 'http://alertmanager:9093'
 os.environ['ALERTMANAGER_SILENCE_FROM_ACK'] = 'true'
 
 from alerta.app import create_app  # noqa: E402
-from alerta_prometheus import (  # noqa: E402
-    AlertmanagerSilence,
-    parse_duration,
-)
+from alerta_prometheus import AlertmanagerSilence, parse_duration  # noqa: E402
 
 
 class ParseDurationTestCase(unittest.TestCase):
