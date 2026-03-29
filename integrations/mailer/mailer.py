@@ -409,6 +409,8 @@ def validate_rules(rules):
                                 rule, key)
                     valid = False
                     break
+            if valid is False:
+                break
             try:
                 re.compile(field['regex'])
             except re.error:
