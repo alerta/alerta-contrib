@@ -6,7 +6,6 @@ https://github.com/prometheus/alertmanager/blob/main/api/v2/openapi.yaml
 """
 
 import json
-import os
 import unittest
 from unittest.mock import MagicMock, patch
 
