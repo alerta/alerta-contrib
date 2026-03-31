@@ -1,57 +1,91 @@
-Consul Integration
-==================
+# Consul Integration
 
-Send alerts based on [consul](https://www.consul.io/). health checks,
-triggered by [consul-alerts](https://github.com/AcalephStorage/consul-alerts)
+Forward [Consul](https://www.consul.io/) health-check alerts to [Alerta](https://alerta.io/), triggered by [consul-alerts](https://github.com/AcalephStorage/consul-alerts).
 
 For help, join [![Slack chat](https://img.shields.io/badge/chat-on%20slack-blue?logo=slack)](https://slack.alerta.dev)
 
-Prerequisites
--------------
+## Prerequisites
 
-Consul and [consul-alerts](https://github.com/AcalephStorage/consul-alerts)
-is installed and running.
+- [Consul](https://www.consul.io/) installed and running
+- [consul-alerts](https://github.com/AcalephStorage/consul-alerts) installed and running
 
-Installation
-------------
-    $ pip install python-consul alerta --upgrade
-    copy script to somewhere accessible by consul-alerts, make sure its executable
+## Installation
 
-Clone the GitHub repo and run:
+Install the Python dependencies:
 
-    $ python setup.py install
+```bash
+pip install python-consul alerta --upgrade
+```
 
-Or, to install remotely from GitHub run:
+Then either clone the repo and install locally:
 
-    $ pip install git+https://github.com/alerta/alerta-contrib.git#subdirectory=integrations/consul
+```bash
+python setup.py install
+```
 
+Or install directly from GitHub:
 
-Configuration
--------------
+```bash
+pip install git+https://github.com/alerta/alerta-contrib.git#subdirectory=integrations/consul
+```
 
-Define these keys in consul KV store:
+Make sure the `consul_alerta.py` script is accessible by consul-alerts and is executable.
 
-        consul-alerts/config/notifiers/custom/alerta:<path>/consul-alerta.py
-        alerta/apikey:'api-key' // alerta key for api access (MUST)
-        alerta/apiurl:'api-url' // alerta api url (MUST)
-        alerta/timeout:900 // alarm timeout in alerta (default 900)
-        alerta/max_retries:3 // max api call attemps (default 3)
-        alerta/sleep:2 // sleep between attemps (default 2)
-        alerta/origin:consul // alert origin (default consul)
-        alerta/defaultenv:Production // default alert environment (optional - default Production)
-        alerta/env/{hostname}:Testing // exceptions for env of specific nodes (optional)
-        alerta/alerttype:ConsulAlerts // alert type (default ConsulAlerts)
-        consul-alerts/config/notif-profiles/default: { "Interval": 10 } // will keep active alerts "open" in alerta, before timeout removes them (must)
+## Configuration
 
+### Environment Variables
 
-References
-----------
+| Variable      | Default     | Description         |
+|---------------|-------------|---------------------|
+| `CONSUL_HOST` | `127.0.0.1` | Consul agent host   |
+| `CONSUL_PORT` | `8500`      | Consul agent port   |
 
-  * https://www.consul.io/
-  * https://github.com/hashicorp/consul
-  * https://github.com/AcalephStorage/consul-alerts
+### Consul KV Keys
 
-License
--------
+Set these keys in the Consul KV store:
+
+| Key | Required | Default | Description |
+|-----|----------|---------|-------------|
+| `alerta/apiurl` | yes | — | Alerta API URL |
+| `alerta/apikey` | yes | — | Alerta API key |
+| `alerta/timeout` | no | `900` | Alert timeout in seconds |
+| `alerta/max_retries` | no | `3` | Max API call attempts |
+| `alerta/sleep` | no | `2` | Seconds between retry attempts |
+| `alerta/origin` | no | `consul` | Alert origin |
+| `alerta/alerttype` | no | `ConsulAlert` | Alert event type |
+| `alerta/defaultenv` | no | `Production` | Default alert environment |
+| `alerta/env/{hostname}` | no | — | Per-node environment override |
+
+### consul-alerts Notifier
+
+Register the custom notifier and notification profile:
+
+```
+consul-alerts/config/notifiers/custom/alerta  →  <path>/consul_alerta.py
+consul-alerts/config/notif-profiles/default   →  { "Interval": 10 }
+```
+
+The notification profile keeps active alerts open in Alerta before the timeout removes them.
+
+## Heartbeat
+
+The `consul_heartbeat.py` script (installed as the `consul-heartbeat` command) sends a periodic heartbeat to the Alerta API. This lets Alerta know that the Consul integration is alive — if heartbeats stop arriving within the configured `timeout` window (default 900 seconds), Alerta will flag the integration as stale.
+
+The heartbeat is **not** triggered by consul-alerts. You should run it on a cron job or systemd timer, for example every 5 minutes:
+
+```bash
+# crontab entry
+*/5 * * * * consul-heartbeat
+```
+
+It reads its configuration (`alerta/apiurl`, `alerta/apikey`, `alerta/origin`, `alerta/timeout`, `alerta/max_retries`, `alerta/sleep`) from the same Consul KV keys listed above.
+
+## References
+
+- https://www.consul.io/
+- https://github.com/hashicorp/consul
+- https://github.com/AcalephStorage/consul-alerts
+
+## License
 
 Copyright (c) 2016 Marco Supino. Available under the MIT License.

@@ -5,12 +5,12 @@ version = '1.1.1'
 setup(
     name='alerta-consul',
     version=version,
-    description='Send emails from Alerta',
+    description='Alerta integration for Consul health checks',
     url='https://github.com/alerta/alerta-contrib',
     license='MIT',
     author='Marco Supino',
     author_email='marco@supino.org',
-    py_modules=['consulalerta', 'consulheartbeat'],
+    py_modules=['consul_alerta', 'consul_heartbeat'],
     install_requires=[
         'alerta',
         'python-consul'
@@ -19,8 +19,8 @@ setup(
     zip_safe=False,
     entry_points={
         'console_scripts': [
-            'consul-alerta = consulalerta:main',
-            'consul-heartbeat = consulheartbeat:main'
+            'consul-alerta = consul_alerta:main',
+            'consul-heartbeat = consul_heartbeat:main'
         ]
     },
     keywords='alerta monitoring consul',
