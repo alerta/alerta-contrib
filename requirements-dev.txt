@@ -10,6 +10,8 @@ pylint==2.16.2
 pytest-cov
 pytest>=5.4.3
 python-dotenv
+requests
 requests_mock
 six
 StrEnum
+setuptools
