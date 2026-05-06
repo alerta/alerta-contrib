@@ -127,6 +127,18 @@ SLACK_TOKEN = 'xoxp-903711738716-407999999999-433333333331-a84444444448888888882
 Ensure SLACK_CHANNEL is set for the default channel for alerts.  You may still use SLACK_CHANNEL_ENV_MAP.
 
 
+Zulip Compatibility
+-------------------
+
+Zulip's `Slack-compatible incoming webhook <https://zulip.com/integrations/doc/slack_incoming>`_
+works with this plugin. Set ``SLACK_WEBHOOK_URL`` to your Zulip endpoint::
+
+    SLACK_WEBHOOK_URL = 'https://DOMAINNAME/api/v1/external/slack_incoming?api_key=API_KEY&stream=STREAM_NAME&topic=TOPIC'
+
+Zulip uses **streams** (similar to Slack channels) and requires a **topic** for
+message threading -- both are specified as query parameters in the webhook URL.
+
+
 References
 ----------
 
