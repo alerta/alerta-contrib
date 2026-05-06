@@ -14,7 +14,7 @@ Installation
 
 Clone the GitHub repo and run:
 
-    $ python setup.py install
+    $ python3 setup.py install
 
 Or, to install remotely from GitHub run:
 
@@ -44,7 +44,7 @@ IP2LOCATIONIO_ACCESS_KEY = 'YOUR_IP2LOCATIONIO_API_KEY'
 {
     "alert": {
         "attributes": {
-            "as":"Google LLC"
+            "as":"Google LLC",
             "asn":"15169",
             "city": "Mountain View",
             "country": "US",
