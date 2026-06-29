@@ -68,6 +68,7 @@ Webhooks
   * [AWS CloudWatch](https://github.com/alerta/alerta/blob/master/alerta/webhooks/cloudwatch.py)
   * [Azure Monitor](webhooks/azuremonitor)
   * [Fail2Ban](webhooks/fail2ban)
+  * [Flowtriq](webhooks/flowtriq)
   * [Grafana](https://github.com/alerta/alerta/blob/master/alerta/webhooks/grafana.py)
   * [Graylog](https://github.com/alerta/alerta/blob/master/alerta/webhooks/graylog.py)
   * [Mailgun](webhooks/mailgun)
