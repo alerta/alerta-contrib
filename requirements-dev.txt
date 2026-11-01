@@ -6,7 +6,7 @@ mock
 mypy==1.0.1
 pre-commit==2.20.0
 PyJWT>=2.0.0
-pylint==2.16.2
+pylint==4.0.9
 pytest-cov
 pytest>=5.4.3
 python-dotenv
